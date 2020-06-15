@@ -10,25 +10,27 @@ def package_files(directory):
     return paths
 
 
-extra_files = package_files('personal_mycroft_backend')
+extra_files = package_files('mock_mycroft_backend')
 
 setup(
-    name='personal-mycroft-backend',
-    version='0.1.4',
-    packages=['personal_mycroft_backend', 'personal_mycroft_backend.extra',
-              'personal_mycroft_backend.backend',
-              'personal_mycroft_backend.utils',
-              'personal_mycroft_backend.database',
-              'personal_mycroft_backend.frontend'],
-    install_requires=['Flask>=0.12', 'WTForms>=2.1', 'SQLAlchemy>=1.1.9',
-                      'bcrypt>=3.1.3', 'requests>=2.2.1', 'Flask-Mail',
-                      'pygeoip', 'SpeechRecognition', 'pyOpenSSL',
-                      "flask_sslify"],
+    name='mock-mycroft-backend',
+    version='0.2.1',
+    packages=['mock_mycroft_backend',
+              'mock_mycroft_backend.backend',
+              'mock_mycroft_backend.database'],
+    install_requires=['Flask>=0.12', 'requests>=2.2.1', 'Flask-Mail',
+                      'speech2text', 'pyOpenSSL', "flask_sslify",
+                      "json_database"],
     package_data={'': extra_files},
     include_package_data=True,
-    url='https://github.com/MycroftAI/personal-backend',
+    url='https://github.com/OpenJarbas/mock-backend',
     license='Apache-2.0',
     author='jarbasAI',
     author_email='jarbasai@mailfence.com',
-    description='personal mycroft backend'
+    description='mock mycroft backend',
+    entry_points={
+        'console_scripts': [
+            'mock-mycroft-backend=mock_mycroft_backend.__main__:main'
+        ]
+    }
 )

@@ -1,12 +1,7 @@
 Flask>=0.12
-psutil
-SQLAlchemy>=1.1.9
-bcrypt>=3.1.3
+json_database
 requests>=2.2.1
 Flask-Mail
 flask_sslify
-geoip2
-SpeechRecognition
 pyOpenSSL
-gTTS
-pydub
+speech2text
