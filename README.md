@@ -64,7 +64,10 @@ configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.co
     "data_dir": "/home/user/.mycroft/mock_backend",
     "metrics_db": "/home/user/.mycroft/mock_backend/metrics.json",
     "api_version": "v1",
-    "email": "xxx@gmail.com"
+    "email": "xxx@gmail.com",
+    "record_utterances": false,
+    "utterances_path": "/home/user/.mycroft/mock_backend/utterances",
+    "utterances_db": "/home/user/.mycroft/mock_backend/utterances.json"
 }
 ```
 

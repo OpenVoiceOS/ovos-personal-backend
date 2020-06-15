@@ -16,10 +16,13 @@ from tempfile import NamedTemporaryFile
 import json
 from flask import request
 from speech_recognition import Recognizer, AudioFile
-
+import time
+from os.path import join, isdir
+from os import makedirs
 from mock_mycroft_backend.backend import API_VERSION
 from mock_mycroft_backend.configuration import CONFIGURATION
 from mock_mycroft_backend.backend.decorators import noindex
+from mock_mycroft_backend.database.utterances import JsonUtteranceDatabase
 from speech2text import STTFactory
 
 recognizer = Recognizer()
@@ -38,6 +41,16 @@ def get_stt_routes(app):
                 audio = recognizer.record(source)  # read the entire audio file
 
             utterance = engine.execute(audio, language=lang)
+        if CONFIGURATION["record_utterances"]:
+            wav = audio.get_wav_data()
+            path = join(CONFIGURATION["utterances_path"],
+                        str(time.time()).replace(".", "") + ".wav")
+            if not isdir(CONFIGURATION["utterances_path"]):
+                makedirs(CONFIGURATION["utterances_path"])
+            with open(path, "wb") as f:
+                f.write(wav)
+            with JsonUtteranceDatabase() as db:
+                db.add_utterance(utterance, path)
         return json.dumps([utterance])
 
     return app

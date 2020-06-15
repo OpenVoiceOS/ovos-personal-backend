@@ -76,6 +76,11 @@ DEFAULT_LOCATION = {
     }
 }
 
+# Listener
+RECORD_UTTERANCES = False
+UTTERANCES_PATH = join(DATA_PATH, "utterances")
+UTTERANCES_DB = join(DATA_PATH, "utterances.json")
+
 
 def default_conf():
     default = {
@@ -96,7 +101,10 @@ def default_conf():
         "metrics_db": METRICS_DB,
         "api_version": API_VERSION,
         "email": RECEIVING_EMAIL,
-        "data_path": DATA_PATH
+        "data_path": DATA_PATH,
+        "record_utterances": RECORD_UTTERANCES,
+        "utterances_path": UTTERANCES_PATH,
+        "utterances_db": UTTERANCES_DB
     }
     config = JsonStorage(CONFIG_PATH)
     for k in default:
