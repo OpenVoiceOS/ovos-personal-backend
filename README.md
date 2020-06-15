@@ -19,7 +19,7 @@ pip install mock-mycroft-backend
 
 ## Configuration
 
-configure backend by editing/creating ~/.mycroft/mock_backend/mock_backend.conf
+configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.conf```
 
 ```json
 {
