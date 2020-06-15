@@ -6,6 +6,18 @@ import time
 from os.path import join, isdir
 from os import makedirs
 import json
+from io import BytesIO, StringIO
+import requests
+
+
+def upload_wake_word(audio, metadata,
+                     upload_url="https://training.mycroft.ai/precise/upload"):
+    return requests.post(
+        upload_url, files={
+            'audio': BytesIO(audio),
+            'metadata': StringIO(json.dumps(metadata))
+        }
+    )
 
 
 def get_precise_routes(app):
@@ -44,7 +56,22 @@ def get_precise_routes(app):
 
         uploaded = False
         if CONFIGURATION["upload_wakewords_to_mycroft"]:
-            # TODO  # upload "https://training.mycroft.ai/precise/upload"
+            uploaded = False
+            audio = None
+            meta = None
+            for precisefile in uploads:
+                fn = uploads[precisefile].filename
+                if fn == 'audio':
+                    audio = uploads[precisefile]
+
+                if fn == 'metadata':
+
+                    meta = uploads[precisefile]
+            if audio and meta:
+                upload_wake_word(audio, meta)
+                uploaded = True
+        if CONFIGURATION["upload_wakewords_to_community"]:
+            # TODO PR to https://github.com/MycroftAI/Precise-Community-Data
             uploaded = False
 
         return {"success": True,

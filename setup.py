@@ -14,7 +14,7 @@ extra_files = package_files('mock_mycroft_backend')
 
 setup(
     name='mock-mycroft-backend',
-    version='0.2.2',
+    version='0.2.3',
     packages=['mock_mycroft_backend',
               'mock_mycroft_backend.backend',
               'mock_mycroft_backend.database'],

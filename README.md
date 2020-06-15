@@ -17,7 +17,6 @@ This is beta, some skills WILL break, you will lose:
 - geolocation api
 - send emails functionality (unless configured in mock_backend.conf)
 
-
 ## Install
 
 from pip
@@ -29,6 +28,9 @@ pip install mock-mycroft-backend
 ## Configuration
 
 configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.conf```
+
+If you want to help Mycroft AI improving their precise models you can set "upload_wakewords_to_mycroft"
+
 
 ```json
 {
@@ -75,12 +77,13 @@ configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.co
     "api_version": "v1",
     "email": "xxx@gmail.com",
     "data_path": "/home/user/.mycroft/mock_backend",
-    "record_utterances": true,
-    "record_wakewords": true,
+    "record_utterances": false,
+    "record_wakewords": false,
     "utterances_path": "/home/user/.mycroft/mock_backend/utterances",
     "utterances_db": "/home/user/.mycroft/mock_backend/utterances.json",
     "wakewords_path": "/home/user/.mycroft/mock_backend/wakewords",
-    "wakewords_db": "/home/user/.mycroft/mock_backend/wakewords.json"
+    "wakewords_db": "/home/user/.mycroft/mock_backend/wakewords.json",
+    "upload_wakewords_to_mycroft": false
 }
 ```
 
@@ -101,7 +104,12 @@ update your mycroft config to use this backend
 	  "mimic2": {
 	      "url": "http://0.0.0.0:6712/synthesize/mimic2/kusal/en?text="
       }
-   }
+   },
+   "listener": {
+        "wake_word_upload": {
+            "url": "http://0.0.0.0:6712/precise/upload"
+        }
+    }
 }
 ```
      

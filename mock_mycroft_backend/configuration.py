@@ -84,6 +84,7 @@ RECORD_WAKEWORDS = False
 WAKEWORDS_PATH = join(DATA_PATH, "wakewords")
 WAKEWORDS_DB = join(DATA_PATH, "wakewords.json")
 UPLOAD_WAKEWORDS_TO_MYCROFT = False
+UPLOAD_WAKEWORDS_TO_COMMUNITY = False
 
 
 def default_conf():
@@ -112,7 +113,8 @@ def default_conf():
         "record_wakewords": RECORD_WAKEWORDS,
         "wakewords_path": WAKEWORDS_PATH,
         "wakewords_db": WAKEWORDS_DB,
-        "upload_wakewords_to_mycroft": UPLOAD_WAKEWORDS_TO_MYCROFT
+        "upload_wakewords_to_mycroft": UPLOAD_WAKEWORDS_TO_MYCROFT,
+        "upload_wakewords_to_community": UPLOAD_WAKEWORDS_TO_COMMUNITY
     }
     if not exists(CONFIG_PATH):
         config = JsonStorage(CONFIG_PATH)
@@ -127,4 +129,4 @@ def default_conf():
 
 
 CONFIGURATION = default_conf()
-CONFIGURATION.store()
+
