@@ -94,9 +94,16 @@ update your mycroft config to use this backend
 
 start backend 
 
-```python
-from mock_mycroft_backend import start_backend
+```bash
+$ mock-mycroft-backend -h
+usage: mock-mycroft-backend [-h] [--flask-port FLASK_PORT] [--flask-host FLASK_HOST]
 
-start_backend()
+optional arguments:
+  -h, --help            show this help message and exit
+  --flask-port FLASK_PORT
+                        Mock backend port number
+  --flask-host FLASK_HOST
+                        Mock backend host
+
 ```
 
