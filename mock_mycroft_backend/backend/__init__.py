@@ -35,11 +35,13 @@ def create_app():
     from mock_mycroft_backend.backend.device import get_device_routes
     from mock_mycroft_backend.backend.stt import get_stt_routes
     from mock_mycroft_backend.backend.tts import get_tts_routes
+    from mock_mycroft_backend.backend.precise import get_precise_routes
 
     app = get_auth_routes(app)
     app = get_device_routes(app, mail)
     app = get_stt_routes(app)
     app = get_tts_routes(app)
+    app = get_precise_routes(app)
 
     @app.route("/", methods=['GET'])
     @noindex

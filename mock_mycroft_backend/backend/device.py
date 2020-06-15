@@ -114,6 +114,7 @@ def get_device_routes(app, mail_sender):
         data = request.json
         with JsonMetricDatabase() as db:
             db.add_metric(name, json.dumps(data))
+        return nice_json({"success": True, "uuid": uuid, "metric": data})
 
     @app.route("/" + API_VERSION + "/device/<uuid>/subscription",
                methods=['GET'])

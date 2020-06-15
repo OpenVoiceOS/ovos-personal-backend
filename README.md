@@ -8,6 +8,15 @@ This repo is an alternative to the backend meant for personal usage, this allows
 
 No frontend functionality is provided
 
+This is beta, some skills WILL break, you will lose:
+
+- web skill settings interface
+- web device configuration interface
+- wolfram alpha proxy 
+- open weather map proxy 
+- geolocation api
+- send emails functionality (unless configured in mock_backend.conf)
+
 
 ## Install
 
@@ -29,8 +38,8 @@ configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.co
     },
     "backend_port": 6712,
     "ssl": false,
-    "ssl_cert": null,
-    "ssl_key": null,
+    "ssl_cert": "/home/user/.mycroft/mock_backend/mock_backend.crt",
+    "ssl_key": "/home/user/.mycroft/mock_backend/mock_backend.key",
     "mail_user": "xxx@gmail.com",
     "mail_password": "xxx",
     "mail_server": "smtp.googlemail.com",
@@ -65,9 +74,13 @@ configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.co
     "metrics_db": "/home/user/.mycroft/mock_backend/metrics.json",
     "api_version": "v1",
     "email": "xxx@gmail.com",
-    "record_utterances": false,
+    "data_path": "/home/user/.mycroft/mock_backend",
+    "record_utterances": true,
+    "record_wakewords": true,
     "utterances_path": "/home/user/.mycroft/mock_backend/utterances",
-    "utterances_db": "/home/user/.mycroft/mock_backend/utterances.json"
+    "utterances_db": "/home/user/.mycroft/mock_backend/utterances.json",
+    "wakewords_path": "/home/user/.mycroft/mock_backend/wakewords",
+    "wakewords_db": "/home/user/.mycroft/mock_backend/wakewords.json"
 }
 ```
 
@@ -109,4 +122,11 @@ optional arguments:
                         Mock backend host
 
 ```
+this project uses [json_database](https://github.com/OpenJarbas/json_database)
 
+You can inspect saved data under configured directories
+```
+/home/user/.mycroft/mock_backend/wakewords.json
+/home/user/.mycroft/mock_backend/utterances.json
+/home/user/.mycroft/mock_backend/metrics.json
+```

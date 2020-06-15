@@ -80,6 +80,10 @@ DEFAULT_LOCATION = {
 RECORD_UTTERANCES = False
 UTTERANCES_PATH = join(DATA_PATH, "utterances")
 UTTERANCES_DB = join(DATA_PATH, "utterances.json")
+RECORD_WAKEWORDS = False
+WAKEWORDS_PATH = join(DATA_PATH, "wakewords")
+WAKEWORDS_DB = join(DATA_PATH, "wakewords.json")
+UPLOAD_WAKEWORDS_TO_MYCROFT = False
 
 
 def default_conf():
@@ -104,16 +108,23 @@ def default_conf():
         "data_path": DATA_PATH,
         "record_utterances": RECORD_UTTERANCES,
         "utterances_path": UTTERANCES_PATH,
-        "utterances_db": UTTERANCES_DB
+        "utterances_db": UTTERANCES_DB,
+        "record_wakewords": RECORD_WAKEWORDS,
+        "wakewords_path": WAKEWORDS_PATH,
+        "wakewords_db": WAKEWORDS_DB,
+        "upload_wakewords_to_mycroft": UPLOAD_WAKEWORDS_TO_MYCROFT
     }
-    config = JsonStorage(CONFIG_PATH)
-    for k in default:
-        config[k] = default[k]
+    if not exists(CONFIG_PATH):
+        config = JsonStorage(CONFIG_PATH)
+        for k in default:
+            config[k] = default[k]
+    else:
+        config = JsonStorage(CONFIG_PATH)
+        for k in default:
+            if k not in config:
+                config[k] = default[k]
     return config
 
 
-if not exists(CONFIG_PATH):
-    CONFIGURATION = default_conf()
-    CONFIGURATION.store()
-else:
-    CONFIGURATION = JsonStorage(CONFIG_PATH)
+CONFIGURATION = default_conf()
+CONFIGURATION.store()
