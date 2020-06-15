@@ -47,8 +47,6 @@ RECEIVING_EMAIL = MAIL_USERNAME
 STT_CONFIG = {"module": "google",
               "google": {}}
 
-LANG = "en-us"
-
 OVERRIDE_LOCATION = False
 GEOLOCATE_IP = False
 DEFAULT_LOCATION = {
@@ -89,7 +87,6 @@ UPLOAD_WAKEWORDS_TO_COMMUNITY = False
 
 def default_conf():
     default = {
-        "lang": LANG,
         "stt": STT_CONFIG,
         "backend_port": BACKEND_PORT,
         "ssl": SSL,

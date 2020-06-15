@@ -34,7 +34,6 @@ If you want to help Mycroft AI improving their precise models you can set "uploa
 
 ```json
 {
-    "lang": "en-us",
     "stt": {
         "module": "google"
     },
