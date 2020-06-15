@@ -4,7 +4,7 @@ Personal mycroft backend alternative to mycroft.home, written in flask
 
 Official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
 
-This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, see [Mock Backend Skill]()
+This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, see [Mock Backend Skill](https://github.com/JarbasSkills/skill-mock-backend)
 
 No frontend functionality is provided
 
