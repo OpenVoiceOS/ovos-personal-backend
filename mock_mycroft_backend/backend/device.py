@@ -20,6 +20,7 @@ from mock_mycroft_backend.backend import API_VERSION
 from mock_mycroft_backend.backend.decorators import noindex
 from mock_mycroft_backend.database.metrics import JsonMetricDatabase
 import time
+import requests
 import json
 
 
@@ -114,7 +115,17 @@ def get_device_routes(app, mail_sender):
         data = request.json
         with JsonMetricDatabase() as db:
             db.add_metric(name, json.dumps(data))
-        return nice_json({"success": True, "uuid": uuid, "metric": data})
+        upload_data = {"uploaded": False}
+        if CONFIGURATION["upload_metrics_to_mycroft"]:
+            # TODO mycroft requires pairing, so this will fail wth 401
+            metrics_url = CONFIGURATION["mycroft_metrics_url"].format(
+                name=name, uuid=uuid)
+            res = requests.post(metrics_url, json=data)
+            upload_data = res.json()
+            upload_data["uploaded"] = str(res.status_code).startswith("2")
+        return nice_json({"success": True, "uuid": uuid,
+                          "metric": data,
+                          "upload_data": upload_data})
 
     @app.route("/" + API_VERSION + "/device/<uuid>/subscription",
                methods=['GET'])

@@ -20,8 +20,12 @@ from json_database import JsonStorage
 DATA_PATH = join(expanduser("~/.mycroft/mock_backend"))
 if not isdir(DATA_PATH):
     makedirs(DATA_PATH)
-METRICS_DB = join(DATA_PATH, "metrics.json")
 CONFIG_PATH = join(DATA_PATH, "mock_backend.conf")
+
+# Metrics
+UPLOAD_METRICS_TO_MYCROFT = False
+MYCROFT_METRICS_URL = "https://api.mycroft.ai/v1/device/{uuid}/metric/{name}"
+METRICS_DB = join(DATA_PATH, "metrics.json")
 
 # SSL
 SSL = False
@@ -111,7 +115,9 @@ def default_conf():
         "wakewords_path": WAKEWORDS_PATH,
         "wakewords_db": WAKEWORDS_DB,
         "upload_wakewords_to_mycroft": UPLOAD_WAKEWORDS_TO_MYCROFT,
-        "upload_wakewords_to_community": UPLOAD_WAKEWORDS_TO_COMMUNITY
+        "upload_wakewords_to_community": UPLOAD_WAKEWORDS_TO_COMMUNITY,
+        "upload_metrics_to_mycroft": UPLOAD_METRICS_TO_MYCROFT,
+        "mycroft_metrics_url": MYCROFT_METRICS_URL
     }
     if not exists(CONFIG_PATH):
         config = JsonStorage(CONFIG_PATH)
