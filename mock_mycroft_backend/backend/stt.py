@@ -39,8 +39,10 @@ def get_stt_routes(app):
             fp.write(flac_audio)
             with AudioFile(fp.name) as source:
                 audio = recognizer.record(source)  # read the entire audio file
-
-            utterance = engine.execute(audio, language=lang)
+            try:
+                utterance = engine.execute(audio, language=lang)
+            except:
+                utterance = "speak speech recognition failed"
         if CONFIGURATION["record_utterances"]:
             wav = audio.get_wav_data()
             path = join(CONFIGURATION["utterances_path"],
