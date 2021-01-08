@@ -2,6 +2,8 @@ Flask>=0.12
 json_database
 requests>=2.2.1
 Flask-Mail
-flask_sslify
 pyOpenSSL
 speech2text
+geocoder
+timezonefinder
+requests_cache

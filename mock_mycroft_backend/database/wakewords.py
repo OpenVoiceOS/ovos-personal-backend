@@ -1,5 +1,4 @@
-from json_database import JsonDatabase
-from mock_mycroft_backend.configuration import CONFIGURATION
+from json_database import JsonDatabaseXDG
 import json
 
 
@@ -13,9 +12,9 @@ class WakeWordRecording:
         self.meta = meta
 
 
-class JsonWakeWordDatabase(JsonDatabase):
-    def __init__(self, path=CONFIGURATION["wakewords_db"]):
-        super().__init__("wakewords", path)
+class JsonWakeWordDatabase(JsonDatabaseXDG):
+    def __init__(self):
+        super().__init__("mycroft_wakewords")
 
     def add_wakeword(self, transcription, path, meta="{}"):
         wakeword_id = self.total_wakewords() + 1
@@ -35,4 +34,5 @@ class JsonWakeWordDatabase(JsonDatabase):
             self.commit()
         except Exception as e:
             print(e)
+
 

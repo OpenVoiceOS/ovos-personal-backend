@@ -14,12 +14,13 @@ extra_files = package_files('mock_mycroft_backend')
 
 setup(
     name='mock-mycroft-backend',
-    version='0.2.4',
+    version='0.3.0',
     packages=['mock_mycroft_backend',
+              'mock_mycroft_backend.utils',
               'mock_mycroft_backend.backend',
               'mock_mycroft_backend.database'],
     install_requires=['Flask>=0.12', 'requests>=2.2.1', 'Flask-Mail',
-                      'speech2text', 'pyOpenSSL', "flask_sslify",
+                      'speech2text', 'pyOpenSSL', "geocoder", "timezonefinder",
                       "json_database"],
     package_data={'': extra_files},
     include_package_data=True,

@@ -2,20 +2,18 @@
 
 Personal mycroft backend alternative to mycroft.home, written in flask
 
-Official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
+This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, This is NOT meant to be used as a backend, but rather to run on the mycroft
+devices directly.
 
-This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, see [Mock Backend Skill](https://github.com/JarbasSkills/skill-mock-backend)
-
-No frontend functionality is provided
-
-This is beta, some skills WILL break, you will lose:
+No frontend functionality is provided, you will lose:
 
 - web skill settings interface
 - web device configuration interface
-- wolfram alpha proxy 
-- open weather map proxy 
-- geolocation api
-- send emails functionality (unless configured in mock_backend.conf)
+- send emails functionality (WIP)
+
+For a full backend experience, the official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
+
+NOTE: There is no pairing, devices will just work
 
 ## Install
 
@@ -27,62 +25,72 @@ pip install mock-mycroft-backend
 
 ## Configuration
 
-configure backend by editing/creating ```~/.mycroft/mock_backend/mock_backend.conf```
+configure backend by editing/creating ```~/.config/json_database/mycroft_backend.json```
 
-If you want to help Mycroft AI improving their precise models you can set "upload_wakewords_to_mycroft"
-
+default configuration is
 
 ```json
 {
-    "stt": {
-        "module": "google"
-    },
-    "backend_port": 6712,
-    "ssl": false,
-    "ssl_cert": "/home/user/.mycroft/mock_backend/mock_backend.crt",
-    "ssl_key": "/home/user/.mycroft/mock_backend/mock_backend.key",
-    "mail_user": "xxx@gmail.com",
-    "mail_password": "xxx",
-    "mail_server": "smtp.googlemail.com",
-    "mail_port": 465,
-    "default_location": {
-        "city": {
-            "code": "Lawrence",
-            "name": "Lawrence",
-            "state": {
-                "code": "KS",
-                "name": "Kansas",
-                "country": {
-                    "code": "US",
-                    "name": "United States"
-                }
-            }
-        },
-        "coordinate": {
-            "latitude": 38.971669,
-            "longitude": -95.23525
-        },
-        "timezone": {
-            "code": "America/Chicago",
-            "name": "Central Standard Time",
-            "dstOffset": 3600000,
-            "offset": -21600000
+  "stt": {
+    "module": "google"
+  },
+  "backend_port": 6712,
+  "geolocate": false,
+  "override_location": false,
+  "api_version": "v1",
+  "data_path": "~/.mycroft/mock_backend",
+  "record_utterances": false,
+  "record_wakewords": false,
+  "wolfram_key": "FREE_DEMO_KEY_PROBABLY_RATE_LIMITED",
+  "owm_key": "FREE_DEMO_KEY_PROBABLY_RATE_LIMITED",
+  "default_location": {
+    "city": {
+      "code": "Lawrence",
+      "name": "Lawrence",
+      "state": {
+        "code": "KS",
+        "name": "Kansas",
+        "country": {
+          "code": "US",
+          "name": "United States"
         }
+      }
     },
-    "geolocate": false,
-    "override_location": false,
-    "data_dir": "/home/user/.mycroft/mock_backend",
-    "metrics_db": "/home/user/.mycroft/mock_backend/metrics.json",
-    "api_version": "v1",
-    "email": "xxx@gmail.com",
-    "data_path": "/home/user/.mycroft/mock_backend",
-    "record_utterances": false,
-    "record_wakewords": false,
-    "utterances_path": "/home/user/.mycroft/mock_backend/utterances",
-    "utterances_db": "/home/user/.mycroft/mock_backend/utterances.json",
-    "wakewords_path": "/home/user/.mycroft/mock_backend/wakewords",
-    "wakewords_db": "/home/user/.mycroft/mock_backend/wakewords.json",
-    "upload_wakewords_to_mycroft": false
+    "coordinate": {
+      "latitude": 38.971669,
+      "longitude": -95.23525
+    },
+    "timezone": {
+      "code": "America/Chicago",
+      "name": "Central Standard Time",
+      "dstOffset": 3600000,
+      "offset": -21600000
+    }
+  }
+}
+```
+- stt config follows the same format of mycroft.conf and uses [speech2text](https://github.com/HelloChatterbox/speech2text)
+- if override location is True, then location will be set to configured value
+- if geolocate is True then location will be set from your ip address
+- set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
+- set open weather map key for wolfram alpha proxy expected by official mycroft skill
+- if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
+    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_wakewords.jsondb`
+- if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
+    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_utterances.jsondb`
+- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_metrics.jsondb`
+
+### Email
+
+CONFIGURATION NOT YET IMPLEMENTED
+
+will work if [default values](https://pythonhosted.org/Flask-Mail/) are valid
+
+add the following section to your .conf
+
+```json
+{
+  "email": "emails_are_sent_to_this_address"
 }
 ```
 
@@ -129,11 +137,7 @@ optional arguments:
                         Mock backend host
 
 ```
-this project uses [json_database](https://github.com/OpenJarbas/json_database)
 
-You can inspect saved data under configured directories
-```
-/home/user/.mycroft/mock_backend/wakewords.json
-/home/user/.mycroft/mock_backend/utterances.json
-/home/user/.mycroft/mock_backend/metrics.json
-```
+# Credits
+
+JarbasAI

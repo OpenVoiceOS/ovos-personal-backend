@@ -1,5 +1,3 @@
-# Copyright 2019 Mycroft AI Inc.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,124 +10,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from os.path import join, expanduser, isdir, exists
-from os import makedirs
-from json_database import JsonStorage
+from os.path import exists
+from json_database import JsonStorageXDG
+import xdg
 
-# DATABASE
-DATA_PATH = join(expanduser("~/.mycroft/mock_backend"))
-if not isdir(DATA_PATH):
-    makedirs(DATA_PATH)
-CONFIG_PATH = join(DATA_PATH, "mock_backend.conf")
-
-# Metrics
-UPLOAD_METRICS_TO_MYCROFT = False
-MYCROFT_METRICS_URL = "https://api.mycroft.ai/v1/device/{uuid}/metric/{name}"
-METRICS_DB = join(DATA_PATH, "metrics.json")
-
-# SSL
-SSL = False
-SSL_CERT = join(DATA_PATH, "mock_backend.crt")
-SSL_KEY = join(DATA_PATH, "mock_backend.key")
-
-# MOCK BACKEND
-API_VERSION = "v1"
-BACKEND_PORT = 6712
-
-# EMAIL
-
-MAIL_SERVER = 'smtp.googlemail.com'
-MAIL_PORT = 465
-MAIL_USE_TLS = False
-MAIL_USE_SSL = True
-MAIL_USERNAME = "xxx@gmail.com"
-MAIL_PASSWORD = "xxx"
-MAIL_DEFAULT_SENDER = MAIL_USERNAME
-
-RECEIVING_EMAIL = MAIL_USERNAME
-
-STT_CONFIG = {"module": "google",
-              "google": {}}
-
-OVERRIDE_LOCATION = False
-GEOLOCATE_IP = False
-DEFAULT_LOCATION = {
-    "city": {
-        "code": "Lawrence",
-        "name": "Lawrence",
-        "state": {
-            "code": "KS",
-            "name": "Kansas",
-            "country": {
-                "code": "US",
-                "name": "United States"
+DEFAULT_CONFIG = {
+    "stt": {"module": "google", "google": {}},
+    "backend_port": 6712,
+    "mail_server": 'smtp.googlemail.com',
+    "mail_port": 465,
+    "default_location": {
+        "city": {
+            "code": "Lawrence",
+            "name": "Lawrence",
+            "state": {
+                "code": "KS",
+                "name": "Kansas",
+                "country": {
+                    "code": "US",
+                    "name": "United States"
+                }
             }
+        },
+        "coordinate": {
+            "latitude": 38.971669,
+            "longitude": -95.23525
+        },
+        "timezone": {
+            "code": "America/Chicago",
+            "name": "Central Standard Time",
+            "dstOffset": 3600000,
+            "offset": -21600000
         }
     },
-    "coordinate": {
-        "latitude": 38.971669,
-        "longitude": -95.23525
-    },
-    "timezone": {
-        "code": "America/Chicago",
-        "name": "Central Standard Time",
-        "dstOffset": 3600000,
-        "offset": -21600000
-    }
+    "geolocate": False,
+    "override_location": False,
+    "api_version": "v1",
+    "data_path": "~/.mycroft/mock_backend",
+    "record_utterances": False,
+    "record_wakewords": False,
+    "wolfram_key": "Y7R353-9HQAAL8KKA",
+    "owm_key": "28fed22898afd4717ce5a1535da1f78c"
 }
 
-# Listener
-RECORD_UTTERANCES = False
-UTTERANCES_PATH = join(DATA_PATH, "utterances")
-UTTERANCES_DB = join(DATA_PATH, "utterances.json")
-RECORD_WAKEWORDS = False
-WAKEWORDS_PATH = join(DATA_PATH, "wakewords")
-WAKEWORDS_DB = join(DATA_PATH, "wakewords.json")
-UPLOAD_WAKEWORDS_TO_MYCROFT = False
-UPLOAD_WAKEWORDS_TO_COMMUNITY = False
+CONFIGURATION = JsonStorageXDG("mycroft_backend",
+                               xdg.BaseDirectory.xdg_config_home)
 
+if not exists(CONFIGURATION.path):
+    CONFIGURATION.merge(DEFAULT_CONFIG, skip_empty=False)
+    CONFIGURATION.store()
 
-def default_conf():
-    default = {
-        "stt": STT_CONFIG,
-        "backend_port": BACKEND_PORT,
-        "ssl": SSL,
-        "ssl_cert": SSL_CERT,
-        "ssl_key": SSL_KEY,
-        "mail_user": MAIL_USERNAME,
-        "mail_password": MAIL_PASSWORD,
-        "mail_server": MAIL_SERVER,
-        "mail_port": MAIL_PORT,
-        "default_location": DEFAULT_LOCATION,
-        "geolocate": GEOLOCATE_IP,
-        "override_location": OVERRIDE_LOCATION,
-        "data_dir": DATA_PATH,
-        "metrics_db": METRICS_DB,
-        "api_version": API_VERSION,
-        "email": RECEIVING_EMAIL,
-        "data_path": DATA_PATH,
-        "record_utterances": RECORD_UTTERANCES,
-        "utterances_path": UTTERANCES_PATH,
-        "utterances_db": UTTERANCES_DB,
-        "record_wakewords": RECORD_WAKEWORDS,
-        "wakewords_path": WAKEWORDS_PATH,
-        "wakewords_db": WAKEWORDS_DB,
-        "upload_wakewords_to_mycroft": UPLOAD_WAKEWORDS_TO_MYCROFT,
-        "upload_wakewords_to_community": UPLOAD_WAKEWORDS_TO_COMMUNITY,
-        "upload_metrics_to_mycroft": UPLOAD_METRICS_TO_MYCROFT,
-        "mycroft_metrics_url": MYCROFT_METRICS_URL
-    }
-    if not exists(CONFIG_PATH):
-        config = JsonStorage(CONFIG_PATH)
-        for k in default:
-            config[k] = default[k]
-    else:
-        config = JsonStorage(CONFIG_PATH)
-        for k in default:
-            if k not in config:
-                config[k] = default[k]
-    return config
+from pprint import pprint
+import json
 
-
-CONFIGURATION = default_conf()
-
+s = json.dumps(CONFIGURATION, indent=4)
+print(s)

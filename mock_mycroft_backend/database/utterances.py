@@ -1,5 +1,4 @@
-from json_database import JsonDatabase
-from mock_mycroft_backend.configuration import CONFIGURATION
+from json_database import JsonDatabaseXDG
 
 
 class UtteranceRecording:
@@ -9,9 +8,9 @@ class UtteranceRecording:
         self.path = path
 
 
-class JsonUtteranceDatabase(JsonDatabase):
-    def __init__(self, path=CONFIGURATION["utterances_db"]):
-        super().__init__("utterances", path)
+class JsonUtteranceDatabase(JsonDatabaseXDG):
+    def __init__(self):
+        super().__init__("mycroft_utterances")
 
     def add_utterance(self, transcription, path):
         utterance_id = self.total_utterances() + 1

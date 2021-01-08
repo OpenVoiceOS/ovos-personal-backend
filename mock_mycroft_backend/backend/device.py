@@ -1,5 +1,3 @@
-# Copyright 2019 Mycroft AI Inc.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,13 +12,13 @@
 #
 from flask_mail import Message
 from flask import request
-from mock_mycroft_backend.utils import geo_locate, generate_code, nice_json
+from mock_mycroft_backend.utils import generate_code, nice_json
+from mock_mycroft_backend.utils.geolocate import ip_geolocate
 from mock_mycroft_backend.configuration import CONFIGURATION
 from mock_mycroft_backend.backend import API_VERSION
 from mock_mycroft_backend.backend.decorators import noindex
 from mock_mycroft_backend.database.metrics import JsonMetricDatabase
 import time
-import requests
 import json
 
 
@@ -48,7 +46,7 @@ def get_device_routes(app, mail_sender):
         if CONFIGURATION["override_location"]:
             new_location = CONFIGURATION["default_location"]
         elif CONFIGURATION["geolocate"]:
-            new_location = geo_locate(ip)
+            new_location = ip_geolocate(ip)
         else:
             new_location = {}
         return nice_json(new_location)
@@ -116,13 +114,6 @@ def get_device_routes(app, mail_sender):
         with JsonMetricDatabase() as db:
             db.add_metric(name, json.dumps(data))
         upload_data = {"uploaded": False}
-        if CONFIGURATION["upload_metrics_to_mycroft"]:
-            # TODO mycroft requires pairing, so this will fail wth 401
-            metrics_url = CONFIGURATION["mycroft_metrics_url"].format(
-                name=name, uuid=uuid)
-            res = requests.post(metrics_url, json=data)
-            upload_data = res.json()
-            upload_data["uploaded"] = str(res.status_code).startswith("2")
         return nice_json({"success": True, "uuid": uuid,
                           "metric": data,
                           "upload_data": upload_data})

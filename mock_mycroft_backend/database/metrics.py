@@ -1,5 +1,4 @@
-from json_database import JsonDatabase
-from mock_mycroft_backend.configuration import CONFIGURATION
+from json_database import JsonDatabaseXDG
 import json
 
 
@@ -12,9 +11,9 @@ class Metric:
         self.meta = meta
 
 
-class JsonMetricDatabase(JsonDatabase):
-    def __init__(self, path=CONFIGURATION["metrics_db"]):
-        super().__init__("metrics", path)
+class JsonMetricDatabase(JsonDatabaseXDG):
+    def __init__(self):
+        super().__init__("mycroft_metrics")
 
     def add_metric(self, metric_type=None, meta="{}"):
         metric_id = self.total_metrics() + 1
