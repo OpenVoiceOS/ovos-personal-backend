@@ -60,8 +60,3 @@ if not exists(CONFIGURATION.path):
     CONFIGURATION.merge(DEFAULT_CONFIG, skip_empty=False)
     CONFIGURATION.store()
 
-from pprint import pprint
-import json
-
-s = json.dumps(CONFIGURATION, indent=4)
-print(s)
