@@ -147,5 +147,5 @@ optional arguments:
   - NOTE: this should have been a fork or repository transferred, but was a bare clone
   - Original repository was archived
 - October 2019 - Official mycroft backend [open sourced under a restrictive license](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
-- Jun 2020 - original project repurposed to be a mock backend instead of a full alternative, [skill-mock-backend](https://github.com/JarbasSkills/skill-mock-backend) released
+- Jun 2020 - original project [repurposed to be a mock backend](https://github.com/OpenJarbas/ZZZ-mock-backend) instead of a full alternative, [skill-mock-backend](https://github.com/JarbasSkills/skill-mock-backend) released
 - Jan 2021 - mock-backend adopted by OpenVoiceOS, original repo unarchived and ownership transferred
