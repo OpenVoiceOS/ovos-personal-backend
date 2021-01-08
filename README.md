@@ -138,6 +138,14 @@ optional arguments:
 
 ```
 
-# Credits
+# Project Timeline
 
-JarbasAI
+- Jan 2018 - [initial release](https://github.com/OpenVoiceOS/OVOS-mock-backend/tree/014389065d3e5c66b6cb85e6e77359b6705406fe) of reverse engineered mycroft backend - by JarbasAI
+- July 2018 - Personal backend [added to Mycroft Roadmap](https://mycroft.ai/blog/many-roads-one-destination/)
+- October 2018 - Community [involved in discussion](https://mycroft.ai/blog/mycroft-personal-server-conversation/)
+- Jan 2019 - JarbasAI implementation [adopted by Mycroft](https://github.com/MycroftAI/personal-backend/tree/31ee96a8189d96f8102276bf4b9073811ee9a9b2)
+  - NOTE: this should have been a fork or repository transferred, but was a bare clone
+  - Original repository was archived
+- October 2019 - Official mycroft backend [open sourced under a restrictive license](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
+- Jun 2020 - original project repurposed to be a mock backend instead of a full alternative, [skill-mock-backend](https://github.com/JarbasSkills/skill-mock-backend) released
+- Jan 2021 - mock-backend adopted by OpenVoiceOS, original repo unarchived and ownership transferred
