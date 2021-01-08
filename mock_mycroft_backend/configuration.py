@@ -17,8 +17,6 @@ import xdg
 DEFAULT_CONFIG = {
     "stt": {"module": "google", "google": {}},
     "backend_port": 6712,
-    "mail_server": 'smtp.googlemail.com',
-    "mail_port": 465,
     "default_location": {
         "city": {
             "code": "Lawrence",
