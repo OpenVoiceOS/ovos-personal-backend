@@ -14,7 +14,7 @@ class WakeWordRecording:
 
 class JsonWakeWordDatabase(JsonDatabaseXDG):
     def __init__(self):
-        super().__init__("mycroft_wakewords")
+        super().__init__("ovos_wakewords")
 
     def add_wakeword(self, transcription, path, meta="{}"):
         wakeword_id = self.total_wakewords() + 1

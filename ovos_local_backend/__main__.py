@@ -1,5 +1,5 @@
-from mock_mycroft_backend.backend import start_backend
-from mock_mycroft_backend.configuration import CONFIGURATION
+from ovos_local_backend.backend import start_backend
+from ovos_local_backend.configuration import CONFIGURATION
 
 
 def main():

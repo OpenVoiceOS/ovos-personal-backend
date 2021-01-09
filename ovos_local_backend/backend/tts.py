@@ -11,9 +11,9 @@
 # limitations under the License.
 #
 import base64
-from mock_mycroft_backend.session import SESSION as requests
-from mock_mycroft_backend.backend.decorators import noindex
-from mock_mycroft_backend.utils import nice_json
+from ovos_local_backend.session import SESSION as requests
+from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.utils import nice_json
 from flask import send_file, request
 
 

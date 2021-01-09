@@ -1,4 +1,4 @@
-# Mock Mycroft Backend
+# OVOS Local Backend
 
 Personal mycroft backend alternative to mycroft.home, written in flask
 
@@ -20,12 +20,12 @@ NOTE: There is no pairing, devices will just work
 from pip
 
 ```bash
-pip install mock-mycroft-backend
+pip install ovos-local-backend
 ```
 
 ## Configuration
 
-configure backend by editing/creating ```~/.config/json_database/mycroft_backend.json```
+configure backend by editing/creating ```~/.config/json_database/ovos_backend.json```
 
 default configuration is
 
@@ -38,11 +38,11 @@ default configuration is
   "geolocate": false,
   "override_location": false,
   "api_version": "v1",
-  "data_path": "~/.mycroft/mock_backend",
+  "data_path": "~",
   "record_utterances": false,
   "record_wakewords": false,
-  "wolfram_key": "FREE_DEMO_KEY_PROBABLY_RATE_LIMITED",
-  "owm_key": "FREE_DEMO_KEY_PROBABLY_RATE_LIMITED",
+  "wolfram_key": "BUNDLED_DEMO_KEY",
+  "owm_key": "BUNDLED_DEMO_KEY",
   "default_location": {
     "city": {
       "code": "Lawrence",
@@ -75,10 +75,10 @@ default configuration is
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for wolfram alpha proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_wakewords.jsondb`
+    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_utterances.jsondb`
-- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/mycroft_metrics.jsondb`
+    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
+- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
 
 ### Email
 
@@ -126,8 +126,8 @@ update your mycroft config to use this backend
 start backend 
 
 ```bash
-$ mock-mycroft-backend -h
-usage: mock-mycroft-backend [-h] [--flask-port FLASK_PORT] [--flask-host FLASK_HOST]
+$ ovos-local-backend -h
+usage: ovos-local-backend [-h] [--flask-port FLASK_PORT] [--flask-host FLASK_HOST]
 
 optional arguments:
   -h, --help            show this help message and exit

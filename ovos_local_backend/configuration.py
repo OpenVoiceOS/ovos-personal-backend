@@ -44,14 +44,14 @@ DEFAULT_CONFIG = {
     "geolocate": False,
     "override_location": False,
     "api_version": "v1",
-    "data_path": "~/.mycroft/mock_backend",
+    "data_path": "~",
     "record_utterances": False,
     "record_wakewords": False,
     "wolfram_key": "Y7R353-9HQAAL8KKA",
     "owm_key": "28fed22898afd4717ce5a1535da1f78c"
 }
 
-CONFIGURATION = JsonStorageXDG("mycroft_backend",
+CONFIGURATION = JsonStorageXDG("ovos_backend",
                                xdg.BaseDirectory.xdg_config_home)
 
 if not exists(CONFIGURATION.path):

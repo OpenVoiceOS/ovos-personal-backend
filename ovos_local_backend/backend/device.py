@@ -12,12 +12,12 @@
 #
 from flask_mail import Message
 from flask import request
-from mock_mycroft_backend.utils import generate_code, nice_json
-from mock_mycroft_backend.utils.geolocate import ip_geolocate
-from mock_mycroft_backend.configuration import CONFIGURATION
-from mock_mycroft_backend.backend import API_VERSION
-from mock_mycroft_backend.backend.decorators import noindex
-from mock_mycroft_backend.database.metrics import JsonMetricDatabase
+from ovos_local_backend.utils import generate_code, nice_json
+from ovos_local_backend.utils.geolocate import ip_geolocate
+from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.backend import API_VERSION
+from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.database.metrics import JsonMetricDatabase
 import time
 import json
 

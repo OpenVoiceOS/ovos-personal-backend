@@ -13,7 +13,7 @@ class Metric:
 
 class JsonMetricDatabase(JsonDatabaseXDG):
     def __init__(self):
-        super().__init__("mycroft_metrics")
+        super().__init__("ovos_metrics")
 
     def add_metric(self, metric_type=None, meta="{}"):
         metric_id = self.total_metrics() + 1

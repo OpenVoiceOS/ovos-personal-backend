@@ -1,4 +1,4 @@
-from mock_mycroft_backend.session import SESSION as requests
+from ovos_local_backend.session import SESSION as requests
 import geocoder
 from timezonefinder import TimezoneFinder
 

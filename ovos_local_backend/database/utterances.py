@@ -10,7 +10,7 @@ class UtteranceRecording:
 
 class JsonUtteranceDatabase(JsonDatabaseXDG):
     def __init__(self):
-        super().__init__("mycroft_utterances")
+        super().__init__("ovos_utterances")
 
     def add_utterance(self, transcription, path):
         utterance_id = self.total_utterances() + 1

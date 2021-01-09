@@ -1,7 +1,7 @@
 from flask import request
-from mock_mycroft_backend.backend.decorators import noindex
-from mock_mycroft_backend.configuration import CONFIGURATION
-from mock_mycroft_backend.database.wakewords import JsonWakeWordDatabase
+from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database.wakewords import JsonWakeWordDatabase
 import time
 from os.path import join, isdir
 from os import makedirs

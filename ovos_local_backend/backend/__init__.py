@@ -13,7 +13,7 @@
 
 from flask import Flask
 from flask_mail import Mail
-from mock_mycroft_backend.configuration import CONFIGURATION
+from ovos_local_backend.configuration import CONFIGURATION
 
 API_VERSION = CONFIGURATION["api_version"]
 
@@ -23,14 +23,14 @@ def create_app():
 
     mail = Mail(app)
 
-    from mock_mycroft_backend.utils import nice_json
-    from mock_mycroft_backend.backend.decorators import noindex
-    from mock_mycroft_backend.backend.auth import get_auth_routes
-    from mock_mycroft_backend.backend.device import get_device_routes
-    from mock_mycroft_backend.backend.stt import get_stt_routes
-    from mock_mycroft_backend.backend.tts import get_tts_routes
-    from mock_mycroft_backend.backend.precise import get_precise_routes
-    from mock_mycroft_backend.backend.external_apis import get_services_routes
+    from ovos_local_backend.utils import nice_json
+    from ovos_local_backend.backend.decorators import noindex
+    from ovos_local_backend.backend.auth import get_auth_routes
+    from ovos_local_backend.backend.device import get_device_routes
+    from ovos_local_backend.backend.stt import get_stt_routes
+    from ovos_local_backend.backend.tts import get_tts_routes
+    from ovos_local_backend.backend.precise import get_precise_routes
+    from ovos_local_backend.backend.external_apis import get_services_routes
     app = get_auth_routes(app)
     app = get_device_routes(app, mail)
     app = get_stt_routes(app)
