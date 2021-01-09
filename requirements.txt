@@ -1,7 +1,7 @@
 Flask>=0.12
 json_database
 requests>=2.2.1
-Flask-Mail
+yagmail
 pyOpenSSL
 speech2text
 geocoder

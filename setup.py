@@ -14,12 +14,12 @@ extra_files = package_files('ovos_local_backend')
 
 setup(
     name='ovos-local-backend',
-    version='0.1.0',
+    version='0.1.1',
     packages=['ovos_local_backend',
               'ovos_local_backend.utils',
               'ovos_local_backend.backend',
               'ovos_local_backend.database'],
-    install_requires=['Flask>=0.12', 'requests>=2.2.1', 'Flask-Mail',
+    install_requires=['Flask>=0.12', 'requests>=2.2.1', "yagmail",
                       'speech2text', 'pyOpenSSL', "geocoder", "timezonefinder",
                       "json_database"],
     package_data={'': extra_files},

@@ -12,7 +12,6 @@
 #
 
 from flask import Flask
-from flask_mail import Mail
 from ovos_local_backend.configuration import CONFIGURATION
 
 API_VERSION = CONFIGURATION["api_version"]
@@ -20,8 +19,6 @@ API_VERSION = CONFIGURATION["api_version"]
 
 def create_app():
     app = Flask(__name__)
-
-    mail = Mail(app)
 
     from ovos_local_backend.utils import nice_json
     from ovos_local_backend.backend.decorators import noindex
@@ -32,7 +29,7 @@ def create_app():
     from ovos_local_backend.backend.precise import get_precise_routes
     from ovos_local_backend.backend.external_apis import get_services_routes
     app = get_auth_routes(app)
-    app = get_device_routes(app, mail)
+    app = get_device_routes(app)
     app = get_stt_routes(app)
     app = get_tts_routes(app)
     app = get_precise_routes(app)

@@ -48,7 +48,11 @@ DEFAULT_CONFIG = {
     "record_utterances": False,
     "record_wakewords": False,
     "wolfram_key": "Y7R353-9HQAAL8KKA",
-    "owm_key": "28fed22898afd4717ce5a1535da1f78c"
+    "owm_key": "28fed22898afd4717ce5a1535da1f78c",
+    "email": {
+        "username": None,
+        "password": None
+    }
 }
 
 CONFIGURATION = JsonStorageXDG("ovos_backend",

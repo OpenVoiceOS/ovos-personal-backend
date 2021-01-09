@@ -9,7 +9,6 @@ No frontend functionality is provided, you will lose:
 
 - web skill settings interface
 - web device configuration interface
-- send emails functionality (WIP)
 
 For a full backend experience, the official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
 
@@ -82,17 +81,21 @@ default configuration is
 
 ### Email
 
-CONFIGURATION NOT YET IMPLEMENTED
-
-will work if [default values](https://pythonhosted.org/Flask-Mail/) are valid
-
 add the following section to your .conf
 
 ```json
-{
-  "email": "emails_are_sent_to_this_address"
+"email": {
+  "username": "sender@gmail.com",
+  "password": "123456",
+  "to": "receiver@gmail.com",
 }
 ```
+This uses [yagmail](https://github.com/kootenpv/yagmail), it is centered on gmail usage, but should also work with other email providers
+
+You will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/) in your gmail account
+
+I recommend you setup an [Application Specific Password](https://support.google.com/accounts/answer/185833)
+
 
 ## Mycroft Setup
 
