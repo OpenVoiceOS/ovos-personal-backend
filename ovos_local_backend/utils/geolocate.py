@@ -72,8 +72,8 @@ def get_location_config(address):
     return location
 
 
-def ip_geolocate(ip):
-    if ip in ["0.0.0.0", "127.0.0.1"]:
+def ip_geolocate(ip=None):
+    if not ip or ip in ["0.0.0.0", "127.0.0.1"]:
         ip = requests.get('https://api.ipify.org').text
     fields = "status,country,countryCode,region,regionName,city,lat,lon,timezone,query"
     data = requests.get("http://ip-api.com/json/" + ip,
