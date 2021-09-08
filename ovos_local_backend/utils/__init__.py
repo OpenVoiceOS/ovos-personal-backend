@@ -10,9 +10,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from flask import make_response
-import random
 import json
+import random
+
+from flask import make_response
 
 
 def generate_code():
@@ -29,3 +30,24 @@ def nice_json(arg):
     response = make_response(json.dumps(arg, sort_keys=True, indent=4))
     response.headers['Content-type'] = "application/json"
     return response
+
+
+def to_camel_case(snake_str):
+    components = snake_str.split('_')
+    # We capitalize the first letter of each component except the first one
+    # with the 'title' method and join them together.
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def dict_to_camel_case(data):
+    converted = {}
+    for k, v in data.items():
+        new_k = to_camel_case(k)
+        if isinstance(v, dict):
+            v = dict_to_camel_case(v)
+        if isinstance(v, list):
+            for idx, item in enumerate(v):
+                if isinstance(item, dict):
+                    v[idx] = dict_to_camel_case(item)
+        converted[new_k] = v
+    return converted

@@ -3,6 +3,7 @@ from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.utils import dict_to_camel_case
 from ovos_local_backend.utils.geolocate import geolocate, get_timezone
 
 
@@ -86,5 +87,22 @@ def get_services_routes(app):
                                     "coordinate"]["longitude"])
         url = "https://api.openweathermap.org/data/2.5/weather"
         return requests.get(url, params=params).json()
+
+    @app.route("/" + API_VERSION + '/owm/onecall', methods=['GET'])
+    @noindex
+    def owm_onecall():
+        params = dict(request.args)
+        params["appid"] = CONFIGURATION["owm_key"]
+        if not request.args.get("q"):
+            params["lat"] = request.args.get("lat") or \
+                            str(CONFIGURATION["default_location"][
+                                    "coordinate"]["latitude"])
+            params["lon"] = request.args.get("lon") or \
+                            str(CONFIGURATION["default_location"][
+                                    "coordinate"]["longitude"])
+        url = "https://api.openweathermap.org/data/2.5/onecall"
+        data = requests.get(url, params=params).json()
+        # Selene converts the keys from snake_case to camelCase
+        return dict_to_camel_case(data)
 
     return app
