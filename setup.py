@@ -1,5 +1,6 @@
-from setuptools import setup
 import os
+
+from setuptools import setup
 
 
 def package_files(directory):
@@ -14,14 +15,15 @@ extra_files = package_files('ovos_local_backend')
 
 setup(
     name='ovos-local-backend',
-    version='0.1.1',
+    version='0.1.2',
     packages=['ovos_local_backend',
               'ovos_local_backend.utils',
               'ovos_local_backend.backend',
               'ovos_local_backend.database'],
     install_requires=['Flask>=0.12', 'requests>=2.2.1', "yagmail",
-                      'speech2text', 'pyOpenSSL', "geocoder", "timezonefinder",
-                      "json_database"],
+                      'ovos-plugin-manager>=0.0.2a2',
+                      'ovos-stt-plugin-chromium', 'pyOpenSSL', "geocoder",
+                      "timezonefinder", "json_database"],
     package_data={'': extra_files},
     include_package_data=True,
     url='https://github.com/OpenVoiceOS/OVOS-local-backend',

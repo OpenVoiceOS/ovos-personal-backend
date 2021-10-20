@@ -1,4 +1,3 @@
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,21 +10,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from tempfile import NamedTemporaryFile
 import json
-from flask import request
-from speech_recognition import Recognizer, AudioFile
 import time
 from os import makedirs
 from os.path import join, isdir
+from tempfile import NamedTemporaryFile
+
+from flask import request
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.utterances import JsonUtteranceDatabase
-from speech2text import STTFactory
+from ovos_plugin_manager.stt import OVOSSTTFactory
+from speech_recognition import Recognizer, AudioFile
 
 recognizer = Recognizer()
-engine = STTFactory.create(CONFIGURATION["stt"])
+engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
 
 
 def get_stt_routes(app):
@@ -37,7 +37,8 @@ def get_stt_routes(app):
         with NamedTemporaryFile() as fp:
             fp.write(flac_audio)
             with AudioFile(fp.name) as source:
-                audio = recognizer.record(source)  # read the entire audio file
+                audio = recognizer.record(
+                    source)  # read the entire audio_only file
             try:
                 utterance = engine.execute(audio, language=lang)
             except:
