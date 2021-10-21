@@ -20,6 +20,6 @@ jobs:
       - name: Build Distribution Packages
         run: |
           python setup.py bdist_wheel
-      - name: Install core repo
+      - name: Install package
         run: |
-          pip install .[audio-backend,mark1,stt,tts,skills_minimal,skills,default_skills,enclosure,bus,all]
+          pip install .
