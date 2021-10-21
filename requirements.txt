@@ -3,7 +3,8 @@ json_database
 requests>=2.2.1
 yagmail
 pyOpenSSL
-speech2text
+ovos-plugin-manager>=0.0.2a2
+ovos-stt-plugin-chromium
 geocoder
 timezonefinder
 requests_cache
