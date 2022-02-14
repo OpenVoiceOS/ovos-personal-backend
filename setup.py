@@ -20,7 +20,7 @@ setup(
               'ovos_local_backend.utils',
               'ovos_local_backend.backend',
               'ovos_local_backend.database'],
-    install_requires=['Flask>=0.12', 'requests>=2.2.1', "yagmail",
+    install_requires=['Flask>=0.12', 'requests>=2.26.0', "yagmail",
                       'ovos-plugin-manager>=0.0.2a2',
                       'ovos-stt-plugin-chromium', 'pyOpenSSL', "geocoder",
                       "timezonefinder", "json_database"],
