@@ -1,6 +1,6 @@
 Flask>=0.12
 json_database
-requests>=2.2.1
+requests>=2.26.0
 yagmail
 pyOpenSSL
 ovos-plugin-manager>=0.0.2a2
