@@ -1,13 +1,10 @@
 # This workflow will generate a distribution and upload it to PyPI
 
-name: Publish Alpha Build
+name: Publish Minor Release .X.0
 on:
-  push:
-    branches:
-      - dev
-    paths-ignore:
-      - 'ovos_local_backend/version.py'
   workflow_dispatch:
+    branches:
+      - master
 
 jobs:
   build_and_publish:
@@ -26,7 +23,7 @@ jobs:
       - name: Increment Version
         run: |
           VER=$(python setup.py --version)
-          python version_bump.py
+          python scripts/bump_minor.py
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
