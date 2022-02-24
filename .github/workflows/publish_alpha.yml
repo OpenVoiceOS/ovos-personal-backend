@@ -1,6 +1,6 @@
 # This workflow will generate a distribution and upload it to PyPI
 
-name: Publish Alpha Build
+name: Publish Alpha Build ...aX
 on:
   push:
     branches:
@@ -26,11 +26,24 @@ jobs:
       - name: Increment Version
         run: |
           VER=$(python setup.py --version)
-          python version_bump.py
+          python scripts/bump_alpha.py
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Increment Version
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: $(python setup.py --version)
+          release_name: Release $(python setup.py --version)
+          body: |
+            Changes in this Release
+            - TODO
+          draft: false
+          prerelease: true
       - name: Build Distribution Packages
         run: |
           python setup.py bdist_wheel
