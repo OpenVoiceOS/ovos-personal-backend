@@ -1,6 +1,32 @@
 import os
-
 from setuptools import setup
+
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+
+
+def get_version():
+    """ Find the version of the package"""
+    version = None
+    version_file = os.path.join(BASEDIR, 'ovos_local_backend', 'version.py')
+    major, minor, build, alpha = (None, None, None, None)
+    with open(version_file) as f:
+        for line in f:
+            if 'VERSION_MAJOR' in line:
+                major = line.split('=')[1].strip()
+            elif 'VERSION_MINOR' in line:
+                minor = line.split('=')[1].strip()
+            elif 'VERSION_BUILD' in line:
+                build = line.split('=')[1].strip()
+            elif 'VERSION_ALPHA' in line:
+                alpha = line.split('=')[1].strip()
+
+            if ((major and minor and build and alpha) or
+                    '# END_VERSION_BLOCK' in line):
+                break
+    version = f"{major}.{minor}.{build}"
+    if alpha:
+        version += f"a{alpha}"
+    return version
 
 
 def package_files(directory):
@@ -11,20 +37,26 @@ def package_files(directory):
     return paths
 
 
-extra_files = package_files('ovos_local_backend')
+def required(requirements_file):
+    """ Read requirements file and remove comments and empty lines. """
+    with open(os.path.join(BASEDIR, requirements_file), 'r') as f:
+        requirements = f.read().splitlines()
+        if 'MYCROFT_LOOSE_REQUIREMENTS' in os.environ:
+            print('USING LOOSE REQUIREMENTS!')
+            requirements = [r.replace('==', '>=').replace('~=', '>=') for r in requirements]
+        return [pkg for pkg in requirements
+                if pkg.strip() and not pkg.startswith("#")]
+
 
 setup(
     name='ovos-local-backend',
-    version='0.1.2',
+    version=get_version(),
     packages=['ovos_local_backend',
               'ovos_local_backend.utils',
               'ovos_local_backend.backend',
               'ovos_local_backend.database'],
-    install_requires=['Flask>=0.12', 'requests>=2.26.0', "yagmail",
-                      'ovos-plugin-manager>=0.0.2a2',
-                      'ovos-stt-plugin-chromium', 'pyOpenSSL', "geocoder",
-                      "timezonefinder", "json_database"],
-    package_data={'': extra_files},
+    install_requires=required("requirements/requirements.txt"),
+    package_data={'': package_files('ovos_local_backend')},
     include_package_data=True,
     url='https://github.com/OpenVoiceOS/OVOS-local-backend',
     license='Apache-2.0',
