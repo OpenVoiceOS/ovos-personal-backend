@@ -6,9 +6,13 @@ on:
     branches:
       - dev
     paths-ignore:
-      - 'ovos_local_backend/version.py'
+      - 'ovos_plugin_manager/version.py'
       - 'setup.py'
       - 'test'
+      - 'examples'
+      - '.github'
+      - 'LICENSE'
+      - 'readme.md'
   workflow_dispatch:
 
 jobs:

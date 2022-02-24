@@ -3,8 +3,6 @@
 name: Publish Minor Release .X.0
 on:
   workflow_dispatch:
-    branches:
-      - master
 
 jobs:
   build_and_publish:

@@ -3,8 +3,6 @@
 name: Publish Build Release ..X
 on:
   workflow_dispatch:
-    branches:
-      - master
 
 jobs:
   build_and_publish:
