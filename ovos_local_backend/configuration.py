@@ -11,8 +11,7 @@
 # limitations under the License.
 #
 from os.path import exists
-from json_database import JsonStorageXDG
-import xdg
+from json_database import JsonConfigXDG
 
 DEFAULT_CONFIG = {
     "stt": {"module": "google", "google": {}},
@@ -55,8 +54,7 @@ DEFAULT_CONFIG = {
     }
 }
 
-CONFIGURATION = JsonStorageXDG("ovos_backend",
-                               xdg.BaseDirectory.xdg_config_home)
+CONFIGURATION = JsonConfigXDG("ovos_backend")
 
 if not exists(CONFIGURATION.path):
     CONFIGURATION.merge(DEFAULT_CONFIG, skip_empty=False)

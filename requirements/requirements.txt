@@ -1,10 +1,10 @@
 Flask>=0.12
-json_database
+json_database~=0.7
 requests>=2.26.0
 yagmail
 pyOpenSSL
-ovos-plugin-manager>=0.0.2a2
-ovos-stt-plugin-chromium
+ovos-plugin-manager~=0.0
+ovos-stt-plugin-chromium~=0.1
 geocoder
 timezonefinder
 requests_cache
