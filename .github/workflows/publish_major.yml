@@ -23,7 +23,7 @@ jobs:
       - name: Increment Version
         run: |
           VER=$(python setup.py --version)
-          python scripts/bump_minor.py
+          python scripts/bump_major.py
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
@@ -37,7 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: V ${{ steps.version.outputs.version }}
+          tag_name: V${{ steps.version.outputs.version }}
           release_name: Release ${{ steps.version.outputs.version }}
           body: |
             Changes in this Release
