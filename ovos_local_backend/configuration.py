@@ -12,7 +12,6 @@
 #
 from os.path import exists
 from json_database import JsonStorageXDG
-#import xdg
 from ovos_utils.configuration import get_xdg_config_save_path
 
 DEFAULT_CONFIG = {
@@ -58,8 +57,6 @@ DEFAULT_CONFIG = {
 
 CONFIGURATION = JsonStorageXDG("ovos_backend",
                                get_xdg_config_save_path("mycroft"))
-# CONFIGURATION = JsonStorageXDG("ovos_backend",
-#                                xdg.BaseDirectory.xdg_config_home)
 
 if not exists(CONFIGURATION.path):
     CONFIGURATION.merge(DEFAULT_CONFIG, skip_empty=False)
