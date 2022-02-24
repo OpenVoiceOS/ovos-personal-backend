@@ -7,6 +7,8 @@ on:
       - dev
     paths-ignore:
       - 'ovos_local_backend/version.py'
+      - 'setup.py'
+      - 'test'
   workflow_dispatch:
 
 jobs:
