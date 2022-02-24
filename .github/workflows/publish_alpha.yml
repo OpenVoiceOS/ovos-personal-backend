@@ -6,7 +6,7 @@ on:
     branches:
       - dev
     paths-ignore:
-      - 'ovos_plugin_manager/version.py'
+      - 'ovos_local_backend/version.py'
       - 'setup.py'
       - 'test'
       - 'examples'
