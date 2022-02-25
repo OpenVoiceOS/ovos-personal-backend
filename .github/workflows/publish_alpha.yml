@@ -7,12 +7,15 @@ on:
       - dev
     paths-ignore:
       - 'ovos_local_backend/version.py'
-      - 'setup.py'
-      - 'test'
-      - 'examples'
-      - '.github'
+      - 'test/**'
+      - 'examples/**'
+      - '.github/**'
+      - '.gitignore'
       - 'LICENSE'
+      - 'CHANGELOG.md'
+      - 'MANIFEST.in'
       - 'readme.md'
+      - 'scripts/**'
   workflow_dispatch:
 
 jobs:
@@ -21,7 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.head_ref }}
+          ref: dev
+          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
@@ -33,10 +37,16 @@ jobs:
         run: |
           VER=$(python setup.py --version)
           python scripts/bump_alpha.py
-      - name: Push Version Change
+      - name: "Generate release changelog"
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        id: changelog
+      - name: Commit to dev
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Increment Version
+          branch: dev
       - name: version
         run: echo "::set-output name=version::$(python setup.py --version)"
         id: version
@@ -50,7 +60,7 @@ jobs:
           release_name: Release ${{ steps.version.outputs.version }}
           body: |
             Changes in this Release
-            - TODO
+            ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: true
       - name: Build Distribution Packages
