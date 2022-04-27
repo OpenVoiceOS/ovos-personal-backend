@@ -25,13 +25,11 @@ def create_app():
     from ovos_local_backend.backend.auth import get_auth_routes
     from ovos_local_backend.backend.device import get_device_routes
     from ovos_local_backend.backend.stt import get_stt_routes
-    from ovos_local_backend.backend.tts import get_tts_routes
     from ovos_local_backend.backend.precise import get_precise_routes
     from ovos_local_backend.backend.external_apis import get_services_routes
     app = get_auth_routes(app)
     app = get_device_routes(app)
     app = get_stt_routes(app)
-    app = get_tts_routes(app)
     app = get_precise_routes(app)
     app = get_services_routes(app)
 
