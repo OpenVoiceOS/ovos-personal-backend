@@ -104,8 +104,7 @@ def get_device_routes(app):
         to_mail = mail_config.get("to") or mail
         yagmail.SMTP(mail, pswd).send(to_mail, data["title"], data["body"])
 
-    @app.route("/" + API_VERSION + "/device/<uuid>/metric/<name>",
-               methods=['POST'])
+    @app.route("/" + API_VERSION + "/device/<uuid>/metric/<name>", methods=['POST'])
     @noindex
     def metric(uuid="", name=""):
         data = request.json
@@ -116,8 +115,7 @@ def get_device_routes(app):
                           "metric": data,
                           "upload_data": upload_data})
 
-    @app.route("/" + API_VERSION + "/device/<uuid>/subscription",
-               methods=['GET'])
+    @app.route("/" + API_VERSION + "/device/<uuid>/subscription", methods=['GET'])
     @noindex
     def subscription_type(uuid=""):
         sub_type = "free"
@@ -128,7 +126,6 @@ def get_device_routes(app):
     @noindex
     def get_subscriber_voice_url(uuid=""):
         arch = request.args["arch"]
-        return nice_json({"link": "",
-                          "arch": arch})
+        return nice_json({"link": "", "arch": arch})
 
     return app
