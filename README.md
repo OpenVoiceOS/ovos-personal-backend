@@ -64,16 +64,16 @@ default configuration is
   }
 }
 ```
-- stt config follows the same format of mycroft.conf and uses [speech2text](https://github.com/HelloChatterbox/speech2text)
+- stt config follows the same format of mycroft.conf and uses [ovos-plugin-manager](https://github.com/HelloChatterbox/speech2text)
 - if override location is True, then location will be set to configured value
 - if geolocate is True then location will be set from your ip address
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for wolfram alpha proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
+    - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
-- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
+    - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
+- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
 
 ### Email
 
@@ -105,12 +105,6 @@ update your mycroft config to use this backend
         "update": true,
         "metrics": true
       },
-    "tts": {
-      "module":"mimic2",
-	  "mimic2": {
-	      "url": "http://0.0.0.0:6712/synthesize/mimic2/kusal/en?text="
-      }
-   },
    "listener": {
         "wake_word_upload": {
             "url": "http://0.0.0.0:6712/precise/upload"
