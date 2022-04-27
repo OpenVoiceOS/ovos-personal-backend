@@ -42,7 +42,7 @@ def get_stt_routes(app):
             try:
                 utterance = engine.execute(audio, language=lang)
             except:
-                utterance = "speak speech recognition failed"
+                utterance = ""
         if CONFIGURATION["record_utterances"]:
             if not isdir(join(CONFIGURATION["data_path"], "utterances")):
                 makedirs(join(CONFIGURATION["data_path"], "utterances"))
