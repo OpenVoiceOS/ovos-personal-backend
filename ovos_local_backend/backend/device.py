@@ -10,16 +10,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+import time
 from flask import request
-from ovos_local_backend.utils import generate_code, nice_json
-from ovos_local_backend.utils.geolocate import ip_geolocate
-from ovos_local_backend.configuration import CONFIGURATION
+
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.metrics import JsonMetricDatabase
-import yagmail
-import time
-import json
+from ovos_local_backend.utils import generate_code, nice_json
+from ovos_local_backend.utils.geolocate import ip_geolocate
+from ovos_local_backend.utils.mail import send_email
 
 
 def get_device_routes(app):
@@ -98,11 +99,7 @@ def get_device_routes(app):
     @noindex
     def send_mail(uuid=""):
         data = request.json
-        mail_config = CONFIGURATION["email"]
-        mail = mail_config["username"]
-        pswd = mail_config["password"]
-        to_mail = mail_config.get("to") or mail
-        yagmail.SMTP(mail, pswd).send(to_mail, data["title"], data["body"])
+        send_email(data["title"], data["body"])
 
     @app.route("/" + API_VERSION + "/device/<uuid>/metric/<name>", methods=['POST'])
     @noindex

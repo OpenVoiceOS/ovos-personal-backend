@@ -1,0 +1,50 @@
+import socket
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from smtplib import SMTP, SMTP_SSL
+from ovos_local_backend.configuration import CONFIGURATION
+
+
+def send_smtp(user, pswd, sender,
+               destinatary, subject, contents,
+               host, port=465):
+    with SMTP_SSL(host=host, port=port) as server:
+        server.login(user, pswd)
+        msg = MIMEMultipart()
+        msg['From'] = sender
+        msg['To'] = destinatary
+        msg['Subject'] = subject
+        msg.attach(MIMEText(contents))
+        server.sendmail(sender, destinatary, msg.as_string())
+
+
+def send_email(subject, body):
+    mail_config = CONFIGURATION["email"]
+
+    smtp_config = mail_config["smtp"]
+    user = smtp_config["username"]
+    pswd = smtp_config["password"]
+    host = smtp_config["host"]
+    port = smtp_config.get("port", 465)
+
+    send_smtp(user, pswd,
+               mail, recipient,
+               subject, body,
+               host, port)
+
+
+if __name__ == "__main__":
+    USER = "JarbasAI"
+    YOUR_EMAIL_ADDRESS = "jarbasai@mailfence.com"
+    DESTINATARY_ADDRESS = "casimiro@jarbasai.online"
+    YOUR_PASSWORD = "a very very strong Password1!"
+    HOST = "smtp.mailfence.com"
+    PORT = 465
+
+    subject = 'test again'
+    body = 'this is a test bruh'
+
+    send_email(USER, YOUR_PASSWORD,
+               YOUR_EMAIL_ADDRESS, DESTINATARY_ADDRESS,
+               subject, body,
+               HOST, PORT)
