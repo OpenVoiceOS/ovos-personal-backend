@@ -14,7 +14,8 @@ from os.path import exists
 from json_database import JsonConfigXDG
 
 DEFAULT_CONFIG = {
-    "stt": {"module": "google", "google": {}},
+    "stt": {"module": "ovos-stt-plugin-server",
+            "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}},
     "backend_port": 6712,
     "default_location": {
         "city": {
@@ -40,7 +41,7 @@ DEFAULT_CONFIG = {
             "offset": -21600000
         }
     },
-    "geolocate": False,
+    "geolocate": True,
     "override_location": False,
     "api_version": "v1",
     "data_path": "~",

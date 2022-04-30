@@ -64,34 +64,46 @@ default configuration is
   }
 }
 ```
-- stt config follows the same format of mycroft.conf and uses [speech2text](https://github.com/HelloChatterbox/speech2text)
+
+- stt config follows the same format of mycroft.conf and
+  uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
 - if override location is True, then location will be set to configured value
 - if geolocate is True then location will be set from your ip address
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for wolfram alpha proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
+  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
+    at `~/.local/share/json_database/ovos_wakewords.jsondb`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
-    - a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
-- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/HelloChatterbox/json_database) can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
+  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
+    at `~/.local/share/json_database/ovos_utterances.jsondb`
+- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/OpenJarbas/json_database)
+  can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
 
 ### Email
+
+Mycroft skills can request the backend to send an email to the account used for pairing the device, 
+with the local backend you need a SMTP server and to pre-define a recipient email
 
 add the following section to your .conf
 
 ```json
-"email": {
-  "username": "sender@gmail.com",
-  "password": "123456",
-  "to": "receiver@gmail.com",
+{
+  "email": {
+    "smtp": {
+      "username": "sender@gmail.com",
+      "password": "123456",
+      "host": "",
+      "port": 465
+    },
+    "sender": "sender@gmail.com",
+    "recipient": "receiver@gmail.com"
+  }
 }
 ```
-This uses [yagmail](https://github.com/kootenpv/yagmail), it is centered on gmail usage, but should also work with other email providers
 
-You will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/) in your gmail account
-
+If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/), 
 I recommend you setup an [Application Specific Password](https://support.google.com/accounts/answer/185833)
-
 
 ## Mycroft Setup
 
@@ -99,30 +111,23 @@ update your mycroft config to use this backend
 
 ```json
 {
-    "server": {
-        "url": "http://0.0.0.0:6712",
-        "version": "v1",
-        "update": true,
-        "metrics": true
-      },
-    "tts": {
-      "module":"mimic2",
-	  "mimic2": {
-	      "url": "http://0.0.0.0:6712/synthesize/mimic2/kusal/en?text="
-      }
-   },
-   "listener": {
-        "wake_word_upload": {
-            "url": "http://0.0.0.0:6712/precise/upload"
-        }
+  "server": {
+    "url": "http://0.0.0.0:6712",
+    "version": "v1",
+    "update": true,
+    "metrics": true
+  },
+  "listener": {
+    "wake_word_upload": {
+      "url": "http://0.0.0.0:6712/precise/upload"
     }
+  }
 }
 ```
-     
 
 ## usage
 
-start backend 
+start backend
 
 ```bash
 $ ovos-local-backend -h
