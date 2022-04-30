@@ -2,7 +2,23 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a1...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a2...HEAD)
+
+**Implemented enhancements:**
+
+- cleanup + docker [\#18](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/18) ([JarbasAl](https://github.com/JarbasAl))
+
+**Closed issues:**
+
+- Run without STT or Wake Word Detection? [\#15](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/15)
+
+**Merged pull requests:**
+
+- notify matrix chat on PR merged [\#17](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/17) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a2](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a2) (2022-02-25)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a1...V0.1.2a2)
 
 **Merged pull requests:**
 
