@@ -27,10 +27,11 @@ default configuration is
 ```json
 {
   "stt": {
-    "module": "google"
+    "module": "ovos-stt-plugin-server",
+    "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}
   },
   "backend_port": 6712,
-  "geolocate": false,
+  "geolocate": true,
   "override_location": false,
   "api_version": "v1",
   "data_path": "~",
@@ -142,7 +143,15 @@ optional arguments:
 
 ```
 
-# Project Timeline
+## Docker
+
+There is also a docker container you can use
+
+```bash
+docker run -p 8086:6712 -d --restart always --name local_backend ghcr.io/openvoiceos/local-backend:dev
+```
+
+## Project Timeline
 
 - Jan 2018 - [initial release](https://github.com/OpenVoiceOS/OVOS-mock-backend/tree/014389065d3e5c66b6cb85e6e77359b6705406fe) of reverse engineered mycroft backend - by JarbasAI
 - July 2018 - Personal backend [added to Mycroft Roadmap](https://mycroft.ai/blog/many-roads-one-destination/)
@@ -150,6 +159,6 @@ optional arguments:
 - Jan 2019 - JarbasAI implementation [adopted by Mycroft](https://github.com/MycroftAI/personal-backend/tree/31ee96a8189d96f8102276bf4b9073811ee9a9b2)
   - NOTE: this should have been a fork or repository transferred, but was a bare clone
   - Original repository was archived
-- October 2019 - Official mycroft backend [open sourced under a restrictive license](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
+- October 2019 - Official mycroft backend [open sourced under a viral license](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
 - Jun 2020 - original project [repurposed to be a mock backend](https://github.com/OpenJarbas/ZZZ-mock-backend) instead of a full alternative, [skill-mock-backend](https://github.com/JarbasSkills/skill-mock-backend) released
 - Jan 2021 - mock-backend adopted by OpenVoiceOS, original repo unarchived and ownership transferred
