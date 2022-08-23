@@ -141,7 +141,7 @@ class SharedSettingsDatabase(JsonDatabaseXDG):
 
 class SettingsDatabase(JsonDatabaseXDG):
     def __init__(self):
-        super().__init__("ovos_shared_skill_settings")
+        super().__init__("ovos_skill_settings")
 
     def add_setting(self, skill_id, device_id, setting):
         skill = DeviceSkillSettings(skill_id, device_id, setting)
