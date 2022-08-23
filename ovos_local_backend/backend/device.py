@@ -51,7 +51,7 @@ def get_device_routes(app):
 
     @app.route("/v1/device/<uuid>/skill/settings", methods=['GET'])
     def skill_settings_v2(uuid):
-        """ new style skill settings - does not support 2 way sync """
+        """ new style skill settings - does not support 2 way sync in selene """
         # TODO
         return nice_json({"backend_disabled": True})
 
