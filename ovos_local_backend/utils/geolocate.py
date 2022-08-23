@@ -1,5 +1,7 @@
 from ovos_local_backend.session import SESSION as requests
 import geocoder
+from flask import request
+from ovos_local_backend.configuration import CONFIGURATION
 from timezonefinder import TimezoneFinder
 
 
@@ -27,6 +29,21 @@ def geolocate(address):
         data["postal"] = location_data.get("postal")
         data["timezone"] = location_data.get("timezone_short")
     return data
+
+
+def get_request_location():
+    if not request.headers.getlist("X-Forwarded-For"):
+        ip = request.remote_addr
+    else:
+        # TODO http://esd.io/blog/flask-apps-heroku-real-ip-spoofing.html
+        ip = request.headers.getlist("X-Forwarded-For")[0]
+    if CONFIGURATION["override_location"]:
+        new_location = CONFIGURATION["default_location"]
+    elif CONFIGURATION["geolocate"]:
+        new_location = ip_geolocate(ip)
+    else:
+        new_location = {}
+    return new_location
 
 
 def get_location_config(address):

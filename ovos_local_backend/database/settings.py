@@ -8,10 +8,13 @@ from copy import deepcopy
 
 class SkillSettings:
     """ represents skill settings for a individual skill"""
-    def __init__(self, skill_id, skill_settings=None, meta=None, display_name=None):
+    def __init__(self, skill_id, skill_settings=None, meta=None, display_name=None, remote_id=None):
         self.skill_id = skill_id
         self.display_name = display_name or self.skill_id
         self.settings = skill_settings or {}
+        self.remote_id = remote_id or skill_id
+        if not self.remote_id.startswith("@"):
+            self.remote_id = f"@|{self.remote_id}"
         self.meta = meta or {}
 
     def serialize(self):
@@ -25,10 +28,8 @@ class SkillSettings:
                 if field["name"] in self.settings:
                     meta['sections'][idx]["fields"][idx2]["value"] = self.settings[field["name"]]
         return {'skillMetadata': meta,
-                "uuid": self.skill_id,  # the uuid from selene is not device id (?)
-                "skill_gid": self.skill_id,
-                "display_name": self.display_name,
-                "identifier": self.skill_id}
+                "skill_gid": self.remote_id,
+                "display_name": self.display_name}
 
     @staticmethod
     def deserialize(data):
@@ -40,13 +41,48 @@ class SkillSettings:
         for s in skill_meta.get("sections", []):
             for f in s.get("fields", []):
                 if "name" in f and "value" in f:
-                    skill_json[f["name"]] = f["value"]
+                    val = f["value"]
+                    if isinstance(val, str):
+                        t = f.get("type", "")
+                        if t == "checkbox":
+                            if val.lower() == "true" or val == "1":
+                                val = True
+                            else:
+                                val = False
+                        elif t == "number":
+                            val = float(val)
+                        elif val.lower() in ["none", "null", "nan"]:
+                            val = None
+                        elif val == "[]":
+                            val = []
+                        elif val == "{}":
+                            val = {}
+                    skill_json[f["name"]] = val
 
-        skill_id = data.get("skill_gid") or data.get("identifier")
-        # skill_id = skill_id.split("|")[0]
-        display_name = data.get("display_name")
+        remote_id = data.get("skill_gid") or data.get("identifier")
+        # this is a mess, possible keys seen by logging data
+        # - @|XXX
+        # - @{uuid}|XXX
+        # - XXX
 
-        return SkillSettings(skill_id, skill_json, skill_meta, display_name)
+        # where XXX has been observed to be
+        # - {skill_id}  <- ovos-core
+        # - {msm_name} <- mycroft-core
+        #   - {mycroft_marketplace_name} <- all default skills
+        #   - {MycroftSkill.name} <- sometimes sent to msm (very uncommon)
+        #   - {skill_id.split(".")[0]} <- fallback msm name
+        # - XXX|{branch} <- append by msm (?)
+        # - {whatever we feel like uploading} <- SeleneCloud utils
+        fields = remote_id.split("|")
+        skill_id = fields[0]
+        if len(fields) > 1 and fields[0].startswith("@"):
+            skill_id = fields[1]
+
+        display_name = data.get("display_name") or \
+                       skill_id.split(".")[0].replace("-", " ").replace("_", " ").title()
+
+        return SkillSettings(skill_id, skill_json, skill_meta, display_name,
+                             remote_id=remote_id)
 
 
 class DeviceSettings:
@@ -61,7 +97,7 @@ class DeviceSettings:
         self.token = token
 
         # ovos exclusive
-        # TODO - refactor this to work per skill instead of per device
+        # individual skills can also control this via "__shared_settings" flag
         self.isolated_skills = isolated_skills  # control if skill settings should be shared across all devices
 
         # extra device info
@@ -163,18 +199,32 @@ class SettingsDatabase(JsonStorageXDG):
     def __init__(self):
         super().__init__("ovos_skill_settings")
 
-    def add_setting(self, uuid, skill_id, setting, meta, display_name=None):
-        # check if this device is using "isolated_skills" flag
-        # this flag controls if the device keeps it's own unique
-        # settings or if skill settings are synced across all devices
-        dev = DeviceDatabase().get_device(uuid)
-        if dev and not dev.isolated_skills:
+    def add_setting(self, uuid, skill_id, setting, meta, display_name=None,
+                    remote_id=None):
+        remote_id = remote_id or f"@|{skill_id}"
+        # check special flag per skill about shared settings
+        # this is set by SeleneCloud util, can also be set by individual skills
+        shared = setting.get("__shared_settings")
+
+        # check device specific shared settings defaults
+        if not shared:
+            # check if this device is using "isolated_skills" flag
+            # this flag controls if the device keeps it's own unique
+            # settings or if skill settings are synced across all devices
+            dev = DeviceDatabase().get_device(uuid)
+            if dev and not dev.isolated_skills:
+                shared = True
+
+        if shared:
             # add setting to shared db
             with SharedSettingsDatabase() as sdb:
-                return sdb.add_setting(skill_id, setting, meta, display_name)
+                return sdb.add_setting(skill_id, setting,
+                                       meta, display_name, remote_id)
 
+        remote_id = f"@{uuid}|{skill_id}"  # tied to device
         # add setting to device specific db
-        skill = SkillSettings(skill_id, setting, meta, display_name)
+        skill = SkillSettings(skill_id, setting,
+                              meta, display_name, remote_id)
         if uuid not in self:
             self[uuid] = {}
         self[uuid][skill_id] = skill.serialize()
@@ -185,31 +235,29 @@ class SettingsDatabase(JsonStorageXDG):
         # this flag controls if the device keeps it's own unique
         # settings or if skill settings are synced across all devices
         dev = DeviceDatabase().get_device(uuid)
-        if dev and not dev.isolated_skills:
-            # get setting from shared db
-            return SharedSettingsDatabase().get_setting(skill_id)
+        if dev and dev.isolated_skills:
+            # get setting from device specific db
+            if uuid in self:
+                skill = self[uuid].get(skill_id)
+                if skill:
+                    return SkillSettings.deserialize(skill)
 
-        # get setting from device specific db
-        if uuid in self:
-            skill = self[uuid].get(skill_id)
-            if skill:
-                return SkillSettings.deserialize(skill)
-        return None
+        # get settings from shared db -> default values if not set per device
+        return SharedSettingsDatabase().get_setting(skill_id)
 
     def get_device_settings(self, uuid):
-        # check if this device is using "isolated_skills" flag
-        # this flag controls if the device keeps it's own unique
-        # settings or if skill settings are synced across all devices
-        dev = DeviceDatabase().get_device(uuid)
-        if dev and not dev.isolated_skills:
-            # get settings from shared db
-            return [s for s in SharedSettingsDatabase()]
-
+        sets = []
         # get setting from device specific db
-        if uuid not in self:
-            return []
-        return [SkillSettings.deserialize(skill)
-                for skill in self[uuid].values()]
+        if uuid in self:
+            sets += [SkillSettings.deserialize(skill)
+                     for skill in self[uuid].values()]
+
+        # get settings from shared db -> default values if not set per device
+        skills = [s.skill_id for s in sets]
+        sets += [s for s in SharedSettingsDatabase()
+                 if s.skill_id not in skills]
+
+        return sets
 
     def __enter__(self):
         """ Context handler """
@@ -228,8 +276,9 @@ class SharedSettingsDatabase(JsonStorageXDG):
     def __init__(self):
         super().__init__("ovos_shared_skill_settings")
 
-    def add_setting(self, skill_id, setting, meta, display_name=None):
-        skill = SkillSettings(skill_id, setting, meta, display_name)
+    def add_setting(self, skill_id, setting, meta, display_name=None,
+                    remote_id=None):
+        skill = SkillSettings(skill_id, setting, meta, display_name, remote_id)
         self[skill_id] = skill.serialize()
         return skill
 

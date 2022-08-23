@@ -10,15 +10,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import time
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.utils import nice_json
 from ovos_local_backend.database.settings import DeviceDatabase
 from ovos_local_backend.backend.decorators import noindex, requires_admin
 from flask import request
+from ovos_local_backend.utils import generate_code
+from ovos_local_backend.utils.geolocate import get_request_location
 
 
 def get_admin_routes(app):
+    @app.route("/" + API_VERSION + "/admin/<uuid>/pair", methods=['GET'])
+    @requires_admin
+    @noindex
+    def pair_device(uuid):
+        code = generate_code()
+        token = f"{code}:{uuid}"
+        # add device to db
+        location = get_request_location()
+        with DeviceDatabase() as db:
+            db.add_device(uuid, token, location=location)
+
+        device = {"uuid": uuid,
+                  "expires_at": time.time() + 99999999999999,
+                  "accessToken": token,
+                  "refreshToken": token}
+        return nice_json(device)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/device", methods=['PUT'])
     @requires_admin
