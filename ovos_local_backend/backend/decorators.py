@@ -14,6 +14,9 @@ from functools import wraps
 from flask import make_response
 
 
+# TODO - require auth decorator for paired devices
+
+
 def add_response_headers(headers=None):
     """This decorator adds the headers passed in to the response"""
     headers = headers or {}
