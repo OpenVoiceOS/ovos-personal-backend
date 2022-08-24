@@ -97,8 +97,8 @@ Device location can be updated via the backend, mycroft-core will request this i
 
 - if override location is True, then location will be set to configured default value
 - if geolocate is True then location will be set from your ip address
-- you can specify a default location per device by manually editing paired devices database
-(TODO - rest endpoints + minimal UI to configure this)
+- you can set a default location per device via the [admin api]()
+- you can also set a default location per device by manually editing paired devices database
 
 ### Misc settings
 
@@ -111,8 +111,8 @@ Some settings can be updated via the backend, mycroft-core will request this inf
 ```
 
 - these settings are also used for wolfram alpha / weather default values
-- you can specify values per device by manually editing paired devices database
-(TODO - rest endpoints + minimal UI to configure this)
+- you can set these values per device via the [admin api]()
+- you can also set these values per device by manually editing paired devices database
 
 ### Email
 
@@ -120,8 +120,8 @@ Mycroft skills can request the backend to send an email to the account used for 
 with the local backend you need to configure your own SMTP server
 
 - Email will be sent to a pre-defined recipient email since there are no user accounts
-- you can specify a recipient email per skill by manually editing paired devices database
-(TODO - rest endpoints + minimal UI to configure this)
+- you can set a recipient email per device via the [admin api]()
+- you can set a recipient email per device by manually editing paired devices database
 
 add the following section to your .conf
 
@@ -145,7 +145,7 @@ I recommend you setup an [Application Specific Password](https://support.google.
 
 ## Mycroft Setup
 
-update your mycroft config to use this backend
+update your mycroft config to use this backend, delete `identity2.json` and restart mycroft
 
 ```json
 {

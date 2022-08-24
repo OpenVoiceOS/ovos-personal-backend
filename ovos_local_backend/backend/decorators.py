@@ -12,7 +12,7 @@
 #
 from functools import wraps
 from flask import make_response, request, Response
-
+from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.settings import DeviceDatabase
 
 
@@ -36,6 +36,21 @@ def requires_auth(f):
                 'Could not verify your access level for that URL.\n'
                 'You have to authenticate with proper credentials', 401,
                 {'WWW-Authenticate': 'Basic realm="NOT PAIRED"'})
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def requires_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        admin_key = CONFIGURATION.get("admin_key")
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        if not auth or not admin_key or auth != admin_key:
+            return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to authenticate with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="NOT ADMIN"'})
         return f(*args, **kwargs)
 
     return decorated

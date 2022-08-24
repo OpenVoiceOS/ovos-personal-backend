@@ -99,20 +99,18 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def location(uuid):
-        with DeviceDatabase() as db:
-            device = db.get_device(uuid)
-            if device:
-                return device.location
+        device = DeviceDatabase().get_device(uuid)
+        if device:
+            return device.location
         return _get_request_location()
 
     @app.route("/" + API_VERSION + "/device/<uuid>/setting", methods=['GET'])
     @requires_auth
     @noindex
     def setting(uuid=""):
-        with DeviceDatabase() as db:
-            device = db.get_device(uuid)
-            if device:
-                return device.selene_settings
+        device = DeviceDatabase().get_device(uuid)
+        if device:
+            return device.selene_settings
         return {}
 
     @app.route("/" + API_VERSION + "/device/<uuid>", methods=['PATCH', 'GET'])
@@ -186,10 +184,9 @@ def get_device_routes(app):
     @requires_auth
     def send_mail(uuid=""):
         target_email = None
-        with DeviceDatabase() as db:
-            device = db.get_device(uuid)
-            if device:
-                target_email = device.email
+        device = DeviceDatabase().get_device(uuid)
+        if device:
+            target_email = device.email
         data = request.json
         skill_id = data["sender"]  # TODO - auto append to body ?
         send_email(data["title"], data["body"], target_email)

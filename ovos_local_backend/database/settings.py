@@ -60,7 +60,6 @@ class DeviceSettings:
         self.token = token
 
         # ovos exclusive
-        # TODO - endpoints/minimal UI to toggle
         # TODO - refactor this to work per skill instead of per device
         self.isolated_skills = isolated_skills  # control if skill settings should be shared across all devices
 
@@ -131,6 +130,11 @@ class DeviceDatabase(JsonStorageXDG):
         if dev:
             return DeviceSettings.deserialize(dev)
         return None
+
+    def update_device(self, device):
+        assert isinstance(device, DeviceSettings)
+        kwargs = device.serialize()
+        self.add_device(**kwargs)
 
     def total_devices(self):
         return len(self)
