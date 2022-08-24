@@ -80,27 +80,40 @@ default configuration is
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for wolfram alpha proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
-    at `~/.local/share/json_database/ovos_wakewords.jsondb`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
-  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
-    at `~/.local/share/json_database/ovos_utterances.jsondb`
-- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/OpenJarbas/json_database)
-  can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
+
+
+## Databases
+
+Since the local backend is not meant to provision hundreds of devices or manage user accounts it works only with [json databases](https://github.com/OpenJarbas/json_database)
+
+- metadata about uploaded wakewords can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
+- metadata about uploaded utterances can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
+- database of uploaded metrics can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
 - paired devices database can be found at `~/.local/share/json_database/ovos_devices.json`
 - per device skill settings database can be found at `~/.local/share/json_database/ovos_skill_settings.json`
 - shared skill settings database can be found at `~/.local/share/json_database/ovos_shared_skill_settings.json`
 
-### Location
+## Admin api
+
+Since there is no UI some REST endpoints are provided to manage your devices
+
+By default admin api is disabled, to enable it add `"admin_key": "unique_super_secret_key"` to the backend configuration
+
+you need to provide that key in the request headers for [admin endpoints](./ovos_local_backend/backend/admin.py)
+
+TODO - [selene_api](https://github.com/OpenVoiceOS/selene_api) support
+
+## Location
 
 Device location can be updated via the backend, mycroft-core will request this info on it's own from time to time
 
 - if override location is True, then location will be set to configured default value
 - if geolocate is True then location will be set from your ip address
-- you can set a default location per device via the [admin api]()
+- you can set a default location per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can also set a default location per device by manually editing paired devices database
 
-### Misc settings
+## Device Preferences
 
 Some settings can be updated via the backend, mycroft-core will request this info on it's own from time to time
 
@@ -111,16 +124,16 @@ Some settings can be updated via the backend, mycroft-core will request this inf
 ```
 
 - these settings are also used for wolfram alpha / weather default values
-- you can set these values per device via the [admin api]()
+- you can set these values per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can also set these values per device by manually editing paired devices database
 
-### Email
+## Email
 
 Mycroft skills can request the backend to send an email to the account used for pairing the device, 
 with the local backend you need to configure your own SMTP server
 
 - Email will be sent to a pre-defined recipient email since there are no user accounts
-- you can set a recipient email per device via the [admin api]()
+- you can set a recipient email per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can set a recipient email per device by manually editing paired devices database
 
 add the following section to your .conf
