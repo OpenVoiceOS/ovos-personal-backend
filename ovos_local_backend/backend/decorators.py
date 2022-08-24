@@ -11,10 +11,34 @@
 # limitations under the License.
 #
 from functools import wraps
-from flask import make_response
+from flask import make_response, request, Response
+
+from ovos_local_backend.database.settings import DeviceDatabase
 
 
-# TODO - require auth decorator for paired devices
+def check_auth(uid, token):
+    """This function is called to check if a access token is valid."""
+    with DeviceDatabase() as device_db:
+        device = device_db.get_device(uid)
+        if device and device.token == token:
+            return True
+    return False
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        uid = kwargs.get("uuid")
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uid = uid or auth.split(":")[-1]  # this split is only valid here, not selene
+        if not auth or not uid or not check_auth(uid, auth):
+            return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to authenticate with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="NOT PAIRED"'})
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 def add_response_headers(headers=None):

@@ -13,24 +13,24 @@
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.utils import nice_json
-from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from flask import request
 import time
 
 
 def get_auth_routes(app):
-    @app.route("/" + API_VERSION + "/pair/<code>/<uuid>/<name>/<mail>",
-               methods=['PUT'])
-    @noindex
-    def pair(code, uuid, name, mail):
-        # auto - pair
-        return nice_json({"paired": True})
 
     @app.route("/" + API_VERSION + "/auth/token", methods=['GET'])
+    @requires_auth
     @noindex
     def token():
+        """ device is asking for access token, it was created during auto-pairing
+        we simplify things and use a deterministic access token, shared with pairing token
+        in selene access token would be refreshed here
+        """
         token = request.headers.get('Authorization', '').replace("Bearer ", "")
-        device = {"uuid": "AnonDevice",
+        uuid = token.split(":")[-1]
+        device = {"uuid": uuid,
                   "expires_at": time.time() + 999999999999999999,
                   "accessToken": token,
                   "refreshToken": token}

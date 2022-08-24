@@ -1,5 +1,5 @@
 from flask import request
-from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.wakewords import JsonWakeWordDatabase
 import time
@@ -11,6 +11,7 @@ import json
 def get_precise_routes(app):
     @app.route('/precise/upload', methods=['POST'])
     @noindex
+    @requires_auth
     def precise_upload():
         uploads = request.files
         if CONFIGURATION["record_wakewords"]:

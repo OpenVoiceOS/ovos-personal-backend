@@ -15,10 +15,10 @@ import time
 from flask import request
 
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.metrics import JsonMetricDatabase
-from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import ip_geolocate
 from ovos_local_backend.utils.mail import send_email
@@ -45,30 +45,58 @@ def _get_request_location():
 
 def get_device_routes(app):
     @app.route("/v1/device/<uuid>/settingsMeta", methods=['PUT'])
+    @requires_auth
     def settingsmeta(uuid):
-        # TODO
+        """ new style skill settings meta (upload only) """
+        with SettingsDatabase() as db:
+            s = SkillSettings.deserialize(request.json)
+            # keep old settings, update meta only
+            old_s = db.get_setting(s.skill_id, uuid)
+            if old_s:
+                s.settings = old_s.settings
+            db.add_setting(uuid, s.skill_id, s.settings, s.meta, s.display_name)
         return nice_json({"success": True, "uuid": uuid})
 
     @app.route("/v1/device/<uuid>/skill/settings", methods=['GET'])
+    @requires_auth
     def skill_settings_v2(uuid):
-        """ new style skill settings - does not support 2 way sync in selene """
-        # TODO
-        return nice_json({"backend_disabled": True})
+        """ new style skill settings (download only)"""
+        db = SettingsDatabase()
+        return {s.skill_id: s.settings for s in db.get_device_settings(uuid)}
 
     @app.route("/v1/device/<uuid>/skill", methods=['GET', 'PUT'])
+    @requires_auth
     def skill_settings(uuid):
-        """ old style skill settings - supports 2 way sync """
-        # TODO
-        return nice_json({"backend_disabled": True})
+        """ old style skill settings/settingsmeta - supports 2 way sync
+         PUT - json for 1 skill
+         GET - list of all skills """
+        with SettingsDatabase() as db:
+            if request.method == 'PUT':
+                s = SkillSettings.deserialize(request.json)
+                db.add_setting(uuid, s.skill_id, s.settings, s.meta)
+                return nice_json({"success": True, "uuid": uuid})
+            else:
+                return [s.serialize() for s in db]
 
     @app.route("/v1/device/<uuid>/skillJson", methods=['PUT'])
+    @requires_auth
     def skill_json(uuid):
         """ this is communicating to the backend what devices are installed
-        drop the info and don't track it!"""
-        # TODO
-        return nice_json({"backend_disabled": True})
+        drop the info and don't track it! maybe if we add a UI and it becomes useful..."""
+        data = request.json
+        # {'blacklist': [],
+        # 'skills': [{'name': 'fallback-unknown',
+        #             'origin': 'default',
+        #             'beta': False,
+        #             'status': 'active',
+        #             'installed': 0,
+        #             'updated': 0,
+        #             'installation': 'installed',
+        #             'skill_gid': 'fallback-unknown|21.02'}]
+        return data
 
     @app.route("/" + API_VERSION + "/device/<uuid>/location", methods=['GET'])
+    @requires_auth
     @noindex
     def location(uuid):
         with DeviceDatabase() as db:
@@ -78,6 +106,7 @@ def get_device_routes(app):
         return _get_request_location()
 
     @app.route("/" + API_VERSION + "/device/<uuid>/setting", methods=['GET'])
+    @requires_auth
     @noindex
     def setting(uuid=""):
         with DeviceDatabase() as db:
@@ -87,48 +116,74 @@ def get_device_routes(app):
         return {}
 
     @app.route("/" + API_VERSION + "/device/<uuid>", methods=['PATCH', 'GET'])
+    @requires_auth
     @noindex
     def get_uuid(uuid):
+        if request.method == 'PATCH':
+            # drop the info, we do not track it
+            data = request.json
+            # {'coreVersion': '21.2.2',
+            # 'platform': 'unknown',
+            # 'platform_build': None,
+            # 'enclosureVersion': None}
+            return {}
         with DeviceDatabase() as db:
             device = db.get_device(uuid)
             if device:
                 return device.selene_device
-        return {}
+        token = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uuid = token.split(":")[-1]
+        return {
+            "description": "unknown",
+            "uuid": uuid,
+            "name": "unknown",
+            # not tracked / meaningless
+            # just for api compliance with selene
+            'coreVersion': "unknown",
+            'platform': 'unknown',
+            'enclosureVersion': "",
+            "user": {"uuid": uuid}  # users not tracked
+        }
 
     @app.route("/" + API_VERSION + "/device/code", methods=['GET'])
     @noindex
     def code():
+        """ device is asking for pairing token, let's auto pair!
+        we simplify things and use a deterministic access token, shared with pairing token
+        in selene access token would be created and returned to device later, we auto-pair the device here
+        """
         uuid = request.args["state"]
         code = generate_code()
-        result = {"code": code, "uuid": uuid}
-        return nice_json(result)
+        token = f"{code}:{uuid}"
+        result = {"code": code, "uuid": uuid, "token": token,
+                  # selene api compat
+                  "expiration": 99999999999999, "state": uuid}
 
-    @app.route("/" + API_VERSION + "/device/", methods=['GET'])
-    @noindex
-    def device():
-        token = request.headers.get('Authorization', '').replace("Bearer ", "")
-        device = {"uuid": "AnonDevice",
-                  "expires_at": time.time() + 72000,
-                  "accessToken": token,
-                  "refreshToken": token}
-        return nice_json(device)
+        # add device to db
+        location = _get_request_location()
+        with DeviceDatabase() as db:
+            db.add_device(uuid, token, location=location)
+
+        return nice_json(result)
 
     @app.route("/" + API_VERSION + "/device/activate", methods=['POST'])
     @noindex
     def activate():
-        uid = request.json["state"]  # this is the uuid
+        """this is where the device checks if pairing was successful in selene
+        in local backend device was paired automatically
+        in selene this would only succeed after user paired via browser
+        and access token would be returned here"""
+        uid = request.json["state"]
         token = request.json["token"]
         device = {"uuid": uid,
-                  "expires_at": time.time() + 72000,
+                  "expires_at": time.time() + 99999999999999,
                   "accessToken": token,
                   "refreshToken": token}
-        location = _get_request_location()
-        with DeviceDatabase() as db:
-            db.add_device(uid, token, location=location)
         return nice_json(device)
 
     @app.route("/" + API_VERSION + "/device/<uuid>/message", methods=['PUT'])
     @noindex
+    @requires_auth
     def send_mail(uuid=""):
         target_email = None
         with DeviceDatabase() as db:
@@ -136,10 +191,12 @@ def get_device_routes(app):
             if device:
                 target_email = device.email
         data = request.json
+        skill_id = data["sender"]  # TODO - auto append to body ?
         send_email(data["title"], data["body"], target_email)
 
     @app.route("/" + API_VERSION + "/device/<uuid>/metric/<name>", methods=['POST'])
     @noindex
+    @requires_auth
     def metric(uuid="", name=""):
         data = request.json
         with JsonMetricDatabase() as db:
@@ -151,6 +208,7 @@ def get_device_routes(app):
 
     @app.route("/" + API_VERSION + "/device/<uuid>/subscription", methods=['GET'])
     @noindex
+    @requires_auth
     def subscription_type(uuid=""):
         sub_type = "free"
         subscription = {"@type": sub_type}
@@ -158,6 +216,7 @@ def get_device_routes(app):
 
     @app.route("/" + API_VERSION + "/device/<uuid>/voice", methods=['GET'])
     @noindex
+    @requires_auth
     def get_subscriber_voice_url(uuid=""):
         arch = request.args["arch"]
         return nice_json({"link": "", "arch": arch})

@@ -2,7 +2,7 @@ from flask import request
 from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.utils import dict_to_camel_case
 from ovos_local_backend.utils.geolocate import geolocate, get_timezone
 
@@ -10,6 +10,7 @@ from ovos_local_backend.utils.geolocate import geolocate, get_timezone
 def get_services_routes(app):
     @app.route("/" + API_VERSION + '/geolocation', methods=['GET'])
     @noindex
+    @requires_auth
     def geolocation():
         address = request.args["location"]
         data = geolocate(address)
@@ -24,6 +25,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/wolframAlphaSpoken', methods=['GET'])
     @noindex
+    @requires_auth
     def wolfie():
         query = request.args["i"]
         units = request.args.get("units") or "metric"
@@ -45,6 +47,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/forecast/daily', methods=['GET'])
     @noindex
+    @requires_auth
     def owm_daily_forecast():
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
@@ -60,6 +63,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/forecast', methods=['GET'])
     @noindex
+    @requires_auth
     def owm_3h_forecast():
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
@@ -75,6 +79,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/weather', methods=['GET'])
     @noindex
+    @requires_auth
     def owm():
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
@@ -90,6 +95,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/onecall', methods=['GET'])
     @noindex
+    @requires_auth
     def owm_onecall():
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]

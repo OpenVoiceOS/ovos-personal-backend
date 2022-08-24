@@ -18,7 +18,7 @@ from tempfile import NamedTemporaryFile
 
 from flask import request
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.utterances import JsonUtteranceDatabase
 from ovos_plugin_manager.stt import OVOSSTTFactory
@@ -31,6 +31,7 @@ engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
 def get_stt_routes(app):
     @app.route("/" + API_VERSION + "/stt", methods=['POST'])
     @noindex
+    @requires_auth
     def stt():
         flac_audio = request.data
         lang = str(request.args.get("lang", "en-us"))
