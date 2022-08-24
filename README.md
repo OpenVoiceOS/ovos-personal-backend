@@ -78,11 +78,11 @@ metrics, wake words and utterances respect the individual devices `opt_in` flag,
 
 ## Micro Services
 
-The local backend provides some apis for consumption by skills, these services are only provided for compatibility selene and to ensure default skills work, **no new apis are planned**
+The local backend provides some 3rd party apis for consumption by skills, these services are only provided for compatibility selene and to ensure default skills work, **no new apis are planned**
 
 [ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) support is planned to avoid the need to set your own keys
 
-Consider using one of the ovos alternative skills that skip this api if you are not managing your own keys
+Consider using one of the ovos alternative skills that skip these endpoints if you are not managing your own keys
 
 - geolocation
 - wolfram alpha -> set your free api key in backend config
@@ -194,6 +194,11 @@ with the local backend you need to configure your own SMTP server and recipient 
 If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/)
 
 ## Mycroft Setup
+
+There are 2 main intended ways to run local backend with mycroft
+
+- on same device as mycroft-core, tricking it to run without mycroft servers
+- on a private network, to manage all your devices locally
 
 update your mycroft config to use this backend, delete `identity2.json` and restart mycroft
 
