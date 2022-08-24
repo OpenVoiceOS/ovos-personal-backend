@@ -26,7 +26,7 @@ pip install ovos-local-backend
 
 configure backend by editing/creating ```~/.config/json_database/ovos_backend.json```
 
-default configuration is
+see default values [here](./ovos_local_backend/configuration.py)
 
 ```json
 {
@@ -41,43 +41,22 @@ default configuration is
   "data_path": "~",
   "record_utterances": false,
   "record_wakewords": false,
-  "wolfram_key": "BUNDLED_DEMO_KEY",
-  "owm_key": "BUNDLED_DEMO_KEY",
+  "wolfram_key": "$KEY",
+  "owm_key": "$KEY",
   "lang": "en-us",
   "date_format": "DMY",
   "system_unit": "metric",
   "time_format": "full",
   "default_location": {
-    "city": {
-      "code": "Lawrence",
-      "name": "Lawrence",
-      "state": {
-        "code": "KS",
-        "name": "Kansas",
-        "country": {
-          "code": "US",
-          "name": "United States"
-        }
-      }
-    },
-    "coordinate": {
-      "latitude": 38.971669,
-      "longitude": -95.23525
-    },
-    "timezone": {
-      "code": "America/Chicago",
-      "name": "Central Standard Time",
-      "dstOffset": 3600000,
-      "offset": -21600000
-    }
+    "city": {"...": "..."},
+    "coordinate": {"...": "..."},
+    "timezone": {"...": "..."}
   }
 }
 ```
 
 - stt config follows the same format of mycroft.conf and
   uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
-- if override location is True, then location will be set to configured value
-- if geolocate is True then location will be set from your ip address
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for wolfram alpha proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
@@ -117,6 +96,7 @@ Each paired device has a few settings that control behaviour backend side
 - `email` - default from backend config, email to send notifications to
 - `isolated_skills` - default `False`, flag to control if skill settings are shared across devices (ovos only)
 
+In selene this info would be populated during pairing process, in local backend it needs to be updated manually
 
 - you can change these settings per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can also change these settings per device by manually editing paired devices database
@@ -124,6 +104,19 @@ Each paired device has a few settings that control behaviour backend side
 ## Location
 
 Device location can be updated via the backend, mycroft-core will request this info on it's own from time to time
+
+default values comes from the local backend config file
+```json
+{
+  "geolocate": true,
+  "override_location": false,
+  "default_location": {
+    "city": {"...": "..."},
+    "coordinate": {"...": "..."},
+    "timezone": {"...": "..."}
+  }
+}
+```
 
 - if override location is True, then location will be set to configured default value
 - if geolocate is True then location will be set from your ip address
