@@ -3,6 +3,7 @@ import json
 from json_database import JsonStorageXDG
 
 from ovos_local_backend.configuration import CONFIGURATION
+from copy import deepcopy
 
 
 class SkillSettings:
@@ -16,7 +17,7 @@ class SkillSettings:
     def serialize(self):
         # settings meta with updated placeholder values from settings
         # old style selene db stored skill settings this way
-        meta = dict(self.meta)
+        meta = deepcopy(self.meta)
         for idx, section in enumerate(meta.get('sections', [])):
             for idx2, field in enumerate(section["fields"]):
                 if "value" not in field:
