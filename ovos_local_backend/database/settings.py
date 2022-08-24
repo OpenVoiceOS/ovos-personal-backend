@@ -6,6 +6,7 @@ from ovos_local_backend.configuration import CONFIGURATION
 
 
 class SkillSettings:
+    """ represents skill settings for a individual skill"""
     def __init__(self, skill_id, skill_settings=None, meta=None, display_name=None):
         self.skill_id = skill_id
         self.display_name = display_name or self.skill_id
@@ -60,7 +61,8 @@ class DeviceSettings:
 
         # ovos exclusive
         # TODO - endpoints/minimal UI to toggle
-        self.isolated_skills = isolated_skills  # control if shared settings are returned
+        # TODO - refactor this to work per skill instead of per device
+        self.isolated_skills = isolated_skills  # control if skill settings should be shared across all devices
 
         # extra device info
         self.name = name or f"Device-{self.uuid}"  # friendly device name
@@ -111,6 +113,7 @@ class DeviceSettings:
 
 
 class DeviceDatabase(JsonStorageXDG):
+    """ database of paired devices, used to keep track of individual device settings"""
     def __init__(self):
         super().__init__("ovos_devices")
 
@@ -149,12 +152,22 @@ class DeviceDatabase(JsonStorageXDG):
 
 
 class SettingsDatabase(JsonStorageXDG):
+    """ database of device specific skill settings """
     def __init__(self):
         super().__init__("ovos_skill_settings")
-        self.clear()
-        self.store()
 
     def add_setting(self, uuid, skill_id, setting, meta, display_name=None):
+        # check if this device is using "isolated_skills" flag
+        # this flag controls if the device keeps it's own unique
+        # settings or if skill settings are synced across all devices
+        with DeviceDatabase() as db:
+            dev = db.get_device(uuid)
+            if dev and not dev.isolated_skills:
+                # add setting to shared db
+                with SharedSettingsDatabase() as sdb:
+                    return sdb.add_setting(skill_id, setting, meta, display_name)
+
+        # add setting to device specific db
         skill = SkillSettings(skill_id, setting, meta, display_name)
         if uuid not in self:
             self[uuid] = {}
@@ -162,18 +175,70 @@ class SettingsDatabase(JsonStorageXDG):
         return skill
 
     def get_setting(self, skill_id, uuid):
-        if uuid not in self:
-            return None
-        skill = self[uuid].get(skill_id)
-        if skill:
-            return SkillSettings.deserialize(skill)
+        # check if this device is using "isolated_skills" flag
+        # this flag controls if the device keeps it's own unique
+        # settings or if skill settings are synced across all devices
+        with DeviceDatabase() as db:
+            dev = db.get_device(uuid)
+            # get setting from shared db
+            if dev and not dev.isolated_skills:
+                with SharedSettingsDatabase() as sdb:
+                    return sdb.get_setting(skill_id)
+
+        # get setting from device specific db
+        if uuid in self:
+            skill = self[uuid].get(skill_id)
+            if skill:
+                return SkillSettings.deserialize(skill)
         return None
 
     def get_device_settings(self, uuid):
+        # check if this device is using "isolated_skills" flag
+        # this flag controls if the device keeps it's own unique
+        # settings or if skill settings are synced across all devices
+        with DeviceDatabase() as db:
+            dev = db.get_device(uuid)
+            # get settings from shared db
+            if dev and not dev.isolated_skills:
+                return [s for s in SharedSettingsDatabase()]
+
+        # get setting from device specific db
         if uuid not in self:
             return []
         return [SkillSettings.deserialize(skill)
                 for skill in self[uuid].values()]
+
+    def __enter__(self):
+        """ Context handler """
+        return self
+
+    def __exit__(self, _type, value, traceback):
+        """ Commits changes and Closes the session """
+        try:
+            self.store()
+        except Exception as e:
+            print(e)
+
+
+class SharedSettingsDatabase(JsonStorageXDG):
+    """ database of skill settings shared across all devices """
+    def __init__(self):
+        super().__init__("ovos_shared_skill_settings")
+
+    def add_setting(self, skill_id, setting, meta, display_name=None):
+        skill = SkillSettings(skill_id, setting, meta, display_name)
+        self[skill_id] = skill.serialize()
+        return skill
+
+    def get_setting(self, skill_id):
+        skill = self.get(skill_id)
+        if skill:
+            return SkillSettings.deserialize(skill)
+        return None
+
+    def __iter__(self):
+        for skill in self.values():
+            yield SkillSettings.deserialize(skill)
 
     def __enter__(self):
         """ Context handler """
