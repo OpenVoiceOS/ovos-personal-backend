@@ -70,18 +70,18 @@ def get_device_routes(app):
         """ old style skill settings/settingsmeta - supports 2 way sync
          PUT - json for 1 skill
          GET - list of all skills """
-        with SettingsDatabase() as db:
-            if request.method == 'PUT':
+        if request.method == 'PUT':
+            with SettingsDatabase() as db:
                 s = SkillSettings.deserialize(request.json)
                 db.add_setting(uuid, s.skill_id, s.settings, s.meta)
-                return nice_json({"success": True, "uuid": uuid})
-            else:
-                return [s.serialize() for s in db]
+            return nice_json({"success": True, "uuid": uuid})
+        else:
+            return nice_json([s.serialize() for s in SettingsDatabase().get_device_settings(uuid)])
 
     @app.route("/v1/device/<uuid>/skillJson", methods=['PUT'])
     @requires_auth
     def skill_json(uuid):
-        """ this is communicating to the backend what devices are installed
+        """ device is communicating to the backend what skills are installed
         drop the info and don't track it! maybe if we add a UI and it becomes useful..."""
         data = request.json
         # {'blacklist': [],

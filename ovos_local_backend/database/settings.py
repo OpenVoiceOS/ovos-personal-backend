@@ -21,7 +21,7 @@ class SkillSettings:
                 if "value" not in field:
                     continue
                 if field["name"] in self.settings:
-                    meta['sections'][idx]["fields"][idx2] = self.settings[field["name"]]
+                    meta['sections'][idx]["fields"][idx2]["value"] = self.settings[field["name"]]
         return {'skillMetadata': meta,
                 "uuid": self.skill_id,  # the uuid from selene is not device id (?)
                 "skill_gid": self.skill_id,
@@ -34,7 +34,7 @@ class SkillSettings:
             data = json.loads(data)
 
         skill_json = {}
-        skill_meta = data.get("skillMetadata") or data
+        skill_meta = data.get("skillMetadata")
         for s in skill_meta.get("sections", []):
             for f in s.get("fields", []):
                 if "name" in f and "value" in f:
@@ -52,14 +52,15 @@ class DeviceSettings:
     represent some fields from mycroft.conf but also contain some extra fields
     """
 
-    def __init__(self, device_id, token, name=None, device_location=None, opt_in=False,
+    def __init__(self, uuid, token, name=None, device_location=None, opt_in=False,
                  location=None, lang=None, date_format=None, system_unit=None, time_format=None,
                  email=None, isolated_skills=False):
-        self.uuid = device_id
+        self.uuid = uuid
         self.token = token
 
         # ovos exclusive
-        self.isolated_skills = isolated_skills  # TODO - this will control if shared settings are returned
+        # TODO - endpoints/minimal UI to toggle
+        self.isolated_skills = isolated_skills  # control if shared settings are returned
 
         # extra device info
         self.name = name or f"Device-{self.uuid}"  # friendly device name
@@ -106,8 +107,6 @@ class DeviceSettings:
     def deserialize(data):
         if isinstance(data, str):
             data = json.loads(data)
-        if "uuid" in data:
-            data["device_id"] = data.pop("uuid")
         return DeviceSettings(**data)
 
 
@@ -115,18 +114,17 @@ class DeviceDatabase(JsonStorageXDG):
     def __init__(self):
         super().__init__("ovos_devices")
 
-    def add_device(self, device_id, token, name=None, device_location=None, opt_in=False,
+    def add_device(self, uuid, token, name=None, device_location=None, opt_in=False,
                    location=None, lang=None, date_format=None, system_unit=None,
                    time_format=None, email=None, isolated_skills=False):
-        device = DeviceSettings(device_id, token, name, device_location, opt_in,
+        device = DeviceSettings(uuid, token, name, device_location, opt_in,
                                 location, lang, date_format, system_unit,
                                 time_format, email, isolated_skills)
-        self[device_id] = device.serialize()
+        self[uuid] = device.serialize()
         return device
 
-    def get_device(self, device_id):
-        # TODO
-        dev = self.get(device_id)
+    def get_device(self, uuid):
+        dev = self.get(uuid)
         if dev:
             return DeviceSettings.deserialize(dev)
         return None
@@ -135,7 +133,7 @@ class DeviceDatabase(JsonStorageXDG):
         return len(self)
 
     def __iter__(self):
-        for uid, dev in self.items():
+        for dev in self.values():
             yield DeviceSettings.deserialize(dev)
 
     def __enter__(self):
@@ -153,32 +151,29 @@ class DeviceDatabase(JsonStorageXDG):
 class SettingsDatabase(JsonStorageXDG):
     def __init__(self):
         super().__init__("ovos_skill_settings")
+        self.clear()
+        self.store()
 
-    def add_setting(self, device_id, skill_id, setting, meta, display_name=None):
+    def add_setting(self, uuid, skill_id, setting, meta, display_name=None):
         skill = SkillSettings(skill_id, setting, meta, display_name)
-        if device_id not in self:
-            self[device_id] = {}
-        self[device_id][skill_id] = skill.serialize()
+        if uuid not in self:
+            self[uuid] = {}
+        self[uuid][skill_id] = skill.serialize()
         return skill
 
-    def get_setting(self, skill_id, device_id):
-        if device_id not in self:
+    def get_setting(self, skill_id, uuid):
+        if uuid not in self:
             return None
-        skill = self[device_id].get(skill_id)
+        skill = self[uuid].get(skill_id)
         if skill:
             return SkillSettings.deserialize(skill)
         return None
 
-    def get_device_settings(self, device_id):
-        if device_id not in self:
-            return None
-        for skill_id, skill in self[device_id].items():
-            yield SkillSettings.deserialize(skill)
-
-    def __iter__(self):
-        for uid in self:
-            for skill_id, skill in self[uid].items():
-                yield SkillSettings.deserialize(skill)
+    def get_device_settings(self, uuid):
+        if uuid not in self:
+            return []
+        return [SkillSettings.deserialize(skill)
+                for skill in self[uuid].values()]
 
     def __enter__(self):
         """ Context handler """

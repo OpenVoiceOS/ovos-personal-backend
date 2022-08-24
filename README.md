@@ -2,7 +2,11 @@
 
 Personal mycroft backend alternative to mycroft.home, written in flask
 
-This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, This is NOT meant to be used as a backend, but rather to run on the mycroft devices directly.
+This repo is an alternative to the backend meant for personal usage, this allows you to run without mycroft servers
+
+:warning: there are no user accounts :warning:
+
+This is NOT meant to provision third party devices, but rather to run on the mycroft devices directly or on a private network
 
 No frontend functionality is provided, for that check out the companion project [OVOS Dashboard](https://github.com/OpenVoiceOS/OVOS-Dashboard)
 
