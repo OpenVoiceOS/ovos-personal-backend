@@ -66,8 +66,10 @@ class DeviceSettings:
         # extra device info
         self.name = name or f"Device-{self.uuid}"  # friendly device name
         self.device_location = device_location or "somewhere"  # indoor location
-        self.email = email or CONFIGURATION.get("email", {}).get("username")  # email sending api
-
+        mail_cfg = CONFIGURATION.get("email", {})
+        self.email = email or \
+                     mail_cfg.get("recipient") or \
+                     mail_cfg.get("smtp", {}).get("username")
         # mycroft.conf values
         self.date_format = date_format or CONFIGURATION.get("date_format") or "DMY"
         self.system_unit = system_unit or CONFIGURATION.get("system_unit") or "metric"

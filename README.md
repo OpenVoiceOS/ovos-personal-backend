@@ -96,7 +96,7 @@ Since the local backend is not meant to provision hundreds of devices or manage 
 
 ## Admin api
 
-Since there is no UI some REST endpoints are provided to manage your devices
+Since there is no UI some endpoints are provided to manage your devices
 
 By default admin api is disabled, to enable it add `"admin_key": "unique_super_secret_key"` to the backend configuration
 
@@ -143,14 +143,13 @@ in selene all device share skill settings, with local backend you can control th
 
 ## Email
 
-Mycroft skills can request the backend to send an email to the account used for pairing the device, 
-with the local backend you need to configure your own SMTP server
+Mycroft skills can request the backend to send an email to the account used for pairing the device
 
 - Email will be sent to a pre-defined recipient email since there are no user accounts
 - you can set a recipient email per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can set a recipient email per device by manually editing paired devices database
 
-add the following section to your .conf
+with the local backend you need to configure your own SMTP server and recipient email, add the following section to your .conf
 
 ```json
 {
