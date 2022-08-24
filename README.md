@@ -127,6 +127,20 @@ Some settings can be updated via the backend, mycroft-core will request this inf
 - you can set these values per device via the [admin api](./ovos_local_backend/backend/admin.py)
 - you can also set these values per device by manually editing paired devices database
 
+## Skill settings
+
+in selene all device share skill settings, with local backend you can control this per device via `isolated_skills` flag
+
+"old selene" supported a single endpoint for both skill settings and settings meta, this allowed devices both to download and upload settings
+
+"new selene" split this into two endpoints, settingsMeta (upload only) and settings (download only), this disabled two way sync across devices
+
+- you can set `isolated_skills` per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also set `isolated_skills` per device by manually editing paired devices database
+- both endpoints are available, but mycroft-core by default will use the new endpoints and does not support two way sync
+- you can edit settings by using the "old selene" endpoint
+- you can also edit settings by manually editing settings database
+
 ## Email
 
 Mycroft skills can request the backend to send an email to the account used for pairing the device, 
