@@ -43,6 +43,7 @@ default configuration is
   "record_wakewords": false,
   "wolfram_key": "BUNDLED_DEMO_KEY",
   "owm_key": "BUNDLED_DEMO_KEY",
+  "lang": "en-us",
   "date_format": "DMY",
   "system_unit": "metric",
   "time_format": "full",
@@ -106,6 +107,20 @@ you need to provide that key in the request headers for [admin endpoints](./ovos
 
 TODO - [selene_api](https://github.com/OpenVoiceOS/selene_api) support
 
+## Device Settings
+
+Each paired device has a few settings that control behaviour backend side
+
+- `name` - default `"Device-{uuid}"`, friendly device name for display
+- `opt_in` - default `True`, flag to control if metrics and speech from this device will be saved
+- `device_location` - default `"unknown"`, friendly name for indoor location
+- `email` - default from backend config, email to send notifications to
+- `isolated_skills` - default `False`, flag to control if skill settings are shared across devices (ovos only)
+
+
+- you can change these settings per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also change these settings per device by manually editing paired devices database
+
 ## Location
 
 Device location can be updated via the backend, mycroft-core will request this info on it's own from time to time
@@ -119,10 +134,14 @@ Device location can be updated via the backend, mycroft-core will request this i
 
 Some settings can be updated via the backend, mycroft-core will request this info on it's own from time to time
 
-```
+default values comes from the local backend config file
+```json
+{
+  "lang": "en-us",
   "date_format": "DMY",
   "system_unit": "metric",
-  "time_format": "full",
+  "time_format": "full"
+}
 ```
 
 - these settings are also used for wolfram alpha / weather default values
