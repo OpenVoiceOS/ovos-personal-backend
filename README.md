@@ -43,6 +43,9 @@ default configuration is
   "record_wakewords": false,
   "wolfram_key": "BUNDLED_DEMO_KEY",
   "owm_key": "BUNDLED_DEMO_KEY",
+  "date_format": "DMY",
+  "system_unit": "metric",
+  "time_format": "full",
   "default_location": {
     "city": {
       "code": "Lawrence",
@@ -84,11 +87,41 @@ default configuration is
     at `~/.local/share/json_database/ovos_utterances.jsondb`
 - if mycroft is configured to upload metrics a searchable [json_database](https://github.com/OpenJarbas/json_database)
   can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
+- paired devices database can be found at `~/.local/share/json_database/ovos_devices.json`
+- per device skill settings database can be found at `~/.local/share/json_database/ovos_skill_settings.json`
+- shared skill settings database can be found at `~/.local/share/json_database/ovos_shared_skill_settings.json`
+
+### Location
+
+Device location can be updated via the backend, mycroft-core will request this info on it's own from time to time
+
+- if override location is True, then location will be set to configured default value
+- if geolocate is True then location will be set from your ip address
+- you can specify a default location per device by manually editing paired devices database
+(TODO - rest endpoints + minimal UI to configure this)
+
+### Misc settings
+
+Some settings can be updated via the backend, mycroft-core will request this info on it's own from time to time
+
+```
+  "date_format": "DMY",
+  "system_unit": "metric",
+  "time_format": "full",
+```
+
+- these settings are also used for wolfram alpha / weather default values
+- you can specify values per device by manually editing paired devices database
+(TODO - rest endpoints + minimal UI to configure this)
 
 ### Email
 
 Mycroft skills can request the backend to send an email to the account used for pairing the device, 
-with the local backend you need a SMTP server and to pre-define a recipient email
+with the local backend you need to configure your own SMTP server
+
+- Email will be sent to a pre-defined recipient email since there are no user accounts
+- you can specify a recipient email per skill by manually editing paired devices database
+(TODO - rest endpoints + minimal UI to configure this)
 
 add the following section to your .conf
 
