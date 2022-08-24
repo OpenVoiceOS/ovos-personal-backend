@@ -147,14 +147,12 @@ add the following section to your .conf
       "host": "",
       "port": 465
     },
-    "sender": "sender@gmail.com",
     "recipient": "receiver@gmail.com"
   }
 }
 ```
 
-If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/), 
-I recommend you setup an [Application Specific Password](https://support.google.com/accounts/answer/185833)
+If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/)
 
 ## Mycroft Setup
 

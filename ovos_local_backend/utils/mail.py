@@ -26,7 +26,8 @@ def send_email(subject, body, recipient=None):
     pswd = smtp_config["password"]
     host = smtp_config["host"]
     port = smtp_config.get("port", 465)
-    recipient = recipient or user
+
+    recipient = recipient or mail_config.get("recipient") or user
 
     send_smtp(user, pswd,
                user, recipient,
