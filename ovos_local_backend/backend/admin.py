@@ -31,12 +31,16 @@ def get_admin_routes(app):
                 return {"error": "unknown device"}
             if "name" in data:
                 device.name = data["name"]
+            if "opt_in" in data:
+                device.opt_in = data["opt_in"]
             if "device_location" in data:
                 device.device_location = data["device_location"]
             if "email" in data:
                 device.email = data["email"]
             if "isolated_skills" in data:
                 device.isolated_skills = data["isolated_skills"]
+            if "lang" in data:
+                device.lang = data["lang"]
             db.update_device(device)
             return nice_json(device.serialize())
 
@@ -67,6 +71,8 @@ def get_admin_routes(app):
                 device.date_format = data["date_format"]
             if "system_unit" in data:
                 device.system_unit = data["system_unit"]
+            if "lang" in data:
+                device.lang = data["lang"]
             db.update_device(device)
             return nice_json(device.serialize())
 

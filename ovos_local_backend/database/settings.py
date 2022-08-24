@@ -53,7 +53,7 @@ class DeviceSettings:
     represent some fields from mycroft.conf but also contain some extra fields
     """
 
-    def __init__(self, uuid, token, name=None, device_location=None, opt_in=False,
+    def __init__(self, uuid, token, name=None, device_location=None, opt_in=True,
                  location=None, lang=None, date_format=None, system_unit=None, time_format=None,
                  email=None, isolated_skills=False):
         self.uuid = uuid

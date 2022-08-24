@@ -196,10 +196,17 @@ def get_device_routes(app):
     @requires_auth
     def metric(uuid="", name=""):
         data = request.json
-        with JsonMetricDatabase() as db:
-            db.add_metric(name, json.dumps(data))
-        upload_data = {"uploaded": False}
-        return nice_json({"success": True, "uuid": uuid,
+        device = DeviceDatabase().get_device(uuid)
+        if device and device.opt_in:
+            with JsonMetricDatabase() as db:
+                db.add_metric(name, json.dumps(data))
+
+        # TODO - share upstream setting
+        uploaded = False
+        upload_data = {"uploaded": uploaded}
+
+        return nice_json({"success": True,
+                          "uuid": uuid,
                           "metric": data,
                           "upload_data": upload_data})
 

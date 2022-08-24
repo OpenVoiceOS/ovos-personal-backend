@@ -94,6 +94,8 @@ Since the local backend is not meant to provision hundreds of devices or manage 
 - per device skill settings database can be found at `~/.local/share/json_database/ovos_skill_settings.json`
 - shared skill settings database can be found at `~/.local/share/json_database/ovos_shared_skill_settings.json`
 
+metrics, wake words and utterances respect the individual devices `opt_in` flag, nothing will be saved unless devices opt_in (default True)
+
 ## Admin api
 
 Since there is no UI some endpoints are provided to manage your devices
