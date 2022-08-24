@@ -1,11 +1,13 @@
 from flask import request
-from ovos_local_backend.session import SESSION as requests
-from ovos_local_backend.configuration import CONFIGURATION
+
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.utils import dict_to_camel_case
+from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.session import SESSION as requests
+from ovos_local_backend.utils import dict_to_camel_case
 from ovos_local_backend.utils.geolocate import geolocate, get_timezone
+from ovos_local_backend.utils.ovos_api import OvosWeather
 
 
 def _get_lang():
@@ -59,6 +61,7 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def wolfie():
+        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/1
         query = request.args["i"]
         units = request.args.get("units") or _get_units()
 
@@ -81,6 +84,7 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_daily_forecast():
+        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
@@ -97,6 +101,7 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_3h_forecast():
+        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
@@ -113,6 +118,7 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm():
+        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
@@ -129,18 +135,26 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_onecall():
-        params = dict(request.args)
-        # TODO - ovos api support
-        params["appid"] = CONFIGURATION["owm_key"]
-        params["lang"] = request.args.get("lang") or _get_lang()
-        params["units"] = request.args.get("units") or _get_units()
-        if not request.args.get("q"):
-            lat, lon = request.args.get("lat"), request.args.get("lon")
-            if not lat or not lon:
-                lat, lon = _get_latlon()
+        params = {
+            "lang": request.args.get("lang") or _get_lang(),
+            "units": request.args.get("units") or _get_units()
+        }
+
+        lat, lon = request.args.get("lat"), request.args.get("lon")
+        if not lat or not lon:
+            lat, lon = _get_latlon()
+
+        if not CONFIGURATION["owm_key"]:
             params["lat"], params["lon"] = lat, lon
-        url = "https://api.openweathermap.org/data/2.5/onecall"
-        data = requests.get(url, params=params).json()
+            data = OvosWeather().get_weather_onecall(params)
+        else:
+            params["appid"] = CONFIGURATION["owm_key"]
+            if request.args.get("q"):
+                params["q"] = request.args.get("q")
+            else:
+                params["lat"], params["lon"] = lat, lon
+            url = "https://api.openweathermap.org/data/2.5/onecall"
+            data = requests.get(url, params=params).json()
         # Selene converts the keys from snake_case to camelCase
         return dict_to_camel_case(data)
 
