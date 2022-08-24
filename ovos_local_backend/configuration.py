@@ -41,6 +41,9 @@ DEFAULT_CONFIG = {
             "offset": -21600000
         }
     },
+    "date_format": "DMY",
+    "system_unit": "metric",
+    "time_format": "full",
     "geolocate": True,
     "override_location": False,
     "api_version": "v1",

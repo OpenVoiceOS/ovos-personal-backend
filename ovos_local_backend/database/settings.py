@@ -71,7 +71,7 @@ class DeviceSettings:
 
         # mycroft.conf values
         self.date_format = date_format or CONFIGURATION.get("date_format") or "DMY"
-        self.system_unit = system_unit or CONFIGURATION.get("system_unit") or "device"
+        self.system_unit = system_unit or CONFIGURATION.get("system_unit") or "metric"
         self.time_format = time_format or CONFIGURATION.get("time_format") or "full"
         self.opt_in = opt_in
         self.lang = lang or CONFIGURATION.get("lang") or "en-us"
@@ -160,12 +160,11 @@ class SettingsDatabase(JsonStorageXDG):
         # check if this device is using "isolated_skills" flag
         # this flag controls if the device keeps it's own unique
         # settings or if skill settings are synced across all devices
-        with DeviceDatabase() as db:
-            dev = db.get_device(uuid)
-            if dev and not dev.isolated_skills:
-                # add setting to shared db
-                with SharedSettingsDatabase() as sdb:
-                    return sdb.add_setting(skill_id, setting, meta, display_name)
+        dev = DeviceDatabase().get_device(uuid)
+        if dev and not dev.isolated_skills:
+            # add setting to shared db
+            with SharedSettingsDatabase() as sdb:
+                return sdb.add_setting(skill_id, setting, meta, display_name)
 
         # add setting to device specific db
         skill = SkillSettings(skill_id, setting, meta, display_name)
@@ -178,12 +177,10 @@ class SettingsDatabase(JsonStorageXDG):
         # check if this device is using "isolated_skills" flag
         # this flag controls if the device keeps it's own unique
         # settings or if skill settings are synced across all devices
-        with DeviceDatabase() as db:
-            dev = db.get_device(uuid)
+        dev = DeviceDatabase().get_device(uuid)
+        if dev and not dev.isolated_skills:
             # get setting from shared db
-            if dev and not dev.isolated_skills:
-                with SharedSettingsDatabase() as sdb:
-                    return sdb.get_setting(skill_id)
+            return SharedSettingsDatabase().get_setting(skill_id)
 
         # get setting from device specific db
         if uuid in self:
@@ -196,11 +193,10 @@ class SettingsDatabase(JsonStorageXDG):
         # check if this device is using "isolated_skills" flag
         # this flag controls if the device keeps it's own unique
         # settings or if skill settings are synced across all devices
-        with DeviceDatabase() as db:
-            dev = db.get_device(uuid)
+        dev = DeviceDatabase().get_device(uuid)
+        if dev and not dev.isolated_skills:
             # get settings from shared db
-            if dev and not dev.isolated_skills:
-                return [s for s in SharedSettingsDatabase()]
+            return [s for s in SharedSettingsDatabase()]
 
         # get setting from device specific db
         if uuid not in self:
