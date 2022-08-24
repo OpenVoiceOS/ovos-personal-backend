@@ -76,6 +76,18 @@ Since the local backend is not meant to provision hundreds of devices or manage 
 
 metrics, wake words and utterances respect the individual devices `opt_in` flag, nothing will be saved unless devices opt_in (default True)
 
+## Micro Services
+
+The local backend provides some apis for consumption by skills, these services are only provided for compatibility selene and to ensure default skills work, **no new apis are planned**
+
+[ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) support is planned to avoid the need to set your own keys
+
+Consider using one of the ovos alternative skills that skip this api if you are not managing your own keys
+
+- geolocation
+- wolfram alpha -> set your free api key in backend config
+- open weather map -> set your free api key in backend config
+
 ## Admin api
 
 Since there is no UI some endpoints are provided to manage your devices
