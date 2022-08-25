@@ -78,7 +78,7 @@ metrics, wake words and utterances respect the individual devices `opt_in` flag,
 
 ## Micro Services
 
-The local backend provides some 3rd party apis for consumption by skills, these services are only provided for compatibility selene and to ensure default skills work, **no new apis are planned**
+The local backend provides some 3rd party apis for consumption by skills, these services are only provided for compatibility with selene and to ensure default skills work, **no new apis are planned**
 
 [ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) support is planned to avoid the need to set your own keys
 
