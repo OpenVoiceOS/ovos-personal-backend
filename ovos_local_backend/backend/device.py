@@ -24,10 +24,6 @@ from ovos_local_backend.utils.geolocate import ip_geolocate
 from ovos_local_backend.utils.mail import send_email
 
 
-# TODO - new route exclusive to local backend to update device info
-# add simple html form, require pairing token (from identity file)
-
-
 def _get_request_location():
     if not request.headers.getlist("X-Forwarded-For"):
         ip = request.remote_addr
