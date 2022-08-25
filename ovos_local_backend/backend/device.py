@@ -142,9 +142,8 @@ def get_device_routes(app):
     @app.route("/" + API_VERSION + "/device/code", methods=['GET'])
     @noindex
     def code():
-        """ device is asking for pairing token, let's auto pair!
-        we simplify things and use a deterministic access token, shared with pairing token
-        in selene access token would be created and returned to device later, we auto-pair the device here
+        """ device is asking for pairing token
+        we simplify things and use a deterministic access token, same as pairing token created here
         """
         uuid = request.args["state"]
         code = generate_code()
@@ -152,24 +151,26 @@ def get_device_routes(app):
         result = {"code": code, "uuid": uuid, "token": token,
                   # selene api compat
                   "expiration": 99999999999999, "state": uuid}
-
-        # add device to db
-        location = _get_request_location()
-        with DeviceDatabase() as db:
-            db.add_device(uuid, token, location=location)
-
         return nice_json(result)
 
     @app.route("/" + API_VERSION + "/device/activate", methods=['POST'])
     @noindex
     def activate():
         """this is where the device checks if pairing was successful in selene
-        in local backend device was paired automatically
+        in local backend we pair the device automatically in this step
         in selene this would only succeed after user paired via browser
-        and access token would be returned here"""
-        uid = request.json["state"]
+        """
+        uuid = request.json["state"]
+
+        # we simplify things and use a deterministic access token, shared with pairing token
         token = request.json["token"]
-        device = {"uuid": uid,
+
+        # add device to db
+        location = _get_request_location()
+        with DeviceDatabase() as db:
+            db.add_device(uuid, token, location=location)
+
+        device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
                   "accessToken": token,
                   "refreshToken": token}
