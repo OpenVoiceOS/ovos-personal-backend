@@ -22,7 +22,7 @@ def save_stt_recording(uuid, audio, utterance):
 
 
 class UtteranceRecording:
-    def __init__(self, utterance_id, transcription, path, uuid):
+    def __init__(self, utterance_id, transcription, path, uuid="AnonDevice"):
         self.utterance_id = utterance_id
         self.transcription = transcription
         self.path = path

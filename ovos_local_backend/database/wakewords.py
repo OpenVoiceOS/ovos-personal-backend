@@ -27,7 +27,6 @@ def save_ww_recording(uuid, uploads):
     with open(meta_path) as f:
         meta = json.load(f)
 
-    meta["accountId"] = uuid
     # {"name": "hey-mycroft",
     # "engine": "0f4df281688583e010c26831abdc2222",
     # "time": "1592192357852",
@@ -35,26 +34,27 @@ def save_ww_recording(uuid, uploads):
     # "accountId": "0",
     # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
     with JsonWakeWordDatabase() as db:
-        db.add_wakeword(uuid, meta["name"], wav_path, meta)
+        db.add_wakeword(meta["name"], wav_path, meta, uuid)
 
 
 class WakeWordRecording:
-    def __init__(self, wakeword_id, transcription, path, meta="{}"):
+    def __init__(self, wakeword_id, transcription, path, meta=None, uuid="AnonDevice"):
         self.wakeword_id = wakeword_id
         self.transcription = transcription
         self.path = path
         if isinstance(meta, str):
             meta = json.loads(meta)
-        self.meta = meta
+        self.meta = meta or []
+        self.uuid = uuid
 
 
 class JsonWakeWordDatabase(JsonDatabaseXDG):
     def __init__(self):
         super().__init__("ovos_wakewords")
 
-    def add_wakeword(self, transcription, path, meta="{}"):
+    def add_wakeword(self, transcription, path, meta=None, uuid="AnonDevice"):
         wakeword_id = self.total_wakewords() + 1
-        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta)
+        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta, uuid)
         self.add_item(wakeword)
 
     def total_wakewords(self):
