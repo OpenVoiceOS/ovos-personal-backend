@@ -7,7 +7,6 @@ from ovos_local_backend.database.settings import DeviceDatabase
 from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.utils import dict_to_camel_case
 from ovos_local_backend.utils.geolocate import geolocate, get_timezone
-from ovos_local_backend.utils.ovos_api import OvosWeather
 
 
 def _get_lang():
@@ -216,17 +215,18 @@ def get_services_routes(app):
         if not lat or not lon:
             lat, lon = _get_latlon()
 
-        if not CONFIGURATION["owm_key"]:
-            params["lat"], params["lon"] = lat, lon
-            data = OvosWeather().get_weather_onecall(params)
+        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_utils/pull/60
+        # if not CONFIGURATION["owm_key"]:
+        #    params["lat"], params["lon"] = lat, lon
+        #    data = OvosWeather().get_weather_onecall(params)
+
+        params["appid"] = CONFIGURATION["owm_key"]
+        if request.args.get("q"):
+            params["q"] = request.args.get("q")
         else:
-            params["appid"] = CONFIGURATION["owm_key"]
-            if request.args.get("q"):
-                params["q"] = request.args.get("q")
-            else:
-                params["lat"], params["lon"] = lat, lon
-            url = "https://api.openweathermap.org/data/2.5/onecall"
-            data = requests.get(url, params=params).json()
+            params["lat"], params["lon"] = lat, lon
+        url = "https://api.openweathermap.org/data/2.5/onecall"
+        data = requests.get(url, params=params).json()
         # Selene converts the keys from snake_case to camelCase
         return dict_to_camel_case(data)
 
