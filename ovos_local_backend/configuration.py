@@ -17,7 +17,7 @@ DEFAULT_CONFIG = {
     "stt": {"module": "ovos-stt-plugin-server",
             "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}},
     "backend_port": 6712,
-    "admin_key": "CHANGE_ME",  # TODO empty/disabled by default - change before merge
+    "admin_key": "",  # To enable simply set this string to something
     "default_location": {
         "city": {
             "code": "Lawrence",
