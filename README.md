@@ -200,6 +200,11 @@ There are 2 main intended ways to run local backend with mycroft
 - on same device as mycroft-core, tricking it to run without mycroft servers
 - on a private network, to manage all your devices locally
 
+
+NOTE: you can not fully run mycroft-core offline, it refuses to launch without internet connection, you can only replace the calls to use this backend instead of mycroft.home
+
+We recommend you use [ovos-core](https://github.com/OpenVoiceOS/ovos-core) instead
+
 update your mycroft config to use this backend, delete `identity2.json` and restart mycroft
 
 ```json
