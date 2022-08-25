@@ -2,7 +2,20 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a2...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a4...HEAD)
+
+**Implemented enhancements:**
+
+- implement skill settings endpoints [\#21](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/21)
+- feat/device\_db [\#22](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/22) ([JarbasAl](https://github.com/JarbasAl))
+
+**Fixed bugs:**
+
+- Check for outdated config file and insert new keys [\#7](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/7)
+
+## [V0.1.2a4](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a4) (2022-04-30)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a2...V0.1.2a4)
 
 **Implemented enhancements:**
 
