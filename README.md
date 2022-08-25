@@ -58,7 +58,7 @@ see default values [here](./ovos_local_backend/configuration.py)
 - stt config follows the same format of mycroft.conf and
   uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
-- set open weather map key for wolfram alpha proxy expected by official mycroft skill
+- set open weather map key for weather proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
 
