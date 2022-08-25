@@ -2,7 +2,11 @@
 
 Personal mycroft backend alternative to mycroft.home, written in flask
 
-This repo is an alternative to the backend meant for personal usage, this allows you to run fully offline, This is NOT meant to be used as a backend, but rather to run on the mycroft devices directly.
+This repo is an alternative to the backend meant for personal usage, this allows you to run without mycroft servers
+
+:warning: there are no user accounts :warning:
+
+This is NOT meant to provision third party devices, but rather to run on the mycroft devices directly or on a private network
 
 No frontend functionality is provided, for that check out the companion project [OVOS Dashboard](https://github.com/OpenVoiceOS/OVOS-Dashboard)
 
@@ -22,7 +26,7 @@ pip install ovos-local-backend
 
 configure backend by editing/creating ```~/.config/json_database/ovos_backend.json```
 
-default configuration is
+see default values [here](./ovos_local_backend/configuration.py)
 
 ```json
 {
@@ -37,56 +41,141 @@ default configuration is
   "data_path": "~",
   "record_utterances": false,
   "record_wakewords": false,
-  "wolfram_key": "BUNDLED_DEMO_KEY",
-  "owm_key": "BUNDLED_DEMO_KEY",
+  "wolfram_key": "$KEY",
+  "owm_key": "$KEY",
+  "lang": "en-us",
+  "date_format": "DMY",
+  "system_unit": "metric",
+  "time_format": "full",
   "default_location": {
-    "city": {
-      "code": "Lawrence",
-      "name": "Lawrence",
-      "state": {
-        "code": "KS",
-        "name": "Kansas",
-        "country": {
-          "code": "US",
-          "name": "United States"
-        }
-      }
-    },
-    "coordinate": {
-      "latitude": 38.971669,
-      "longitude": -95.23525
-    },
-    "timezone": {
-      "code": "America/Chicago",
-      "name": "Central Standard Time",
-      "dstOffset": 3600000,
-      "offset": -21600000
-    }
+    "city": {"...": "..."},
+    "coordinate": {"...": "..."},
+    "timezone": {"...": "..."}
   }
 }
 ```
 
 - stt config follows the same format of mycroft.conf and
   uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
-- if override location is True, then location will be set to configured value
-- if geolocate is True then location will be set from your ip address
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
-- set open weather map key for wolfram alpha proxy expected by official mycroft skill
+- set open weather map key for weather proxy expected by official mycroft skill
 - if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
-    at `~/.local/share/json_database/ovos_wakewords.jsondb`
 - if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
-  - a searchable [json_database](https://github.com/OpenJarbas/json_database) can be found
-    at `~/.local/share/json_database/ovos_utterances.jsondb`
-- if mycroft is configured to upload metrics a searchable [json_database](https://github.com/OpenJarbas/json_database)
-  can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
 
-### Email
 
-Mycroft skills can request the backend to send an email to the account used for pairing the device, 
-with the local backend you need a SMTP server and to pre-define a recipient email
+## Databases
 
-add the following section to your .conf
+Since the local backend is not meant to provision hundreds of devices or manage user accounts it works only with [json databases](https://github.com/OpenJarbas/json_database)
+
+- metadata about uploaded wakewords can be found at `~/.local/share/json_database/ovos_wakewords.jsondb`
+- metadata about uploaded utterances can be found at `~/.local/share/json_database/ovos_utterances.jsondb`
+- database of uploaded metrics can be found at `~/.local/share/json_database/ovos_metrics.jsondb`
+- paired devices database can be found at `~/.local/share/json_database/ovos_devices.json`
+- per device skill settings database can be found at `~/.local/share/json_database/ovos_skill_settings.json`
+- shared skill settings database can be found at `~/.local/share/json_database/ovos_shared_skill_settings.json`
+
+metrics, wake words and utterances respect the individual devices `opt_in` flag, nothing will be saved unless devices opt_in (default True)
+
+## Micro Services
+
+The local backend provides some 3rd party apis for consumption by skills, these services are only provided for compatibility with selene and to ensure default skills work, **no new apis are planned**
+
+[ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) support is planned to avoid the need to set your own keys
+
+Consider using one of the ovos alternative skills that skip these endpoints if you are not managing your own keys
+
+- geolocation
+- wolfram alpha -> set your free api key in backend config
+- open weather map -> set your free api key in backend config
+
+## Admin api
+
+Since there is no UI some endpoints are provided to manage your devices
+
+By default admin api is disabled, to enable it add `"admin_key": "unique_super_secret_key"` to the backend configuration
+
+you need to provide that key in the request headers for [admin endpoints](./ovos_local_backend/backend/admin.py)
+
+TODO - [selene_api](https://github.com/OpenVoiceOS/selene_api) support
+
+## Device Settings
+
+Each paired device has a few settings that control behaviour backend side
+
+- `name` - default `"Device-{uuid}"`, friendly device name for display
+- `opt_in` - default `True`, flag to control if metrics and speech from this device will be saved
+- `device_location` - default `"unknown"`, friendly name for indoor location
+- `email` - default from backend config, email to send notifications to
+- `isolated_skills` - default `False`, flag to control if skill settings are shared across devices (ovos only)
+
+In selene this info would be populated during pairing process, in local backend it needs to be updated manually
+
+- you can change these settings per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also change these settings per device by manually editing paired devices database
+
+## Location
+
+Device location can be updated via the backend, mycroft-core will request this info on it's own from time to time
+
+default values comes from the local backend config file
+```json
+{
+  "geolocate": true,
+  "override_location": false,
+  "default_location": {
+    "city": {"...": "..."},
+    "coordinate": {"...": "..."},
+    "timezone": {"...": "..."}
+  }
+}
+```
+
+- if override location is True, then location will be set to configured default value
+- if geolocate is True then location will be set from your ip address
+- you can set a default location per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also set a default location per device by manually editing paired devices database
+
+## Device Preferences
+
+Some settings can be updated via the backend, mycroft-core will request this info on it's own from time to time
+
+default values comes from the local backend config file
+```json
+{
+  "lang": "en-us",
+  "date_format": "DMY",
+  "system_unit": "metric",
+  "time_format": "full"
+}
+```
+
+- these settings are also used for wolfram alpha / weather default values
+- you can set these values per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also set these values per device by manually editing paired devices database
+
+## Skill settings
+
+in selene all device share skill settings, with local backend you can control this per device via `isolated_skills` flag
+
+"old selene" supported a single endpoint for both skill settings and settings meta, this allowed devices both to download and upload settings
+
+"new selene" split this into two endpoints, settingsMeta (upload only) and settings (download only), this disabled two way sync across devices
+
+- you can set `isolated_skills` per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can also set `isolated_skills` per device by manually editing paired devices database
+- both endpoints are available, but mycroft-core by default will use the new endpoints and does not support two way sync
+- you can edit settings by using the "old selene" endpoint
+- you can also edit settings by manually editing settings database
+
+## Email
+
+Mycroft skills can request the backend to send an email to the account used for pairing the device
+
+- Email will be sent to a pre-defined recipient email since there are no user accounts
+- you can set a recipient email per device via the [admin api](./ovos_local_backend/backend/admin.py)
+- you can set a recipient email per device by manually editing paired devices database
+
+with the local backend you need to configure your own SMTP server and recipient email, add the following section to your .conf
 
 ```json
 {
@@ -97,18 +186,26 @@ add the following section to your .conf
       "host": "",
       "port": 465
     },
-    "sender": "sender@gmail.com",
     "recipient": "receiver@gmail.com"
   }
 }
 ```
 
-If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/), 
-I recommend you setup an [Application Specific Password](https://support.google.com/accounts/answer/185833)
+If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/)
 
 ## Mycroft Setup
 
-update your mycroft config to use this backend
+There are 2 main intended ways to run local backend with mycroft
+
+- on same device as mycroft-core, tricking it to run without mycroft servers
+- on a private network, to manage all your devices locally
+
+
+NOTE: you can not fully run mycroft-core offline, it refuses to launch without internet connection, you can only replace the calls to use this backend instead of mycroft.home
+
+We recommend you use [ovos-core](https://github.com/OpenVoiceOS/ovos-core) instead
+
+update your mycroft config to use this backend, delete `identity2.json` and restart mycroft
 
 ```json
 {

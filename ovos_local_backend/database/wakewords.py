@@ -1,24 +1,60 @@
-from json_database import JsonDatabaseXDG
 import json
+import time
+from os import makedirs
+from os.path import join, isdir
+
+from json_database import JsonDatabaseXDG
+
+from ovos_local_backend.backend.decorators import requires_opt_in
+from ovos_local_backend.configuration import CONFIGURATION
+
+
+@requires_opt_in
+def save_ww_recording(uuid, uploads):
+    if not isdir(join(CONFIGURATION["data_path"], "wakewords")):
+        makedirs(join(CONFIGURATION["data_path"], "wakewords"))
+    name = str(time.time()).replace(".", "")
+    wav_path = join(CONFIGURATION["data_path"], "wakewords",
+                    name + ".wav")
+    meta_path = join(CONFIGURATION["data_path"], "wakewords",
+                     name + ".meta")
+    for precisefile in uploads:
+        fn = uploads[precisefile].filename
+        if fn == 'audio':
+            uploads[precisefile].save(wav_path)
+        if fn == 'metadata':
+            uploads[precisefile].save(meta_path)
+    with open(meta_path) as f:
+        meta = json.load(f)
+
+    # {"name": "hey-mycroft",
+    # "engine": "0f4df281688583e010c26831abdc2222",
+    # "time": "1592192357852",
+    # "sessionId": "7d18e208-05b5-401e-add6-ee23ae821967",
+    # "accountId": "0",
+    # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
+    with JsonWakeWordDatabase() as db:
+        db.add_wakeword(meta["name"], wav_path, meta, uuid)
 
 
 class WakeWordRecording:
-    def __init__(self, wakeword_id, transcription, path, meta="{}"):
+    def __init__(self, wakeword_id, transcription, path, meta=None, uuid="AnonDevice"):
         self.wakeword_id = wakeword_id
         self.transcription = transcription
         self.path = path
         if isinstance(meta, str):
             meta = json.loads(meta)
-        self.meta = meta
+        self.meta = meta or []
+        self.uuid = uuid
 
 
 class JsonWakeWordDatabase(JsonDatabaseXDG):
     def __init__(self):
         super().__init__("ovos_wakewords")
 
-    def add_wakeword(self, transcription, path, meta="{}"):
+    def add_wakeword(self, transcription, path, meta=None, uuid="AnonDevice"):
         wakeword_id = self.total_wakewords() + 1
-        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta)
+        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta, uuid)
         self.add_item(wakeword)
 
     def total_wakewords(self):
@@ -34,5 +70,3 @@ class JsonWakeWordDatabase(JsonDatabaseXDG):
             self.commit()
         except Exception as e:
             print(e)
-
-

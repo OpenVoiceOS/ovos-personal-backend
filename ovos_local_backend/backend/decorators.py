@@ -11,7 +11,59 @@
 # limitations under the License.
 #
 from functools import wraps
-from flask import make_response
+from flask import make_response, request, Response
+from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database.settings import DeviceDatabase
+
+
+def check_auth(uid, token):
+    """This function is called to check if a access token is valid."""
+    device = DeviceDatabase().get_device(uid)
+    if device and device.token == token:
+        return True
+    return False
+
+
+def requires_opt_in(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
+        device = DeviceDatabase().get_device(uuid)
+        if device and device.opt_in:
+            return f(*args, **kwargs)
+
+    return decorated
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
+        if not auth or not uuid or not check_auth(uuid, auth):
+            return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to authenticate with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="NOT PAIRED"'})
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def requires_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        admin_key = CONFIGURATION.get("admin_key")
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        if not auth or not admin_key or auth != admin_key:
+            return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to authenticate with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="NOT ADMIN"'})
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 def add_response_headers(headers=None):

@@ -17,6 +17,7 @@ DEFAULT_CONFIG = {
     "stt": {"module": "ovos-stt-plugin-server",
             "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}},
     "backend_port": 6712,
+    "admin_key": "",  # To enable simply set this string to something
     "default_location": {
         "city": {
             "code": "Lawrence",
@@ -41,6 +42,9 @@ DEFAULT_CONFIG = {
             "offset": -21600000
         }
     },
+    "date_format": "DMY",
+    "system_unit": "metric",
+    "time_format": "full",
     "geolocate": True,
     "override_location": False,
     "api_version": "v1",

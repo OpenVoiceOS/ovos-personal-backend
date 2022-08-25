@@ -11,18 +11,16 @@
 # limitations under the License.
 #
 import json
-import time
-from os import makedirs
-from os.path import join, isdir
 from tempfile import NamedTemporaryFile
 
 from flask import request
-from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex
-from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.utterances import JsonUtteranceDatabase
-from ovos_plugin_manager.stt import OVOSSTTFactory
 from speech_recognition import Recognizer, AudioFile
+
+from ovos_local_backend.backend import API_VERSION
+from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database.utterances import save_stt_recording
+from ovos_plugin_manager.stt import OVOSSTTFactory
 
 recognizer = Recognizer()
 engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
@@ -31,28 +29,28 @@ engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
 def get_stt_routes(app):
     @app.route("/" + API_VERSION + "/stt", methods=['POST'])
     @noindex
+    @requires_auth
     def stt():
         flac_audio = request.data
         lang = str(request.args.get("lang", "en-us"))
         with NamedTemporaryFile() as fp:
             fp.write(flac_audio)
             with AudioFile(fp.name) as source:
-                audio = recognizer.record(
-                    source)  # read the entire audio_only file
+                audio = recognizer.record(source)  # read the entire audio file
             try:
                 utterance = engine.execute(audio, language=lang)
             except:
                 utterance = ""
+
         if CONFIGURATION["record_utterances"]:
-            if not isdir(join(CONFIGURATION["data_path"], "utterances")):
-                makedirs(join(CONFIGURATION["data_path"], "utterances"))
-            wav = audio.get_wav_data()
-            path = join(CONFIGURATION["data_path"], "utterances",
-                        utterance + str(time.time()).replace(".", "") + ".wav")
-            with open(path, "wb") as f:
-                f.write(wav)
-            with JsonUtteranceDatabase() as db:
-                db.add_utterance(utterance, path)
+            auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+            uuid = auth.split(":")[-1]  # this split is only valid here, not selene
+            save_stt_recording(uuid, audio, utterance)
+
+        # TODO - share with upstream setting
+        # contribute to mycroft open dataset
+        # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
+
         return json.dumps([utterance])
 
     return app
