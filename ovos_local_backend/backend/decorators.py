@@ -18,10 +18,9 @@ from ovos_local_backend.database.settings import DeviceDatabase
 
 def check_auth(uid, token):
     """This function is called to check if a access token is valid."""
-    with DeviceDatabase() as device_db:
-        device = device_db.get_device(uid)
-        if device and device.token == token:
-            return True
+    device = DeviceDatabase().get_device(uid)
+    if device and device.token == token:
+        return True
     return False
 
 
