@@ -47,6 +47,10 @@ def get_stt_routes(app):
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
             save_stt_recording(uuid, audio, utterance)
 
+        # TODO - share with upstream setting
+        # contribute to mycroft open dataset
+        # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
+
         return json.dumps([utterance])
 
     return app

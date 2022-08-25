@@ -25,7 +25,6 @@ def check_auth(uid, token):
 
 
 def requires_opt_in(f):
-
     @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.headers.get('Authorization', '').replace("Bearer ", "")
@@ -40,10 +39,9 @@ def requires_opt_in(f):
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        uid = kwargs.get("uuid")
         auth = request.headers.get('Authorization', '').replace("Bearer ", "")
-        uid = uid or auth.split(":")[-1]  # this split is only valid here, not selene
-        if not auth or not uid or not check_auth(uid, auth):
+        uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
+        if not auth or not uuid or not check_auth(uuid, auth):
             return Response(
                 'Could not verify your access level for that URL.\n'
                 'You have to authenticate with proper credentials', 401,

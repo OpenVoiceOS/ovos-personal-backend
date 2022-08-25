@@ -196,7 +196,9 @@ def get_device_routes(app):
 
         save_metric(uuid, name, data)
 
-        # TODO - share upstream setting
+        # TODO - share with upstream setting
+        # contribute to mycroft metrics dataset
+        # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
         uploaded = False
         upload_data = {"uploaded": uploaded}
 
