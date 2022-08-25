@@ -36,7 +36,7 @@ class SkillSettings:
             data = json.loads(data)
 
         skill_json = {}
-        skill_meta = data.get("skillMetadata")
+        skill_meta = data.get("skillMetadata") or {}
         for s in skill_meta.get("sections", []):
             for f in s.get("fields", []):
                 if "name" in f and "value" in f:

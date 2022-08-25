@@ -62,7 +62,7 @@ def get_services_routes(app):
     @requires_auth
     def wolfie_spoken():
         # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/1
-        query = request.args["i"]
+        query = request.args.get("input") or request.args.get("i")
         units = request.args.get("units") or _get_units()
 
         if units != "metric":
@@ -85,7 +85,7 @@ def get_services_routes(app):
     @requires_auth
     def wolfie_simple():
         # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/1
-        query = request.args["i"]
+        query = request.args.get("input") or request.args.get("i")
         units = request.args.get("units") or _get_units()
 
         if units != "metric":
@@ -108,7 +108,7 @@ def get_services_routes(app):
     @requires_auth
     def wolfie_full():
         # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/1
-        query = request.args["i"]
+        query = request.args.get("input") or request.args.get("i")
         units = request.args.get("units") or _get_units()
 
         if units != "metric":
@@ -124,7 +124,7 @@ def get_services_routes(app):
                   "input": query,
                   "output": "json",
                   "units": units}
-        answer = requests.get(url, params=params).text
+        answer = requests.get(url, params=params).json()
         return answer
 
     @app.route("/" + API_VERSION + '/wa', methods=['GET'])
