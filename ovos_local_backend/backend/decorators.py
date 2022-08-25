@@ -24,6 +24,19 @@ def check_auth(uid, token):
     return False
 
 
+def requires_opt_in(f):
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uuid = auth.split(":")[-1]  # this split is only valid here, not selene
+        device = DeviceDatabase().get_device(uuid)
+        if device and device.opt_in:
+            return f(*args, **kwargs)
+
+    return decorated
+
+
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):

@@ -11,34 +11,19 @@
 # limitations under the License.
 #
 import json
-import time
-from os import makedirs
-from os.path import join, isdir
 from tempfile import NamedTemporaryFile
 
 from flask import request
+from speech_recognition import Recognizer, AudioFile
+
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.utterances import JsonUtteranceDatabase
-from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.database.utterances import save_stt_recording
 from ovos_plugin_manager.stt import OVOSSTTFactory
-from speech_recognition import Recognizer, AudioFile
 
 recognizer = Recognizer()
 engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
-
-
-def _save_stt(audio, utterance):
-    if not isdir(join(CONFIGURATION["data_path"], "utterances")):
-        makedirs(join(CONFIGURATION["data_path"], "utterances"))
-    wav = audio.get_wav_data()
-    path = join(CONFIGURATION["data_path"], "utterances",
-                utterance + str(time.time()).replace(".", "") + ".wav")
-    with open(path, "wb") as f:
-        f.write(wav)
-    with JsonUtteranceDatabase() as db:
-        db.add_utterance(utterance, path)
 
 
 def get_stt_routes(app):
@@ -60,9 +45,7 @@ def get_stt_routes(app):
         if CONFIGURATION["record_utterances"]:
             auth = request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
-            device = DeviceDatabase().get_device(uuid)
-            if device and device.opt_in:
-                _save_stt(audio, utterance)
+            save_stt_recording(uuid, audio, utterance)
 
         return json.dumps([utterance])
 

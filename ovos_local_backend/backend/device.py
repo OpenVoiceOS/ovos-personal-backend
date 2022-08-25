@@ -17,7 +17,7 @@ from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.metrics import JsonMetricDatabase
+from ovos_local_backend.database.metrics import save_metric
 from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import ip_geolocate
@@ -193,10 +193,8 @@ def get_device_routes(app):
     @requires_auth
     def metric(uuid="", name=""):
         data = request.json
-        device = DeviceDatabase().get_device(uuid)
-        if device and device.opt_in:
-            with JsonMetricDatabase() as db:
-                db.add_metric(name, json.dumps(data))
+
+        save_metric(uuid, name, data)
 
         # TODO - share upstream setting
         uploaded = False
