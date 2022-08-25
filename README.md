@@ -22,6 +22,13 @@ from pip
 pip install ovos-local-backend
 ```
 
+
+## Companion projects
+
+- [selene_api](https://github.com/OpenVoiceOS/selene_api) - reference python library to interact with selene/local backend
+- [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend
+
+
 ## Configuration
 
 configure backend by editing/creating ```~/.config/json_database/ovos_backend.json```
@@ -223,7 +230,7 @@ update your mycroft config to use this backend, delete `identity2.json` and rest
 }
 ```
 
-## usage
+## Usage
 
 start backend
 
