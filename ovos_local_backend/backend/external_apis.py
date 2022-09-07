@@ -72,7 +72,7 @@ def get_services_routes(app):
         # lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        url = 'http://api.wolframalpha.com/v1/spoken'
+        url = 'https://api.wolframalpha.com/v1/spoken'
         params = {"appid": CONFIGURATION["wolfram_key"],
                   "i": query,
                   "units": units}
@@ -95,7 +95,7 @@ def get_services_routes(app):
         # lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        url = 'http://api.wolframalpha.com/v1/simple'
+        url = 'https://api.wolframalpha.com/v1/simple'
         params = {"appid": CONFIGURATION["wolfram_key"],
                   "i": query,
                   "units": units}
@@ -118,7 +118,7 @@ def get_services_routes(app):
         # lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        url = 'http://api.wolframalpha.com/v2/query'
+        url = 'https://api.wolframalpha.com/v2/query'
         params = {"appid": CONFIGURATION["wolfram_key"],
                   "input": query,
                   "output": "json",
@@ -143,7 +143,7 @@ def get_services_routes(app):
         # lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        url = 'http://api.wolframalpha.com/v2/query'
+        url = 'https://api.wolframalpha.com/v2/query'
         params = {"appid": CONFIGURATION["wolfram_key"],
                   "input": query,
                   "output": "xml",
