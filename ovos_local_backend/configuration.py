@@ -54,7 +54,7 @@ DEFAULT_CONFIG = {
     "record_utterances": False,
     "record_wakewords": False,
     "wolfram_key": "",
-    "owm_key": "28fed22898afd4717ce5a1535da1f78c",
+    "owm_key": "",
     "email": {
         "username": None,
         "password": None
