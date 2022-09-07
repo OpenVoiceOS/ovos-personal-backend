@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from ovos_utils.log import LOG
 from os.path import exists
 from json_database import JsonConfigXDG
 
@@ -60,8 +61,9 @@ DEFAULT_CONFIG = {
 }
 
 CONFIGURATION = JsonConfigXDG("ovos_backend")
-
 if not exists(CONFIGURATION.path):
     CONFIGURATION.merge(DEFAULT_CONFIG, skip_empty=False)
     CONFIGURATION.store()
-
+    LOG.info(f"Saved default configuration: {CONFIGURATION.path}")
+else:
+    LOG.info(f"Loaded configuration: {CONFIGURATION.path}")

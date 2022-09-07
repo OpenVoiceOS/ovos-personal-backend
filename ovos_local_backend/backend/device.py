@@ -16,27 +16,12 @@ from flask import request
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.metrics import save_metric
 from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
-from ovos_local_backend.utils.geolocate import ip_geolocate
+from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
 
-
-def _get_request_location():
-    if not request.headers.getlist("X-Forwarded-For"):
-        ip = request.remote_addr
-    else:
-        # TODO http://esd.io/blog/flask-apps-heroku-real-ip-spoofing.html
-        ip = request.headers.getlist("X-Forwarded-For")[0]
-    if CONFIGURATION["override_location"]:
-        new_location = CONFIGURATION["default_location"]
-    elif CONFIGURATION["geolocate"]:
-        new_location = ip_geolocate(ip)
-    else:
-        new_location = {}
-    return new_location
 
 
 def get_device_routes(app):
@@ -50,7 +35,8 @@ def get_device_routes(app):
             old_s = db.get_setting(s.skill_id, uuid)
             if old_s:
                 s.settings = old_s.settings
-            db.add_setting(uuid, s.skill_id, s.settings, s.meta, s.display_name)
+            db.add_setting(uuid, s.skill_id, s.settings, s.meta,
+                           s.display_name, s.remote_id)
         return nice_json({"success": True, "uuid": uuid})
 
     @app.route("/v1/device/<uuid>/skill/settings", methods=['GET'])
@@ -69,7 +55,8 @@ def get_device_routes(app):
         if request.method == 'PUT':
             with SettingsDatabase() as db:
                 s = SkillSettings.deserialize(request.json)
-                db.add_setting(uuid, s.skill_id, s.settings, s.meta)
+                db.add_setting(uuid, s.skill_id, s.settings, s.meta,
+                               s.display_name, s.remote_id)
             return nice_json({"success": True, "uuid": uuid})
         else:
             return nice_json([s.serialize() for s in SettingsDatabase().get_device_settings(uuid)])
@@ -98,7 +85,7 @@ def get_device_routes(app):
         device = DeviceDatabase().get_device(uuid)
         if device:
             return device.location
-        return _get_request_location()
+        return get_request_location()
 
     @app.route("/" + API_VERSION + "/device/<uuid>/setting", methods=['GET'])
     @requires_auth
@@ -166,7 +153,7 @@ def get_device_routes(app):
         token = request.json["token"]
 
         # add device to db
-        location = _get_request_location()
+        location = get_request_location()
         with DeviceDatabase() as db:
             db.add_device(uuid, token, location=location)
 
