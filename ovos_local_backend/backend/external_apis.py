@@ -214,7 +214,6 @@ def get_services_routes(app):
             params["lat"], params["lon"] = lat, lon
             return _owm.get_forecast(params).json()
 
-        params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
         if not request.args.get("q"):
             params["lat"], params["lon"] = lat, lon
