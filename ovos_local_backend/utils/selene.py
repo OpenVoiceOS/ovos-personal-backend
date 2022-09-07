@@ -2,12 +2,12 @@ from uuid import uuid4
 
 from flask import request
 from ovos_utils.log import LOG
-from selene_api.api import DeviceApi
+from selene_api.api import DeviceApi, STTApi
 from selene_api.identity import IdentityManager
 from selene_api.pairing import has_been_paired
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
-from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase
+from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase, DeviceDatabase
 
 _selene_pairing_data = None
 _selene_uuid = uuid4()
@@ -59,6 +59,79 @@ def download_selene_skill_settings():
             with SettingsDatabase() as db:
                 db.add_setting(s.uuid, s.skill_id, s.settings, s.meta,
                                s.display_name, s.remote_id)
+
+
+def download_selene_location(uuid):
+    # get location from selene if enabled
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    if selene_cfg.get("enabled"):
+        url = selene_cfg.get("url")
+        version = selene_cfg.get("version") or "v1"
+        identity_file = selene_cfg.get("identity_file")
+        api = DeviceApi(url, version, identity_file)
+        # update in local db
+        loc = api.get_location()
+        with DeviceDatabase() as db:
+            device = db.get_device(uuid)
+            device.location = loc
+            db.update_device(device)
+
+
+def download_selene_preferences(uuid):
+    # get location from selene if enabled
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    if selene_cfg.get("enabled"):
+        url = selene_cfg.get("url")
+        version = selene_cfg.get("version") or "v1"
+        identity_file = selene_cfg.get("identity_file")
+        api = DeviceApi(url, version, identity_file)
+        data = api.get_settings()
+        # update in local db
+        with DeviceDatabase() as db:
+            device = db.get_device(uuid)
+            device.system_unit = data["systemUnit"]
+            device.time_format = data["timeFormat"]
+            device.date_format = data["dateFormat"]
+            db.update_device(device)
+
+
+def send_selene_email(title, body, sender):
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    url = selene_cfg.get("url")
+    version = selene_cfg.get("version") or "v1"
+    identity_file = selene_cfg.get("identity_file")
+    api = DeviceApi(url, version, identity_file)
+    return api.send_email(title, body, sender)
+
+
+def report_selene_metric(name, data):
+    # contribute to mycroft metrics dataset
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    if selene_opted_in():
+        url = selene_cfg.get("url")
+        version = selene_cfg.get("version") or "v1"
+        identity_file = selene_cfg.get("identity_file")
+        api = DeviceApi(url, version, identity_file)
+        return api.report_metric(name, data)
+    return {"success": True, "metric": data, "upload_data": {"uploaded": False}}
+
+
+def upload_utterance(audio, lang="en-us"):
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    if selene_opted_in():
+        url = selene_cfg.get("url")
+        version = selene_cfg.get("version") or "v1"
+        identity_file = selene_cfg.get("identity_file")
+        api = STTApi(url, version, identity_file)
+        api.stt(audio, lang)
+
+
+def upload_ww(files):
+    uploaded = False
+    if selene_opted_in():
+        # contribute to mycroft open dataset
+        pass  # TODO add upload endpoint to selene_api package
+    return uploaded
 
 
 def selene_opted_in():

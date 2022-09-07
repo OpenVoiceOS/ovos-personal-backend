@@ -11,20 +11,22 @@
 # limitations under the License.
 #
 import time
-from flask import request
 
-from ovos_local_backend.configuration import CONFIGURATION
+from flask import request
+from selene_api.api import DeviceApi
+from selene_api.pairing import is_paired
+
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
+from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.metrics import save_metric
 from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
-from ovos_local_backend.utils.selene import get_selene_code, selene_opted_in, \
-    download_selene_skill_settings, upload_selene_skill_settings, upload_selene_skill_settingsmeta
-from selene_api.api import DeviceApi
-from selene_api.pairing import is_paired
+from ovos_local_backend.utils.selene import get_selene_code, selene_opted_in, download_selene_location, \
+    download_selene_skill_settings, upload_selene_skill_settings, upload_selene_skill_settingsmeta, \
+    download_selene_preferences, send_selene_email, report_selene_metric
 
 
 def get_device_routes(app):
@@ -114,18 +116,8 @@ def get_device_routes(app):
     def location(uuid):
         # get location from selene if enabled
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and selene_cfg.get("download_location"):
-            url = selene_cfg.get("url")
-            version = selene_cfg.get("version") or "v1"
-            identity_file = selene_cfg.get("identity_file")
-            api = DeviceApi(url, version, identity_file)
-            # update in local db
-            loc = api.get_location()
-            with DeviceDatabase() as db:
-                device = db.get_device(uuid)
-                device.location = loc
-                db.update_device(device)
-            return loc
+        if selene_cfg.get("download_location"):
+            download_selene_location(uuid)
 
         device = DeviceDatabase().get_device(uuid)
         if device:
@@ -139,19 +131,8 @@ def get_device_routes(app):
     def setting(uuid=""):
         # get/update device preferences from selene if enabled
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and selene_cfg.get("download_prefs"):
-            url = selene_cfg.get("url")
-            version = selene_cfg.get("version") or "v1"
-            identity_file = selene_cfg.get("identity_file")
-            api = DeviceApi(url, version, identity_file)
-            data = api.get_settings()
-            # update in local db
-            with DeviceDatabase() as db:
-                device = db.get_device(uuid)
-                device.system_unit = data["systemUnit"]
-                device.time_format = data["timeFormat"]
-                device.date_format = data["dateFormat"]
-                db.update_device(device)
+        if selene_cfg.get("download_prefs"):
+            download_selene_preferences(uuid)
 
         device = DeviceDatabase().get_device(uuid)
         if device:
@@ -250,11 +231,7 @@ def get_device_routes(app):
 
         selene_cfg = CONFIGURATION.get("selene") or {}
         if selene_cfg.get("enabled") and selene_cfg.get("proxy_email"):
-            url = selene_cfg.get("url")
-            version = selene_cfg.get("version") or "v1"
-            identity_file = selene_cfg.get("identity_file")
-            api = DeviceApi(url, version, identity_file)
-            return api.send_email(data["title"], data["body"], skill_id)
+            return send_selene_email(data["title"], data["body"], skill_id)
 
         target_email = None
         device = DeviceDatabase().get_device(uuid)
@@ -272,14 +249,9 @@ def get_device_routes(app):
         save_metric(uuid, name, data)
 
         # contribute to mycroft metrics dataset
-        # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_opted_in() and selene_cfg.get("upload_metrics"):
-            url = selene_cfg.get("url")
-            version = selene_cfg.get("version") or "v1"
-            identity_file = selene_cfg.get("identity_file")
-            api = DeviceApi(url, version, identity_file)
-            return api.report_metric(name, data)
+        if selene_cfg.get("upload_metrics"):
+            return report_selene_metric(name, data)
 
         return nice_json({"success": True,
                           "uuid": uuid,
