@@ -19,6 +19,7 @@ DEFAULT_CONFIG = {
             "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}},
     "backend_port": 6712,
     "admin_key": "",  # To enable simply set this string to something
+    "skip_auth": False,  # you almost certainly do not want this, only for atypical use cases such as ovos-qubes
     "default_location": {
         "city": {
             "code": "Lawrence",
