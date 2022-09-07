@@ -53,7 +53,7 @@ DEFAULT_CONFIG = {
     "data_path": "~",
     "record_utterances": False,
     "record_wakewords": False,
-    "wolfram_key": "Y7R353-9HQAAL8KKA",
+    "wolfram_key": "",
     "owm_key": "28fed22898afd4717ce5a1535da1f78c",
     "email": {
         "username": None,
