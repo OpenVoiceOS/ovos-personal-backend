@@ -293,8 +293,7 @@ def get_services_routes(app):
                 "lang": lang,
                 "units": units,
                 "lat": lat,
-                "lon": lon,
-                "appid": CONFIGURATION["owm_key"]
+                "lon": lon
             }
             params["lat"], params["lon"] = lat, lon
             return _owm.get_weather_onecall(params).json()
