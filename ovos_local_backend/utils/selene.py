@@ -7,6 +7,7 @@ from selene_api.identity import IdentityManager
 from selene_api.pairing import has_been_paired
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
+from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase
 
 _selene_pairing_data = None
 _selene_uuid = uuid4()
@@ -19,6 +20,45 @@ if _ident_file != IdentityManager.IDENTITY_FILE:
 _device_api = DeviceApi(_selene_cfg.get("url"),
                         _selene_cfg.get("version") or "v1",
                         _selene_cfg.get("identity_file"))
+
+
+def upload_selene_skill_settings(settings):
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    url = selene_cfg.get("url")
+    version = selene_cfg.get("version") or "v1"
+    identity_file = selene_cfg.get("identity_file")
+    if selene_cfg.get("enabled"):
+        # upload settings to selene if enabled
+        api = DeviceApi(url, version, identity_file)
+        api.put_skill_settings_v1(settings)
+
+
+def upload_selene_skill_settingsmeta(meta):
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    url = selene_cfg.get("url")
+    version = selene_cfg.get("version") or "v1"
+    identity_file = selene_cfg.get("identity_file")
+    if selene_cfg.get("enabled"):
+        # upload settings to selene if enabled
+        api = DeviceApi(url, version, identity_file)
+        api.upload_skill_metadata(meta)
+
+
+def download_selene_skill_settings():
+    selene_cfg = CONFIGURATION.get("selene") or {}
+    if selene_cfg.get("enabled"):
+        url = selene_cfg.get("url")
+        version = selene_cfg.get("version") or "v1"
+        identity_file = selene_cfg.get("identity_file")
+        # get settings from selene if enabled
+        api = DeviceApi(url, version, identity_file)
+        sets = api.get_skill_settings()
+        for skill_id, s in sets.items():
+            s = SkillSettings.deserialize(s)
+            # sync local db with selene
+            with SettingsDatabase() as db:
+                db.add_setting(s.uuid, s.skill_id, s.settings, s.meta,
+                               s.display_name, s.remote_id)
 
 
 def selene_opted_in():
@@ -82,9 +122,10 @@ def get_selene_code():
 
 
 def get_selene_pairing_data():
-    global _selene_pairing_data
+    global _selene_pairing_data, _selene_uuid
     if not _selene_pairing_data:
         try:
+            _selene_uuid = uuid4()
             _selene_pairing_data = _device_api.get_code(_selene_uuid)
         except:
             LOG.exception("Failed to get selene pairing data")
@@ -92,6 +133,7 @@ def get_selene_pairing_data():
 
 
 def attempt_selene_pairing():
+    global _selene_pairing_data
     backend_version = "0.0.1"
     platform = "ovos-local-backend"
     ident_file = _selene_cfg.get("identity_file") or BACKEND_IDENTITY
@@ -102,10 +144,15 @@ def attempt_selene_pairing():
         if data:
             tok = data["token"]
             try:
-                _device_api.activate(_selene_uuid, tok,
-                                     platform=platform,
-                                     platform_build=backend_version,
-                                     core_version=backend_version,
-                                     enclosure_version=backend_version)
+                login = _device_api.activate(_selene_uuid, tok,
+                                             platform=platform,
+                                             platform_build=backend_version,
+                                             core_version=backend_version,
+                                             enclosure_version=backend_version)
+                try:
+                    IdentityManager.save(login)
+                except:
+                    LOG.exception("Failed to save identity, restarting pairing")
+                    _selene_pairing_data = None
             except:
-                LOG.exception("Failed to pair with selene")
+                LOG.exception("Failed to activate with selene, user did not yet enter pairing code")

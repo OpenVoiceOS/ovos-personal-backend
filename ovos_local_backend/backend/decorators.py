@@ -41,7 +41,8 @@ def requires_opt_in(f):
 def check_selene_pairing(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        attempt_selene_pairing()
+        if CONFIGURATION.get("selene", {}).get("proxy_pairing"):
+            attempt_selene_pairing()
         requires_selene = requires_selene_pairing(f.__name__)
         # check pairing with selene
         if requires_selene and not is_paired():

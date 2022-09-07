@@ -82,7 +82,7 @@ DEFAULT_CONFIG = {
         # this will provide voice/gui prompts to the user and avoid the need to copy a identity file
         # only happens if backend is not paired with selene (hopefully exactly once)
         # if False you need to pair an existing mycroft-core as usual and move the file for backend usage
-        "proxy_pairing": True,
+        "proxy_pairing": False,
         # micro service settings
         # NOTE: STT is handled at plugin level, configure ovos-stt-plugin-selene
         "proxy_weather": True,  # use selene for weather api calls
