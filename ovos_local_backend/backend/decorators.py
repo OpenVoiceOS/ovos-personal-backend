@@ -14,6 +14,8 @@ from functools import wraps
 from flask import make_response, request, Response
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.utils.selene import attempt_selene_pairing, requires_selene_pairing
+from selene_api.pairing import is_paired
 
 
 def check_auth(uid, token):
@@ -32,6 +34,23 @@ def requires_opt_in(f):
         device = DeviceDatabase().get_device(uuid)
         if device and device.opt_in:
             return f(*args, **kwargs)
+
+    return decorated
+
+
+def check_selene_pairing(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        attempt_selene_pairing()
+        requires_selene = requires_selene_pairing(f.__name__)
+        # check pairing with selene
+        if requires_selene and not is_paired():
+            return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to pair ovos backend with selene first', 401,
+                {'WWW-Authenticate': 'Basic realm="BACKEND NOT PAIRED WITH SELENE"'})
+
+        return f(*args, **kwargs)
 
     return decorated
 
@@ -90,4 +109,3 @@ def add_response_headers(headers=None):
 def noindex(f):
     """This decorator passes X-Robots-Tag: noindex"""
     return add_response_headers({'X-Robots-Tag': 'noindex'})(f)
-

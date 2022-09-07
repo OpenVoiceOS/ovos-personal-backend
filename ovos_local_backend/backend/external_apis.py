@@ -1,12 +1,13 @@
 from flask import request
 
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.settings import DeviceDatabase
 from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.utils import dict_to_camel_case
 from ovos_local_backend.utils.geolocate import geolocate, get_timezone
+from selene_api.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
 
 _wolfie = None
@@ -51,10 +52,20 @@ def _get_latlon():
 def get_services_routes(app):
     @app.route("/" + API_VERSION + '/geolocation', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def geolocation():
         address = request.args["location"]
-        data = geolocate(address)
+
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and selene_cfg.get("proxy_geolocation"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = GeolocationApi(url, version, identity_file)
+            data = api.get_geolocation(address)
+        else:
+            data = geolocate(address)
         return {"data": {
             "city": data["city"],
             "country": data["country"],
@@ -66,6 +77,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/wolframAlphaSpoken', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def wolfie_spoken():
         query = request.args.get("input") or request.args.get("i")
@@ -76,10 +88,17 @@ def get_services_routes(app):
 
         # not used?
         # https://products.wolframalpha.com/spoken-results-api/documentation/
-        # lat, lon = _get_latlon()
+        lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        if _wolfie:
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and selene_cfg.get("proxy_wolfram"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = WolframAlphaApi(url, version, identity_file)
+            answer = api.spoken(query, units, (lat, lon))
+        elif _wolfie:
             q = {"input": query, "units": units}
             answer = _wolfie.get_wolfram_spoken(q)
         else:
@@ -92,6 +111,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/wolframAlphaSimple', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def wolfie_simple():
         query = request.args.get("input") or request.args.get("i")
@@ -117,6 +137,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/wolframAlphaFull', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def wolfie_full():
         query = request.args.get("input") or request.args.get("i")
@@ -127,10 +148,17 @@ def get_services_routes(app):
 
         # not used?
         # https://products.wolframalpha.com/spoken-results-api/documentation/
-        # lat, lon = _get_latlon()
+        lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
 
-        if _wolfie:
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and selene_cfg.get("proxy_wolfram"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = WolframAlphaApi(url, version, identity_file)
+            answer = api.full_results(query, units, (lat, lon))
+        elif _wolfie:
             q = {"input": query, "units": units}
             answer = _wolfie.get_wolfram_full(q)
         else:
@@ -144,6 +172,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/wa', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def wolfie_old():
         """ old deprecated endpoint with XML results """
@@ -155,9 +184,17 @@ def get_services_routes(app):
 
         # not used?
         # https://products.wolframalpha.com/spoken-results-api/documentation/
-        # lat, lon = _get_latlon()
+        lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
-        if _wolfie:
+
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and selene_cfg.get("proxy_wolfram"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = WolframAlphaApi(url, version, identity_file)
+            answer = api.full_results(query, units, (lat, lon), {"output": "xml"})
+        elif _wolfie:
             q = {"input": query, "units": units, "output": "xml"}
             answer = _wolfie.get_wolfram_full(q)
         else:
@@ -171,6 +208,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/forecast/daily', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def owm_daily_forecast():
         params = dict(request.args)
@@ -192,6 +230,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/forecast', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def owm_3h_forecast():
         params = dict(request.args)
@@ -213,6 +252,7 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/weather', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def owm():
         params = dict(request.args)
@@ -235,29 +275,46 @@ def get_services_routes(app):
 
     @app.route("/" + API_VERSION + '/owm/onecall', methods=['GET'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def owm_onecall():
-        params = {
-            "lang": request.args.get("lang") or _get_lang(),
-            "units": request.args.get("units") or _get_units()
-        }
-
+        units = request.args.get("units") or _get_units()
+        lang = request.args.get("lang") or _get_lang()
         lat, lon = request.args.get("lat"), request.args.get("lon")
         if not lat or not lon:
             lat, lon = _get_latlon()
 
-        if _owm:
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and selene_cfg.get("proxy_weather"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = OpenWeatherMapApi(url, version, identity_file)
+            return api.get_weather((lat, lon), lang, units)
+        elif _owm:
+            params = {
+                "lang": lang,
+                "units": units,
+                "lat": lat,
+                "lon": lon,
+                "appid": CONFIGURATION["owm_key"]
+            }
             params["lat"], params["lon"] = lat, lon
-            data = _owm.get_weather_onecall(params).json()
+            return _owm.get_weather_onecall(params).json()
         else:
-            params["appid"] = CONFIGURATION["owm_key"]
+            params = {
+                "lang": lang,
+                "units": units,
+                "appid": CONFIGURATION["owm_key"]
+            }
             if request.args.get("q"):
                 params["q"] = request.args.get("q")
             else:
                 params["lat"], params["lon"] = lat, lon
+
             url = "https://api.openweathermap.org/data/2.5/onecall"
             data = requests.get(url, params=params).json()
-        # Selene converts the keys from snake_case to camelCase
-        return dict_to_camel_case(data)
+            # Selene converts the keys from snake_case to camelCase
+            return dict_to_camel_case(data)
 
     return app

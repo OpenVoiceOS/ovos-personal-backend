@@ -8,3 +8,4 @@ ovos-stt-plugin-server
 geocoder
 timezonefinder
 requests_cache
+selene_api>=0.0.1

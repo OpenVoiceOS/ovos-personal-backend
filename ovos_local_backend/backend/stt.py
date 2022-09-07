@@ -15,9 +15,9 @@ from tempfile import NamedTemporaryFile
 
 from flask import request
 from speech_recognition import Recognizer, AudioFile
-
+from selene_api.api import STTApi
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.utterances import save_stt_recording
 from ovos_plugin_manager.stt import OVOSSTTFactory
@@ -29,6 +29,7 @@ engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
 def get_stt_routes(app):
     @app.route("/" + API_VERSION + "/stt", methods=['POST'])
     @noindex
+    @check_selene_pairing
     @requires_auth
     def stt():
         flac_audio = request.data
@@ -47,10 +48,15 @@ def get_stt_routes(app):
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
             save_stt_recording(uuid, audio, utterance)
 
-        # TODO - share with upstream setting
-        # contribute to mycroft open dataset
-        # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
-
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("enabled") and \
+                selene_cfg.get("opt_in") and \
+                selene_cfg.get("upload_utterances"):
+            url = selene_cfg.get("url")
+            version = selene_cfg.get("version") or "v1"
+            identity_file = selene_cfg.get("identity_file")
+            api = STTApi(url, version, identity_file)
+            api.stt(flac_audio, lang)
         return json.dumps([utterance])
 
     return app
