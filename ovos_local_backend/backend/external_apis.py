@@ -174,7 +174,6 @@ def get_services_routes(app):
     @requires_auth
     def owm_daily_forecast():
         params = dict(request.args)
-        params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
         params["units"] = request.args.get("units") or _get_units()
         lat, lon = request.args.get("lat"), request.args.get("lon")
