@@ -147,7 +147,6 @@ def get_services_routes(app):
     @requires_auth
     def wolfie_old():
         """ old deprecated endpoint with XML results """
-        # TODO ovos_api support blocked until xml is supported
         query = request.args["i"]
         units = request.args.get("units") or _get_units()
 
@@ -158,29 +157,37 @@ def get_services_routes(app):
         # https://products.wolframalpha.com/spoken-results-api/documentation/
         # lat, lon = _get_latlon()
         # geolocation = request.args.get("geolocation") or lat + " " + lon
-
-        url = 'https://api.wolframalpha.com/v2/query'
-        params = {"appid": CONFIGURATION["wolfram_key"],
-                  "input": query,
-                  "output": "xml",
-                  "units": units}
-        answer = requests.get(url, params=params).text
+        if _wolfie:
+            q = {"input": query, "units": units, "output": "xml"}
+            answer = _wolfie.get_wolfram_full(q)
+        else:
+            url = 'https://api.wolframalpha.com/v2/query'
+            params = {"appid": CONFIGURATION["wolfram_key"],
+                      "input": query,
+                      "output": "xml",
+                      "units": units}
+            answer = requests.get(url, params=params).text
         return answer
 
     @app.route("/" + API_VERSION + '/owm/forecast/daily', methods=['GET'])
     @noindex
     @requires_auth
     def owm_daily_forecast():
-        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
         params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
         params["units"] = request.args.get("units") or _get_units()
-        if not request.args.get("q"):
-            lat, lon = request.args.get("lat"), request.args.get("lon")
-            if not lat or not lon:
-                lat, lon = _get_latlon()
+        lat, lon = request.args.get("lat"), request.args.get("lon")
+        if not lat or not lon:
+            lat, lon = _get_latlon()
+
+        if _owm:
             params["lat"], params["lon"] = lat, lon
+            return _owm.get_forecast(params).json()
+
+        if not request.args.get("q"):
+            params["lat"], params["lon"] = lat, lon
+        params["appid"] = CONFIGURATION["owm_key"]
         url = "https://api.openweathermap.org/data/2.5/forecast/daily"
         return requests.get(url, params=params).json()
 
@@ -188,16 +195,20 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_3h_forecast():
-        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
-        params["appid"] = CONFIGURATION["owm_key"]
         params["lang"] = request.args.get("lang") or _get_lang()
         params["units"] = request.args.get("units") or _get_units()
-        if not request.args.get("q"):
-            lat, lon = request.args.get("lat"), request.args.get("lon")
-            if not lat or not lon:
-                lat, lon = _get_latlon()
+        lat, lon = request.args.get("lat"), request.args.get("lon")
+        if not lat or not lon:
+            lat, lon = _get_latlon()
+
+        if _owm:
             params["lat"], params["lon"] = lat, lon
+            return _owm.get_hourly(params).json()
+
+        if not request.args.get("q"):
+            params["lat"], params["lon"] = lat, lon
+        params["appid"] = CONFIGURATION["owm_key"]
         url = "https://api.openweathermap.org/data/2.5/forecast"
         return requests.get(url, params=params).json()
 
@@ -205,15 +216,20 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm():
-        # TODO ovos_api support blocked by https://github.com/OpenVoiceOS/ovos_api_service/issues/2
         params = dict(request.args)
-        params["appid"] = CONFIGURATION["owm_key"]
+
         params["lang"] = request.args.get("lang") or _get_lang()
         params["units"] = request.args.get("units") or _get_units()
+        lat, lon = request.args.get("lat"), request.args.get("lon")
+        if not lat or not lon:
+            lat, lon = _get_latlon()
+
+        if _owm:
+            params["lat"], params["lon"] = lat, lon
+            return _owm.get_current(params).json()
+
+        params["appid"] = CONFIGURATION["owm_key"]
         if not request.args.get("q"):
-            lat, lon = request.args.get("lat"), request.args.get("lon")
-            if not lat or not lon:
-                lat, lon = _get_latlon()
             params["lat"], params["lon"] = lat, lon
         url = "https://api.openweathermap.org/data/2.5/weather"
         return requests.get(url, params=params).json()
