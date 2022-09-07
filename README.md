@@ -87,13 +87,9 @@ metrics, wake words and utterances respect the individual devices `opt_in` flag,
 
 The local backend provides some 3rd party apis for consumption by skills, these services are only provided for compatibility with selene and to ensure default skills work, **no new apis are planned**
 
-[ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) support is planned to avoid the need to set your own keys
+[ovos-api-service](https://github.com/OpenVoiceOS/ovos_api_service) is supported and will be used if you do not set your own keys, but we encourage you to set your own, they are free and ensure we do not run into rate limits
 
 Consider using one of the ovos alternative skills that skip these endpoints if you are not managing your own keys
-
-- geolocation
-- wolfram alpha -> set your free api key in backend config
-- open weather map -> set your free api key in backend config
 
 ## Admin api
 
