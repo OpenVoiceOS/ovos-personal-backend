@@ -2,7 +2,16 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a7...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a8...HEAD)
+
+**Implemented enhancements:**
+
+- support ovos backend services [\#19](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/19)
+- initial integration with ovos api [\#26](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/26) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a8](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a8) (2022-09-07)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a7...V0.1.2a8)
 
 **Fixed bugs:**
 
