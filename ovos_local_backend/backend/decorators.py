@@ -39,13 +39,16 @@ def requires_opt_in(f):
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
-        uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
-        if not auth or not uuid or not check_auth(uuid, auth):
-            return Response(
-                'Could not verify your access level for that URL.\n'
-                'You have to authenticate with proper credentials', 401,
-                {'WWW-Authenticate': 'Basic realm="NOT PAIRED"'})
+        # skip_auth option is usually unsafe
+        # use cases such as docker or ovos-qubes can not share a identity file between devices
+        if not CONFIGURATION.get("skip_auth"):
+            auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+            uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
+            if not auth or not uuid or not check_auth(uuid, auth):
+                return Response(
+                    'Could not verify your access level for that URL.\n'
+                    'You have to authenticate with proper credentials', 401,
+                    {'WWW-Authenticate': 'Basic realm="NOT PAIRED"'})
         return f(*args, **kwargs)
 
     return decorated
