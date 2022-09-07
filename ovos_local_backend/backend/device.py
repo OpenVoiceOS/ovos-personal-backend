@@ -21,7 +21,7 @@ from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, 
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
-from ovos_local_backend.utils.selene import get_selene_code
+from ovos_local_backend.utils.selene import get_selene_code, selene_opted_in
 from selene_api.api import DeviceApi
 from selene_api.pairing import is_paired
 
@@ -166,7 +166,6 @@ def get_device_routes(app):
         return {}
 
     @app.route("/" + API_VERSION + "/device/<uuid>", methods=['PATCH', 'GET'])
-    @check_selene_pairing
     @requires_auth
     @noindex
     def get_uuid(uuid):
@@ -179,25 +178,6 @@ def get_device_routes(app):
             # 'enclosureVersion': None}
             return {}
 
-        # get/update device_name and device_location from selene if enabled
-        selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and selene_cfg.get("download_prefs"):
-            url = selene_cfg.get("url")
-            version = selene_cfg.get("version") or "v1"
-            identity_file = selene_cfg.get("identity_file")
-            api = DeviceApi(url, version, identity_file)
-            data = api.get()
-            device_location = data.get("description") or "unknown"
-            device_name = data.get("name") or "unknown"
-            # update local db with remote info
-            with DeviceDatabase() as db:
-                device = db.get_device(uuid)
-                device.name = device_name
-                device.device_location = device_location
-                db.update_device(device)
-        else:
-            device_location = device_name = "unknown"
-
         # get from local db
         device = DeviceDatabase().get_device(uuid)
         if device:
@@ -207,9 +187,9 @@ def get_device_routes(app):
         token = request.headers.get('Authorization', '').replace("Bearer ", "")
         uuid = token.split(":")[-1]
         return {
-            "description": device_location,
+            "description": "unknown",
             "uuid": uuid,
-            "name": device_name,
+            "name": "unknown",
             # not tracked / meaningless
             # just for api compliance with selene
             'coreVersion': "unknown",
@@ -303,9 +283,7 @@ def get_device_routes(app):
         # contribute to mycroft metrics dataset
         # may require https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and \
-                selene_cfg.get("upload_metrics") and \
-                selene_cfg.get("opt_in"):
+        if selene_opted_in() and selene_cfg.get("upload_metrics"):
             url = selene_cfg.get("url")
             version = selene_cfg.get("version") or "v1"
             identity_file = selene_cfg.get("identity_file")

@@ -21,6 +21,17 @@ _device_api = DeviceApi(_selene_cfg.get("url"),
                         _selene_cfg.get("identity_file"))
 
 
+def selene_opted_in():
+    if not _selene_cfg.get("enabled") or not _selene_cfg.get("opt_in"):
+        return False
+    auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+    uuid = auth.split(":")[-1]  # this split is only valid here, not selene
+    if uuid in _selene_cfg.get("opt_in_blacklist", []):
+        return False
+    # TODO check device db for per-device opt_in settings
+    return True
+
+
 def requires_selene_pairing(func_name):
     enabled = _selene_cfg.get("enabled")
     check_pairing = False
@@ -39,9 +50,6 @@ def requires_selene_pairing(func_name):
             check_pairing = False
         elif func_name == "location" and not _selene_cfg.get("download_location"):
             check_pairing = False
-        elif func_name in ["get_uuid", "setting"] and \
-                (not _selene_cfg.get("download_prefs") or request.method == 'PATCH'):
-            check_pairing = False
         elif func_name == "setting" and not _selene_cfg.get("download_prefs"):
             check_pairing = False
         elif func_name == "settingsmeta" and not _selene_cfg.get("upload_settings"):
@@ -53,10 +61,9 @@ def requires_selene_pairing(func_name):
             elif not _selene_cfg.get("download_settings"):
                 check_pairing = False
 
-        # check global opt in settings
-        opt_in = _selene_cfg.get("opt_in")
+        # check opt in settings
         opts = ["precise_upload", "stt", "metric"]
-        if not opt_in and func_name in opts:
+        if not selene_opted_in() and func_name in opts:
             check_pairing = False
         else:
             if func_name == "precise_upload" and not _selene_cfg.get("upload_wakewords"):

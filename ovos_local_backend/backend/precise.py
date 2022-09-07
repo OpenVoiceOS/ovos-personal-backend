@@ -3,6 +3,7 @@ from flask import request
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.wakewords import save_ww_recording
+from ovos_local_backend.utils.selene import selene_opted_in
 
 
 def get_precise_routes(app):
@@ -18,9 +19,7 @@ def get_precise_routes(app):
 
         uploaded = False
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and \
-                selene_cfg.get("opt_in") and \
-                selene_cfg.get("upload_wakewords"):
+        if selene_opted_in() and selene_cfg.get("upload_wakewords"):
             # contribute to mycroft open dataset
             pass  # TODO add upload endpoint to selene_api package
         return {"success": True,

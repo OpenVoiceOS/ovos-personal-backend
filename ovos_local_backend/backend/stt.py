@@ -20,6 +20,7 @@ from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.utterances import save_stt_recording
+from ovos_local_backend.utils.selene import selene_opted_in
 from ovos_plugin_manager.stt import OVOSSTTFactory
 
 recognizer = Recognizer()
@@ -49,9 +50,7 @@ def get_stt_routes(app):
             save_stt_recording(uuid, audio, utterance)
 
         selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("enabled") and \
-                selene_cfg.get("opt_in") and \
-                selene_cfg.get("upload_utterances"):
+        if selene_opted_in() and selene_cfg.get("upload_utterances"):
             url = selene_cfg.get("url")
             version = selene_cfg.get("version") or "v1"
             identity_file = selene_cfg.get("identity_file")
