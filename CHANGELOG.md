@@ -2,11 +2,19 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a4...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a5...HEAD)
 
 **Implemented enhancements:**
 
 - implement skill settings endpoints [\#21](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/21)
+- Feat/shared settings [\#25](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/25) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a5](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a5) (2022-08-25)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a4...V0.1.2a5)
+
+**Implemented enhancements:**
+
 - feat/device\_db [\#22](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/22) ([JarbasAl](https://github.com/JarbasAl))
 
 **Fixed bugs:**
