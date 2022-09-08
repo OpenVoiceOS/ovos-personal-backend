@@ -271,6 +271,7 @@ To pair the local backend with selene you have 2 options
 
 2 - enable proxy_pairing, whenever a device pairs with local backend the code it speaks is also valid for selene, use that code to pair local backend with selene
 
+If a device tries to use a selene enabled endpoint without the backend being paired a 401 authentication error will be returned, if the endpoint does not use selene (eg. disabled in config) this check is skipped
 ### Selene Config
 
 In your backend config add the following section
