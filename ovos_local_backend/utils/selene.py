@@ -7,7 +7,7 @@ from selene_api.identity import IdentityManager
 from selene_api.pairing import has_been_paired
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
-from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase, DeviceDatabase
+from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase, DeviceDatabase
 
 _selene_pairing_data = None
 _selene_uuid = uuid4()
@@ -56,8 +56,8 @@ def download_selene_skill_settings():
         for skill_id, s in sets.items():
             s = SkillSettings.deserialize(s)
             # sync local db with selene
-            with SettingsDatabase() as db:
-                db.add_setting(s.uuid, s.skill_id, s.settings, s.meta,
+            with SharedSettingsDatabase() as db:
+                db.add_setting(s.skill_id, s.settings, s.meta,
                                s.display_name, s.remote_id)
 
 
