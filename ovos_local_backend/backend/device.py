@@ -35,20 +35,27 @@ def get_device_routes(app):
     @requires_auth
     def settingsmeta(uuid):
         """ new style skill settings meta (upload only) """
-        # upload settings meta to selene if enabled
-        selene_cfg = CONFIGURATION.get("selene") or {}
-        if selene_cfg.get("upload_settings"):
-            upload_selene_skill_settingsmeta(request.json)
+        s = SkillSettings.deserialize(request.json)
 
         # save new settings meta to db
         with SettingsDatabase() as db:
-            s = SkillSettings.deserialize(request.json)
             # keep old settings, update meta only
             old_s = db.get_setting(s.skill_id, uuid)
             if old_s:
                 s.settings = old_s.settings
             db.add_setting(uuid, s.skill_id, s.settings, s.meta,
                            s.display_name, s.remote_id)
+
+        # upload settings meta to selene if enabled
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("upload_settings"):
+            s = s.serialize()
+            if selene_cfg.get("force2way"):
+                # forced 2 way sync
+                upload_selene_skill_settings(s)
+            else:
+                upload_selene_skill_settingsmeta(s)
+
         return nice_json({"success": True, "uuid": uuid})
 
     @app.route("/v1/device/<uuid>/skill/settings", methods=['GET'])
