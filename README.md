@@ -260,13 +260,15 @@ wait... what? isn't the point of local backend to disable selene?
 - Privacy, you want to use selene, but you do not want to give away your personal data (email, location, ip address...)
 - Control, you want to use only a subset of selene features
 - Convenience, pair once, manage all your devices
-- Esoteric usage, some setups isolate mycroft services and can not share a identity file, such as [ovos-qubes](https://github.com/OpenVoiceOS/ovos-qubes)
+- Functionality, extra features such as isolated skill settings
+- Esoteric Setups, isolated mycroft services that can not share a identity file, such as [ovos-qubes](https://github.com/OpenVoiceOS/ovos-qubes)
 
 ### Pairing
 
 To pair the local backend with selene you have 2 options
 
 1 - pair a mycroft-core instance, then copy the identity file
+
 2 - enable proxy_pairing, whenever a device pairs with local backend the code it speaks is also valid for selene, use that code to pair local backend with selene
 
 ### Selene Config

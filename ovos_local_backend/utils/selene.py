@@ -141,7 +141,10 @@ def selene_opted_in():
     uuid = auth.split(":")[-1]  # this split is only valid here, not selene
     if uuid in _selene_cfg.get("opt_in_blacklist", []):
         return False
-    # TODO check device db for per-device opt_in settings
+    # check device db for per-device opt_in settings
+    device = DeviceDatabase().get_device(uuid)
+    if not device or not device.opt_in:
+        return False
     return True
 
 
