@@ -49,12 +49,11 @@ def get_device_routes(app):
         # upload settings meta to selene if enabled
         selene_cfg = CONFIGURATION.get("selene") or {}
         if selene_cfg.get("upload_settings"):
-            s = s.serialize()
             if selene_cfg.get("force2way"):
                 # forced 2 way sync
-                upload_selene_skill_settings(s)
+                upload_selene_skill_settings(s.serialize())
             else:
-                upload_selene_skill_settingsmeta(s)
+                upload_selene_skill_settingsmeta(s.meta)
 
         return nice_json({"success": True, "uuid": uuid})
 
