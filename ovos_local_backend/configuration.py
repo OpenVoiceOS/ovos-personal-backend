@@ -89,7 +89,7 @@ DEFAULT_CONFIG = {
         "proxy_weather": True,  # use selene for weather api calls
         "proxy_wolfram": True,  # use selene for wolfram alpha api calls
         "proxy_geolocation": True,  # use selene for geolocation api calls
-        "proxy_email": True,  # use selene for sending email (only for email registered in selene)
+        "proxy_email": False,  # use selene for sending email (only for email registered in selene)
 
         # device settings - if you want to spoof data in selene set these to False
         "download_location": True,  # set default location from selene
