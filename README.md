@@ -99,7 +99,60 @@ By default admin api is disabled, to enable it add `"admin_key": "unique_super_s
 
 you need to provide that key in the request headers for [admin endpoints](./ovos_local_backend/backend/admin.py)
 
-TODO - [selene_api](https://github.com/OpenVoiceOS/selene_api) support
+```python
+from selene_api.api import AdminApi
+
+admin = AdminApi("secret_admin_key")
+
+uuid = "..."  # check identity2.json in the device you want to manage
+
+# manually pair a device
+identity_json = admin.pair(uuid)
+
+# set device info
+info = {"opt_in": True,
+        "name": "my_device",
+        "device_location": "kitchen",
+        "email": "notifications@me.com",
+        "isolated_skills": False,
+        "lang": "en-us"}
+admin.set_device_info(uuid, info)
+
+# set device preferences
+prefs = {"time_format": "full",
+        "date_format": "DMY",
+        "system_unit": "metric",
+        "lang": "en-us"}
+admin.set_device_prefs(uuid, prefs)
+
+# set location data
+loc = {
+    "city": {
+        "code": "Lawrence",
+        "name": "Lawrence",
+        "state": {
+            "code": "KS",
+            "name": "Kansas",
+            "country": {
+                "code": "US",
+                "name": "United States"
+            }
+        }
+    },
+    "coordinate": {
+        "latitude": 38.971669,
+        "longitude": -95.23525
+    },
+    "timezone": {
+        "code": "America/Chicago",
+        "name": "Central Standard Time",
+        "dstOffset": 3600000,
+        "offset": -21600000
+    }
+}
+admin.set_device_location(uuid, loc)
+```
+
 
 ## Device Settings
 
@@ -195,6 +248,76 @@ with the local backend you need to configure your own SMTP server and recipient 
 ```
 
 If using gmail you will need to [enable less secure apps](https://hotter.io/docs/email-accounts/secure-app-gmail/)
+
+
+## Selene Proxy
+
+You can integrate local backend with selene, the backend will show up as a device you can manage in mycroft.home
+
+wait... what? isn't the point of local backend to disable selene?
+
+- Open Dataset, You do not want to use selene, but you want to opt_in to the open dataset (share recordings with mycroft)
+- Privacy, you want to use selene, but you do not want to give away your personal data (email, location, ip address...)
+- Control, you want to use only a subset of selene features
+- Convenience, pair once, manage all your devices
+- Functionality, extra features such as isolated skill settings and forced 2 way sync
+- Esoteric Setups, isolated mycroft services that can not share a identity file, such as [ovos-qubes](https://github.com/OpenVoiceOS/ovos-qubes)
+
+### Pairing
+
+To pair the local backend with selene you have 2 options
+
+1 - pair a mycroft-core instance, then copy the identity file
+
+2 - enable proxy_pairing, whenever a device pairs with local backend the code it speaks is also valid for selene, use that code to pair local backend with selene
+
+If a device tries to use a selene enabled endpoint without the backend being paired a 401 authentication error will be returned, if the endpoint does not use selene (eg. disabled in config) this check is skipped
+### Selene Config
+
+In your backend config add the following section
+
+```python
+    "selene": {
+        "enabled": False,  # needs to be explicitly enabled by user
+        "url": "https://api.mycroft.ai",  # change if you are self hosting selene
+        "version": "v1",
+        # pairing settings
+        # NOTE: the file should be used exclusively by backend, do not share with a mycroft-core instance
+        "identity_file": BACKEND_IDENTITY,  # path to identity2.json file
+        # send the pairing from selene to any device that attempts to pair with local backend
+        # this will provide voice/gui prompts to the user and avoid the need to copy a identity file
+        # only happens if backend is not paired with selene (hopefully exactly once)
+        # if False you need to pair an existing mycroft-core as usual and move the file for backend usage
+        "proxy_pairing": False,
+        
+        # micro service settings
+        # NOTE: STT is handled at plugin level, configure ovos-stt-plugin-selene
+        "proxy_weather": True,  # use selene for weather api calls
+        "proxy_wolfram": True,  # use selene for wolfram alpha api calls
+        "proxy_geolocation": True,  # use selene for geolocation api calls
+        "proxy_email": False,  # use selene for sending email (only for email registered in selene)
+        
+        # device settings - if you want to spoof data in selene set these to False
+        "download_location": True,  # set default location from selene
+        "download_prefs": True,  # set default device preferences from selene
+        "download_settings": True,  # download shared skill settings from selene
+        "upload_settings": True,  # upload shared skill settings to selene
+        "force2way": False,  # this forcefully re-enables 2way settings sync with selene
+        # this functionality was removed from core, we hijack the settingsmeta endpoint to upload settings
+        # upload will happen when mycroft-core boots and overwrite any values in selene (no checks for settings changed)
+        # the assumption is that selene changes are downloaded instantaneously
+        # if a device is offline when selene changes those changes will be discarded on next device boot
+        
+        # opt-in settings - what data to share with selene
+        # NOTE: these also depend on opt_in being set in selene
+        "opt_in": False,  # share data from all devices with selene (as if from a single device)
+        "opt_in_blacklist": [],  # list of uuids that should ignore opt_in flag (never share data)
+        "upload_metrics": True,  # upload device metrics to selene
+        "upload_wakewords": True,  # upload wake word samples to selene
+        "upload_utterances": True  # upload utterance samples to selene
+    }
+```
+
 
 ## Mycroft Setup
 
