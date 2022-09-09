@@ -2,11 +2,20 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a8...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a9...HEAD)
 
 **Implemented enhancements:**
 
+- selene proxy [\#20](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20)
 - support ovos backend services [\#19](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/19)
+- feat/selene\_callout\_proxy [\#29](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/29) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a9](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a9) (2022-09-07)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a8...V0.1.2a9)
+
+**Implemented enhancements:**
+
 - initial integration with ovos api [\#26](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/26) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [V0.1.2a8](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a8) (2022-09-07)
