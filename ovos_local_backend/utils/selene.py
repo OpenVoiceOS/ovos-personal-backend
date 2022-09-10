@@ -1,3 +1,4 @@
+import json
 from uuid import uuid4
 
 from flask import request
@@ -127,10 +128,27 @@ def upload_utterance(audio, lang="en-us"):
 
 
 def upload_ww(files):
+    audio = None
+    meta = {}
+
+    for precisefile in files:
+        fn = files[precisefile].filename
+        if fn == 'audio':
+            audio = files[precisefile].stream.read()
+        if fn == 'metadata':
+            meta = json.load(files[precisefile].stream)
+
     uploaded = False
-    if selene_opted_in():
+    if audio and selene_opted_in():
         # contribute to mycroft open dataset
-        pass  # TODO add upload endpoint to selene_api package
+        api = DeviceApi()
+        try:
+            # old endpoint - supported by all local backend versions
+            # not sure if still supported by selene ?
+            api.upload_wake_word_v1(audio, meta)
+        except:
+            # new selene endpoint, not sure if already live ?
+            api.upload_wake_word(audio, meta)
     return uploaded
 
 
