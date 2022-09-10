@@ -2,11 +2,19 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a9...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a10...HEAD)
 
 **Implemented enhancements:**
 
 - selene proxy [\#20](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/20)
+- Feat/precise upload v2 [\#30](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/30) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a10](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a10) (2022-09-09)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a9...V0.1.2a10)
+
+**Implemented enhancements:**
+
 - support ovos backend services [\#19](https://github.com/OpenVoiceOS/OVOS-local-backend/issues/19)
 - feat/selene\_callout\_proxy [\#29](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/29) ([JarbasAl](https://github.com/JarbasAl))
 
