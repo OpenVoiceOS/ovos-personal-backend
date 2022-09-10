@@ -27,4 +27,22 @@ def get_precise_routes(app):
                 "sent_to_mycroft": uploaded,
                 "saved": CONFIGURATION["record_wakewords"]}
 
+    @app.route('/device/<uuid>/wake-word-file', methods=['POST'])
+    @noindex
+    @check_selene_pairing
+    @requires_auth
+    def precise_upload_v2(uuid):
+        if CONFIGURATION["record_wakewords"]:
+            save_ww_recording(uuid, request.files)
+
+        uploaded = False
+        selene_cfg = CONFIGURATION.get("selene") or {}
+        if selene_cfg.get("upload_wakewords"):
+            # contribute to mycroft open dataset
+            uploaded = upload_ww(request.files)
+
+        return {"success": True,
+                "sent_to_mycroft": uploaded,
+                "saved": CONFIGURATION["record_wakewords"]}
+
     return app
