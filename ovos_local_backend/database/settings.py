@@ -92,7 +92,7 @@ class DeviceSettings:
 
     def __init__(self, uuid, token, name=None, device_location=None, opt_in=True,
                  location=None, lang=None, date_format=None, system_unit=None, time_format=None,
-                 email=None, isolated_skills=False):
+                 email=None, isolated_skills=False, default_ww="hey mycroft", default_tts=""):
         self.uuid = uuid
         self.token = token
 
@@ -115,6 +115,33 @@ class DeviceSettings:
         self.lang = lang or CONFIGURATION.get("lang") or "en-us"
         self.location = location or CONFIGURATION["default_location"]
 
+        # default config values
+        # these are usually set in selene during pairing process
+
+        # tts - 'ttsSettings': {'mimic2': {'voice': 'kusal'}, 'module': 'mimic2'}
+        self.tts_module = ""
+        self.tts_config = {}
+
+        # wake word -  selene returns the full listener config, supports only a single wake word, and support only pocketsphinx....
+        # 'listenerSetting': {
+        # 'channels': 1, 'energyRatio': 1.5, 'multiplier': 1,  'sampleRate': 16000,
+        # 'uuid': 'd5b2cd4c-c3f1-4afb-b4e0-9212d322786e',   # <- unique ww uuid in selene db (?)
+        # 'phonemes': '...',
+        # 'threshold': '...',
+        # 'wakeWord': '...'}
+
+        # hey mycroft
+        # 'phonemes': 'HH EY . M AY K R AO F T', 'threshold': '1e-90', 'wakeWord': 'hey mycroft'}
+        # christopher
+        # 'phonemes': 'K R IH S T AH F ER .', 'threshold': '1e-25', 'wakeWord': 'christopher'}
+        # hey ezra
+        # 'phonemes': 'HH EY . EH Z R AH', 'threshold': '1e-10', 'wakeWord': 'hey ezra'}
+        # hey jarvis
+        # 'phonemes': 'HH EY . JH AA R V AH S .', 'threshold': '0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', 'wakeWord': 'hey jarvis'}
+
+        self.default_ww = ""
+        self.ww_config = {}  # selene is pocketsphinx only, we can store arbitrary configs
+
     @property
     def selene_device(self):
         return {
@@ -132,12 +159,19 @@ class DeviceSettings:
 
     @property
     def selene_settings(self):
+        # NOTE - selene returns the full listener config
+        # this SHOULD NOT be done, since backend has no clue of hardware downstream
+        # we return only wake word config
+        listener_cfg = self.ww_config  # phonemes + threshold
+        listener_cfg["wakeWord"] = self.default_ww
         return {
             "dateFormat": self.date_format,
             "optIn": self.opt_in,
             "systemUnit": self.system_unit,
             "timeFormat": self.time_format,
-            "uuid": self.uuid
+            "uuid": self.uuid,
+            "listenerSetting": listener_cfg,
+            'ttsSettings': {"module": self.tts_module, self.tts_module: self.tts_config}
         }
 
     def serialize(self):
