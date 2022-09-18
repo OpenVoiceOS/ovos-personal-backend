@@ -88,16 +88,16 @@ class SkillSettings:
 
 # selene default values
 DEFAULT_WWS = {
-    "hey mycroft": {"phonemes": "HH EY . M AY K R AO F T",
+    "hey_mycroft": {"phonemes": "HH EY . M AY K R AO F T",
                     "module": "ovos-ww-plugin-pocketsphinx",
                     "threshold": 1e-90},
-    "hey jarvis": {"phonemes": "HH EY . JH AA R V AH S .",
+    "hey_jarvis": {"phonemes": "HH EY . JH AA R V AH S .",
                    "module": "ovos-ww-plugin-pocketsphinx",
                    "threshold": 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001},
     "christopher": {"phonemes": "K R IH S T AH F ER .",
                     "module": "ovos-ww-plugin-pocketsphinx",
                     "threshold": 1e-25},
-    "hey ezra": {"phonemes": "HH EY . EH Z R AH",
+    "hey_ezra": {"phonemes": "HH EY . EH Z R AH",
                  "module": "ovos-ww-plugin-pocketsphinx",
                  "threshold": 1e-10}
 }
@@ -148,7 +148,7 @@ class DeviceSettings:
         self.default_tts = default_tts
         self.default_tts_config = default_tts_cfg or {}
         if not self.default_tts_config and self.default_tts in DEFAULT_TTS:
-            self.default_tts_config = DEFAULT_TTS[self.default_tts_config]
+            self.default_tts_config = DEFAULT_TTS[self.default_tts]
 
         # wake word -  selene returns the full listener config, supports only a single wake word, and support only pocketsphinx....
         # 'listenerSetting': {
@@ -157,7 +157,7 @@ class DeviceSettings:
         # 'phonemes': '...',
         # 'threshold': '...',
         # 'wakeWord': '...'}
-        self.default_ww = default_ww
+        self.default_ww = default_ww.replace(" ", "_")  # this needs to be done due to the convoluted logic in core, a _ will be added in config hotwords section and cause a mismatch otherwise
         self.default_ww_config = default_ww_cfg or {}  # selene is pocketsphinx only, we can store arbitrary configs
         if not self.default_ww_config and self.default_ww in DEFAULT_WWS:
             self.default_ww_config = DEFAULT_WWS[self.default_ww]
@@ -182,15 +182,15 @@ class DeviceSettings:
         # NOTE - selene returns the full listener config
         # this SHOULD NOT be done, since backend has no clue of hardware downstream
         # we return only wake word config
-        listener_cfg = self.default_ww_config  # phonemes + threshold
-        listener_cfg["wakeWord"] = self.default_ww
+        ww_cfg = {self.default_ww: self.default_ww_config}
         return {
             "dateFormat": self.date_format,
             "optIn": self.opt_in,
             "systemUnit": self.system_unit,
             "timeFormat": self.time_format,
             "uuid": self.uuid,
-            "listenerSetting": listener_cfg,
+            "listenerSetting": {"wakeWord": self.default_ww.replace(" ", "_")},
+            "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
             'ttsSettings': {"module": self.default_tts,
                             self.default_tts: self.default_tts_config}
         }
