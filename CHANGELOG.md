@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a10...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a11...HEAD)
+
+**Implemented enhancements:**
+
+- feat/ tts + ww config backend side [\#31](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/31) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a11](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a11) (2022-09-10)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a10...V0.1.2a11)
 
 **Implemented enhancements:**
 
