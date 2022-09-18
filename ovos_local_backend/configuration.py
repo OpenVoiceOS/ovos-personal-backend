@@ -10,10 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ovos_utils.log import LOG
 from os.path import exists
+
 from json_database import JsonConfigXDG
 from ovos_utils.configuration import get_xdg_data_save_path
+from ovos_utils.log import LOG
 
 BACKEND_IDENTITY = f"{get_xdg_data_save_path('ovos_backend')}/identity2.json"
 
@@ -55,6 +56,26 @@ DEFAULT_CONFIG = {
             "dstOffset": 3600000,
             "offset": -21600000
         }
+    },
+    "default_ww": "hey_mycroft",  # needs to be present below
+    "ww_configs": {  # these can be exposed in a web UI for selection
+        "hey_mycroft": {"phonemes": "HH EY . M AY K R AO F T",
+                        "module": "ovos-ww-plugin-pocketsphinx",
+                        "threshold": 1e-90},
+        "hey_jarvis": {"phonemes": "HH EY . JH AA R V AH S .",
+                       "module": "ovos-ww-plugin-pocketsphinx",
+                       "threshold": 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001},
+        "christopher": {"phonemes": "K R IH S T AH F ER .",
+                        "module": "ovos-ww-plugin-pocketsphinx",
+                        "threshold": 1e-25},
+        "hey_ezra": {"phonemes": "HH EY . EH Z R AH",
+                     "module": "ovos-ww-plugin-pocketsphinx",
+                     "threshold": 1e-10}
+    },
+    "default_tts": "American Male",  # needs to be present below
+    "tts_configs": {  # these can be exposed in a web UI for selection
+        "American Male": {"module": "ovos-tts-plugin-mimic2", "voice": "kusal"},
+        "British Male": {"module": "ovos-tts-plugin-mimic", "voice": "ap"}
     },
     "date_format": "DMY",
     "system_unit": "metric",
