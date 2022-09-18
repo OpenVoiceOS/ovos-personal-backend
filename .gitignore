@@ -1,0 +1,20 @@
+dev.env
+.dev_opts.json
+.idea
+*.code-workspace
+*.pyc
+*.swp
+*~
+*.egg-info/
+build
+dist
+.coverage
+/htmlcov
+.installed
+.mypy_cache
+.vscode
+.theia
+.venv/
+
+# Created by unit tests
+.pytest_cache/

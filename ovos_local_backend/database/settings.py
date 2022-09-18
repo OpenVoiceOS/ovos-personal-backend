@@ -8,6 +8,7 @@ from copy import deepcopy
 
 class SkillSettings:
     """ represents skill settings for a individual skill"""
+
     def __init__(self, skill_id, skill_settings=None, meta=None, display_name=None, remote_id=None):
         self.skill_id = skill_id
         self.display_name = display_name or self.skill_id
@@ -85,6 +86,29 @@ class SkillSettings:
                              remote_id=remote_id)
 
 
+# selene default values
+DEFAULT_WWS = {
+    "hey_mycroft": {"phonemes": "HH EY . M AY K R AO F T",
+                    "module": "ovos-ww-plugin-pocketsphinx",
+                    "threshold": 1e-90},
+    "hey_jarvis": {"phonemes": "HH EY . JH AA R V AH S .",
+                   "module": "ovos-ww-plugin-pocketsphinx",
+                   "threshold": 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001},
+    "christopher": {"phonemes": "K R IH S T AH F ER .",
+                    "module": "ovos-ww-plugin-pocketsphinx",
+                    "threshold": 1e-25},
+    "hey_ezra": {"phonemes": "HH EY . EH Z R AH",
+                 "module": "ovos-ww-plugin-pocketsphinx",
+                 "threshold": 1e-10}
+}
+DEFAULT_TTS = {
+    "mimic": {"module": "ovos-tts-plugin-mimic", "voice": "ap"},
+    "mimic2": {"module": "ovos-tts-plugin-mimic2", "voice": "kusal"},
+    "ovos-tts-plugin-mimic": {"module": "ovos-tts-plugin-mimic", "voice": "ap"},
+    "ovos-tts-plugin-mimic2": {"module": "ovos-tts-plugin-mimic2", "voice": "kusal"}
+}
+
+
 class DeviceSettings:
     """ global device settings
     represent some fields from mycroft.conf but also contain some extra fields
@@ -92,7 +116,9 @@ class DeviceSettings:
 
     def __init__(self, uuid, token, name=None, device_location=None, opt_in=True,
                  location=None, lang=None, date_format=None, system_unit=None, time_format=None,
-                 email=None, isolated_skills=False):
+                 email=None, isolated_skills=False,
+                 default_ww="hey mycroft", default_tts="ovos-tts-plugin-mimic2",
+                 default_ww_cfg=None, default_tts_cfg=None):
         self.uuid = uuid
         self.token = token
 
@@ -115,6 +141,27 @@ class DeviceSettings:
         self.lang = lang or CONFIGURATION.get("lang") or "en-us"
         self.location = location or CONFIGURATION["default_location"]
 
+        # default config values
+        # these are usually set in selene during pairing process
+
+        # tts - 'ttsSettings': {'mimic2': {'voice': 'kusal'}, 'module': 'mimic2'}
+        self.default_tts = default_tts
+        self.default_tts_config = default_tts_cfg or {}
+        if not self.default_tts_config and self.default_tts in DEFAULT_TTS:
+            self.default_tts_config = DEFAULT_TTS[self.default_tts]
+
+        # wake word -  selene returns the full listener config, supports only a single wake word, and support only pocketsphinx....
+        # 'listenerSetting': {
+        # 'channels': 1, 'energyRatio': 1.5, 'multiplier': 1,  'sampleRate': 16000,
+        # 'uuid': 'd5b2cd4c-c3f1-4afb-b4e0-9212d322786e',   # <- unique ww uuid in selene db (?)
+        # 'phonemes': '...',
+        # 'threshold': '...',
+        # 'wakeWord': '...'}
+        self.default_ww = default_ww.replace(" ", "_")  # this needs to be done due to the convoluted logic in core, a _ will be added in config hotwords section and cause a mismatch otherwise
+        self.default_ww_config = default_ww_cfg or {}  # selene is pocketsphinx only, we can store arbitrary configs
+        if not self.default_ww_config and self.default_ww in DEFAULT_WWS:
+            self.default_ww_config = DEFAULT_WWS[self.default_ww]
+
     @property
     def selene_device(self):
         return {
@@ -132,12 +179,20 @@ class DeviceSettings:
 
     @property
     def selene_settings(self):
+        # NOTE - selene returns the full listener config
+        # this SHOULD NOT be done, since backend has no clue of hardware downstream
+        # we return only wake word config
+        ww_cfg = {self.default_ww: self.default_ww_config}
         return {
             "dateFormat": self.date_format,
             "optIn": self.opt_in,
             "systemUnit": self.system_unit,
             "timeFormat": self.time_format,
-            "uuid": self.uuid
+            "uuid": self.uuid,
+            "listenerSetting": {"wakeWord": self.default_ww.replace(" ", "_")},
+            "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
+            'ttsSettings': {"module": self.default_tts,
+                            self.default_tts: self.default_tts_config}
         }
 
     def serialize(self):
@@ -152,15 +207,20 @@ class DeviceSettings:
 
 class DeviceDatabase(JsonStorageXDG):
     """ database of paired devices, used to keep track of individual device settings"""
+
     def __init__(self):
         super().__init__("ovos_devices")
 
     def add_device(self, uuid, token, name=None, device_location=None, opt_in=False,
                    location=None, lang=None, date_format=None, system_unit=None,
-                   time_format=None, email=None, isolated_skills=False):
+                   time_format=None, email=None, isolated_skills=False,
+                   default_ww="hey mycroft", default_tts="ovos-tts-plugin-mimic2",
+                   default_ww_cfg=None, default_tts_cfg=None):
         device = DeviceSettings(uuid, token, name, device_location, opt_in,
                                 location, lang, date_format, system_unit,
-                                time_format, email, isolated_skills)
+                                time_format, email, isolated_skills,
+                                default_ww=default_ww, default_tts=default_tts,
+                                default_ww_cfg=default_ww_cfg, default_tts_cfg=default_tts_cfg)
         self[uuid] = device.serialize()
         return device
 
@@ -196,6 +256,7 @@ class DeviceDatabase(JsonStorageXDG):
 
 class SettingsDatabase(JsonStorageXDG):
     """ database of device specific skill settings """
+
     def __init__(self):
         super().__init__("ovos_skill_settings")
 
@@ -273,6 +334,7 @@ class SettingsDatabase(JsonStorageXDG):
 
 class SharedSettingsDatabase(JsonStorageXDG):
     """ database of skill settings shared across all devices """
+
     def __init__(self):
         super().__init__("ovos_shared_skill_settings")
 
