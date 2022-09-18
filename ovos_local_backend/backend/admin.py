@@ -13,7 +13,7 @@
 import time
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.utils import nice_json
-from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.database.settings import DeviceDatabase, DEFAULT_WWS, DEFAULT_TTS
 from ovos_local_backend.backend.decorators import noindex, requires_admin
 from flask import request
 from ovos_local_backend.utils import generate_code
@@ -93,12 +93,16 @@ def get_admin_routes(app):
                 device.lang = data["lang"]
             if "tts_module" in data:
                 device.default_tts = data["tts_module"]
+                if "tts_config" in data:
+                    device.default_tts_config = data["tts_config"]
+                elif data["tts_module"] in DEFAULT_TTS:
+                    device.default_tts_config = DEFAULT_TTS[data["tts_module"]]
             if "ww_module" in data:
                 device.default_ww = data["ww_module"]
-            if "tts_config" in data:
-                device.default_tts_config = data["tts_config"]
-            if "ww_config" in data:
-                device.default_ww_config = data["ww_config"]
+                if "ww_config" in data:
+                    device.default_ww_config = data["ww_config"]
+                elif data["ww_module"] in DEFAULT_WWS:
+                    device.default_ww_config = DEFAULT_WWS[data["ww_module"]]
             db.update_device(device)
             return nice_json(device.serialize())
 
