@@ -91,6 +91,14 @@ def get_admin_routes(app):
                 device.system_unit = data["system_unit"]
             if "lang" in data:
                 device.lang = data["lang"]
+            if "tts_module" in data:
+                device.default_tts = data["tts_module"]
+            if "ww_module" in data:
+                device.default_ww = data["ww_module"]
+            if "tts_config" in data:
+                device.default_tts_config = data["tts_config"]
+            if "ww_config" in data:
+                device.default_ww_config = data["ww_config"]
             db.update_device(device)
             return nice_json(device.serialize())
 
