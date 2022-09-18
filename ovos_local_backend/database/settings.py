@@ -86,29 +86,6 @@ class SkillSettings:
                              remote_id=remote_id)
 
 
-# selene default values
-DEFAULT_WWS = {
-    "hey_mycroft": {"phonemes": "HH EY . M AY K R AO F T",
-                    "module": "ovos-ww-plugin-pocketsphinx",
-                    "threshold": 1e-90},
-    "hey_jarvis": {"phonemes": "HH EY . JH AA R V AH S .",
-                   "module": "ovos-ww-plugin-pocketsphinx",
-                   "threshold": 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001},
-    "christopher": {"phonemes": "K R IH S T AH F ER .",
-                    "module": "ovos-ww-plugin-pocketsphinx",
-                    "threshold": 1e-25},
-    "hey_ezra": {"phonemes": "HH EY . EH Z R AH",
-                 "module": "ovos-ww-plugin-pocketsphinx",
-                 "threshold": 1e-10}
-}
-DEFAULT_TTS = {
-    "mimic": {"module": "ovos-tts-plugin-mimic", "voice": "ap"},
-    "mimic2": {"module": "ovos-tts-plugin-mimic2", "voice": "kusal"},
-    "ovos-tts-plugin-mimic": {"module": "ovos-tts-plugin-mimic", "voice": "ap"},
-    "ovos-tts-plugin-mimic2": {"module": "ovos-tts-plugin-mimic2", "voice": "kusal"}
-}
-
-
 class DeviceSettings:
     """ global device settings
     represent some fields from mycroft.conf but also contain some extra fields
@@ -117,8 +94,10 @@ class DeviceSettings:
     def __init__(self, uuid, token, name=None, device_location=None, opt_in=True,
                  location=None, lang=None, date_format=None, system_unit=None, time_format=None,
                  email=None, isolated_skills=False,
-                 default_ww="hey mycroft", default_tts="ovos-tts-plugin-mimic2",
-                 default_ww_cfg=None, default_tts_cfg=None):
+                 default_ww=CONFIGURATION["default_ww"],
+                 default_tts=CONFIGURATION["default_tts"],
+                 default_ww_cfg=CONFIGURATION["ww_configs"].get(CONFIGURATION["default_ww"]),
+                 default_tts_cfg=CONFIGURATION["tts_configs"].get(CONFIGURATION["default_tts"])):
         self.uuid = uuid
         self.token = token
 
@@ -147,8 +126,8 @@ class DeviceSettings:
         # tts - 'ttsSettings': {'mimic2': {'voice': 'kusal'}, 'module': 'mimic2'}
         self.default_tts = default_tts
         self.default_tts_config = default_tts_cfg or {}
-        if not self.default_tts_config and self.default_tts in DEFAULT_TTS:
-            self.default_tts_config = DEFAULT_TTS[self.default_tts]
+        if not self.default_tts_config and self.default_tts in CONFIGURATION["tts_configs"]:
+            self.default_tts_config = CONFIGURATION["tts_configs"][self.default_tts]
 
         # wake word -  selene returns the full listener config, supports only a single wake word, and support only pocketsphinx....
         # 'listenerSetting': {
@@ -159,8 +138,8 @@ class DeviceSettings:
         # 'wakeWord': '...'}
         self.default_ww = default_ww.replace(" ", "_")  # this needs to be done due to the convoluted logic in core, a _ will be added in config hotwords section and cause a mismatch otherwise
         self.default_ww_config = default_ww_cfg or {}  # selene is pocketsphinx only, we can store arbitrary configs
-        if not self.default_ww_config and self.default_ww in DEFAULT_WWS:
-            self.default_ww_config = DEFAULT_WWS[self.default_ww]
+        if not self.default_ww_config and self.default_ww in CONFIGURATION["ww_configs"]:
+            self.default_ww_config = CONFIGURATION["ww_configs"][self.default_ww]
 
     @property
     def selene_device(self):
@@ -179,20 +158,28 @@ class DeviceSettings:
 
     @property
     def selene_settings(self):
+        # this endpoint corresponds to a mycroft.conf
+        # location is usually grabbed in a separate endpoint
+        # in here we return it in case downstream is
+        # aware of this and wants to save 1 http call
+
         # NOTE - selene returns the full listener config
         # this SHOULD NOT be done, since backend has no clue of hardware downstream
         # we return only wake word config
         ww_cfg = {self.default_ww: self.default_ww_config}
+        tts_config = dict(self.default_tts_config)
+        tts = tts_config.pop("module")
         return {
             "dateFormat": self.date_format,
             "optIn": self.opt_in,
             "systemUnit": self.system_unit,
             "timeFormat": self.time_format,
             "uuid": self.uuid,
+            "lang": self.lang,
+            "location": self.location,
             "listenerSetting": {"wakeWord": self.default_ww.replace(" ", "_")},
             "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
-            'ttsSettings': {"module": self.default_tts,
-                            self.default_tts: self.default_tts_config}
+            'ttsSettings': {"module": tts, tts: tts_config}
         }
 
     def serialize(self):
