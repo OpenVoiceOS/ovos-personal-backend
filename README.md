@@ -1,4 +1,4 @@
-# OVOS Local Backend
+# OVOS Personal Backend
 
 Personal mycroft backend alternative to mycroft.home, written in flask
 
@@ -8,11 +8,11 @@ This repo is an alternative to the backend meant for personal usage, this allows
 
 This is NOT meant to provision third party devices, but rather to run on the mycroft devices directly or on a private network
 
-No frontend functionality is provided, for that check out the companion project [OVOS Dashboard](https://github.com/OpenVoiceOS/OVOS-Dashboard)
+No frontend functionality is provided, for that check out the companion project [ovos-personal-backend-ui](https://github.com/OpenVoiceOS/ovos-personal-backend-ui)
 
 For a full backend experience, the official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
 
-NOTE: There is no pairing, devices will just work
+NOTE: There is no pairing, devices will just activate themselves and work
 
 ## Install
 
