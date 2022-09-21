@@ -125,9 +125,9 @@ class DeviceSettings:
 
         # tts - 'ttsSettings': {'mimic2': {'voice': 'kusal'}, 'module': 'mimic2'}
         self.default_tts = default_tts
-        self.default_tts_config = default_tts_cfg or {}
-        if not self.default_tts_config and self.default_tts in CONFIGURATION["tts_configs"]:
-            self.default_tts_config = CONFIGURATION["tts_configs"][self.default_tts]
+        self.default_tts_cfg = default_tts_cfg or {}
+        if not self.default_tts_cfg and self.default_tts in CONFIGURATION["tts_configs"]:
+            self.default_tts_cfg = CONFIGURATION["tts_configs"][self.default_tts]
 
         # wake word -  selene returns the full listener config, supports only a single wake word, and support only pocketsphinx....
         # 'listenerSetting': {
@@ -137,9 +137,9 @@ class DeviceSettings:
         # 'threshold': '...',
         # 'wakeWord': '...'}
         self.default_ww = default_ww.replace(" ", "_")  # this needs to be done due to the convoluted logic in core, a _ will be added in config hotwords section and cause a mismatch otherwise
-        self.default_ww_config = default_ww_cfg or {}  # selene is pocketsphinx only, we can store arbitrary configs
-        if not self.default_ww_config and self.default_ww in CONFIGURATION["ww_configs"]:
-            self.default_ww_config = CONFIGURATION["ww_configs"][self.default_ww]
+        self.default_ww_cfg = default_ww_cfg or {}  # selene is pocketsphinx only, we can store arbitrary configs
+        if not self.default_ww_cfg and self.default_ww in CONFIGURATION["ww_configs"]:
+            self.default_ww_cfg = CONFIGURATION["ww_configs"][self.default_ww]
 
     @property
     def selene_device(self):
@@ -166,8 +166,8 @@ class DeviceSettings:
         # NOTE - selene returns the full listener config
         # this SHOULD NOT be done, since backend has no clue of hardware downstream
         # we return only wake word config
-        ww_cfg = {self.default_ww: self.default_ww_config}
-        tts_config = dict(self.default_tts_config)
+        ww_cfg = {self.default_ww: self.default_ww_cfg}
+        tts_config = dict(self.default_tts_cfg)
         tts = tts_config.pop("module")
         return {
             "dateFormat": self.date_format,
@@ -210,6 +210,10 @@ class DeviceDatabase(JsonStorageXDG):
                                 default_ww_cfg=default_ww_cfg, default_tts_cfg=default_tts_cfg)
         self[uuid] = device.serialize()
         return device
+
+    def delete_device(self, uuid):
+        if uuid in self:
+            self.pop(uuid)
 
     def get_device(self, uuid):
         dev = self.get(uuid)

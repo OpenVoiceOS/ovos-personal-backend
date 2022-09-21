@@ -86,8 +86,17 @@ DEFAULT_CONFIG = {
     "data_path": "~",
     "record_utterances": False,
     "record_wakewords": False,
-    "wolfram_key": "",
-    "owm_key": "",
+    "microservices": {
+        # if query fail, attempt to use free ovos services
+        "ovos_fallback": True,
+        # backend can be auto/local/ovos/selene
+        # auto == attempt local -> selene (if enabled) -> ovos
+        "wolfram_provider": "auto",
+        "weather_provider": "auto",
+        # secret keys
+        "wolfram_key": "",
+        "owm_key": ""
+    },
     "email": {
         "username": None,
         "password": None
@@ -144,3 +153,9 @@ else:
         if k not in CONFIGURATION:
             CONFIGURATION[k] = v
     LOG.info(f"Loaded configuration: {CONFIGURATION.path}")
+
+# migrate old keys location
+if "owm_key" in CONFIGURATION:
+    CONFIGURATION["microservices"]["owm_key"] = CONFIGURATION.pop("owm_key")
+if "wolfram_key" in CONFIGURATION:
+    CONFIGURATION["microservices"]["wolfram_key"] = CONFIGURATION.pop("wolfram_key")

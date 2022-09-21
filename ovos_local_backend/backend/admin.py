@@ -95,19 +95,19 @@ def get_admin_routes(app):
             if "tts_module" in data:
                 device.default_tts = data["tts_module"]
                 if "tts_config" in data:
-                    device.default_tts_config = data["tts_config"]
+                    device.default_tts_cfg = data["tts_config"]
                 elif data["tts_module"] in CONFIGURATION["tts_configs"]:
-                    device.default_tts_config = CONFIGURATION["tts_configs"][data["tts_module"]]
+                    device.default_tts_cfg = CONFIGURATION["tts_configs"][data["tts_module"]]
                 else:
-                    device.default_tts_config = {}
+                    device.default_tts_cfg = {}
             if "wake_word" in data:
                 device.default_ww = data["wake_word"]
                 if "ww_config" in data:
-                    device.default_ww_config = data["ww_config"]
+                    device.default_ww_cfg = data["ww_config"]
                 elif data["ww_module"] in CONFIGURATION["ww_configs"]:
-                    device.default_ww_config = CONFIGURATION["ww_configs"][data["ww_module"]]
+                    device.default_ww_cfg = CONFIGURATION["ww_configs"][data["ww_module"]]
                 else:
-                    device.default_ww_config = {}
+                    device.default_ww_cfg = {}
             db.update_device(device)
             return nice_json(device.serialize())
 
