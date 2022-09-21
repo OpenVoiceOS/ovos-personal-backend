@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a14...HEAD)
+
+**Fixed bugs:**
+
+- Refactor/3rdparty [\#33](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/33) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.2a14](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a14) (2022-09-19)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a13...V0.1.2a14)
+
 ## [V0.1.2a13](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a13) (2022-09-18)
 
 [Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a12...V0.1.2a13)
