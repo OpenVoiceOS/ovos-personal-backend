@@ -25,6 +25,7 @@ pip install ovos-local-backend
 
 ## Companion projects
 
+- [ovos-personal-backend-ui](https://github.com/OpenVoiceOS/ovos-personal-backend-ui)
 - [selene_api](https://github.com/OpenVoiceOS/selene_api) - reference python library to interact with selene/local backend
 - [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend
 
