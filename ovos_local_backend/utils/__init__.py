@@ -15,11 +15,11 @@ import random
 
 from flask import make_response
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
-from selene_api.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.session import SESSION as requests
-from ovos_local_backend.utils.geolocate import geolocate, get_timezone
+from ovos_local_backend.utils.geolocate import get_timezone, Geocoder
+from selene_api.api import WolframAlphaApi, OpenWeatherMapApi
 
 
 def generate_code():
@@ -70,9 +70,10 @@ class ExternalApiManager:
         self.ovos_wolfram = OvosWolframAlpha()
         self.ovos_owm = OvosWeather()
 
+        self.geo = Geocoder()
+
         self.selene_owm = None
         self.selene_wolf = None
-        self.selene_geo = None
         self.selene_cfg = CONFIGURATION.get("selene") or {}
         if self.selene_cfg.get("enabled"):
             _url = self.selene_cfg.get("url")
@@ -80,7 +81,6 @@ class ExternalApiManager:
             _identity_file = self.selene_cfg.get("identity_file")
             self.selene_owm = OpenWeatherMapApi(_url, _version, _identity_file)
             self.selene_wolfram = WolframAlphaApi(_url, _version, _identity_file)
-            self.selene_geo = GeolocationApi(_url, _version, _identity_file)
 
     @property
     def _owm(self):
@@ -125,10 +125,7 @@ class ExternalApiManager:
             return self.ovos_wolfram
 
     def geolocate(self, address):
-        if self.selene_cfg.get("enabled") and self.selene_cfg.get("proxy_geolocation"):
-            data = self.selene_geo.get_geolocation(address)
-        else:
-            data = geolocate(address)
+        data = self.geo.get_location(address)
         return {"data": {
             "city": data["city"],
             "country": data["country"],

@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from os.path import exists
+from os.path import exists, expanduser
 
 from json_database import JsonConfigXDG
 from ovos_utils.configuration import get_xdg_data_save_path
@@ -83,7 +83,7 @@ DEFAULT_CONFIG = {
     "geolocate": True,
     "override_location": False,
     "api_version": "v1",
-    "data_path": "~",
+    "data_path": expanduser("~"),
     "record_utterances": False,
     "record_wakewords": False,
     "microservices": {
@@ -93,6 +93,9 @@ DEFAULT_CONFIG = {
         # auto == attempt local -> selene (if enabled) -> ovos
         "wolfram_provider": "auto",
         "weather_provider": "auto",
+        # auto == OpenStreetMap default
+        # valid - selene/osm/arcgis/geocode_farm
+        "geolocation_provider": "auto",
         # secret keys
         "wolfram_key": "",
         "owm_key": ""
