@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/HEAD)
+
+[Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a15...HEAD)
+
+**Implemented enhancements:**
+
+- feat/geolocation\_providers [\#34](https://github.com/OpenVoiceOS/OVOS-local-backend/pull/34) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [V0.1.2a15](https://github.com/OpenVoiceOS/OVOS-local-backend/tree/V0.1.2a15) (2022-09-21)
 
 [Full Changelog](https://github.com/OpenVoiceOS/OVOS-local-backend/compare/V0.1.2a14...V0.1.2a15)
