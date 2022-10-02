@@ -13,6 +13,8 @@
 import time
 
 from flask import request
+from ovos_backend_client.api import DeviceApi
+from ovos_backend_client.pairing import is_paired
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
@@ -25,8 +27,6 @@ from ovos_local_backend.utils.mail import send_email
 from ovos_local_backend.utils.selene import get_selene_code, download_selene_location, \
     download_selene_skill_settings, upload_selene_skill_settings, upload_selene_skill_settingsmeta, \
     download_selene_preferences, send_selene_email, report_selene_metric
-from selene_api.api import DeviceApi
-from selene_api.pairing import is_paired
 
 
 def get_device_routes(app):

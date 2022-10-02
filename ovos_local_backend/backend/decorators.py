@@ -15,7 +15,7 @@ from flask import make_response, request, Response
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database.settings import DeviceDatabase
 from ovos_local_backend.utils.selene import attempt_selene_pairing, requires_selene_pairing
-from selene_api.pairing import is_paired
+from ovos_backend_client.pairing import is_paired
 
 
 def check_auth(uid, token):

@@ -15,11 +15,11 @@ import random
 
 from flask import make_response
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
+from ovos_backend_client.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.utils.geolocate import get_timezone, Geocoder
-from selene_api.api import WolframAlphaApi, OpenWeatherMapApi
 
 
 def generate_code():

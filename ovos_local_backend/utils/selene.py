@@ -3,9 +3,9 @@ from uuid import uuid4
 
 from flask import request
 from ovos_utils.log import LOG
-from selene_api.api import DeviceApi, STTApi
-from selene_api.identity import IdentityManager
-from selene_api.pairing import has_been_paired
+from ovos_backend_client.api import DeviceApi, STTApi
+from ovos_backend_client.identity import IdentityManager
+from ovos_backend_client.pairing import has_been_paired
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
 from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase, DeviceDatabase
