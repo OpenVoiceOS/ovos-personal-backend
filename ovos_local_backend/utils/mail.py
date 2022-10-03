@@ -1,21 +1,5 @@
-import socket
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from smtplib import SMTP, SMTP_SSL
 from ovos_local_backend.configuration import CONFIGURATION
-
-
-def send_smtp(user, pswd, sender,
-               destinatary, subject, contents,
-               host, port=465):
-    with SMTP_SSL(host=host, port=port) as server:
-        server.login(user, pswd)
-        msg = MIMEMultipart()
-        msg['From'] = sender
-        msg['To'] = destinatary
-        msg['Subject'] = subject
-        msg.attach(MIMEText(contents))
-        server.sendmail(sender, destinatary, msg.as_string())
+from ovos_utils.smtp_utils import send_smtp
 
 
 def send_email(subject, body, recipient=None):
