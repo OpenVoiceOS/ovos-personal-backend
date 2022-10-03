@@ -19,13 +19,11 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.database.oauth import OAuthTokenDatabase
+from ovos_local_backend.database.oauth import OAuthTokenDatabase, OAuthApplicationDatabase
 from ovos_local_backend.utils import nice_json
 
 
 def get_auth_routes(app):
-    oauth_in_progress = {}
-
     @app.route(f"/{API_VERSION}/auth/token", methods=['GET'])
     @requires_auth
     @noindex
@@ -50,18 +48,20 @@ def get_auth_routes(app):
         once user opens it callback is triggered
         """
         params = dict(request.args)
-
-        oauth_in_progress[oauth_id] = params
-
         client = WebApplicationClient(params["client_id"])
-        params["_client"] = client
-        oauth_in_progress[oauth_id] = params
-
         request_uri = client.prepare_request_uri(
             params["auth_endpoint"],
             redirect_uri=request.base_url + f"/{API_VERSION}/auth/callback/{oauth_id}",
             scope=params["scope"],
         )
+        with OAuthApplicationDatabase() as db:
+            db.add_application(oauth_id,
+                               params["client_id"],
+                               params["client_secret"],
+                               params["auth_endpoint"],
+                               params["token_endpoint"],
+                               params["refresh_endpoint"],
+                               params["scope"])
 
         return request_uri, 200
 
@@ -74,13 +74,13 @@ def get_auth_routes(app):
         params = dict(request.args)
         code = params["code"]
 
-        data = oauth_in_progress[oauth_id]
-        client = data["_client"]
+        data = OAuthApplicationDatabase()[oauth_id]
         client_id = data["client_id"]
         client_secret = data["client_secret"]
         token_endpoint = data["token_endpoint"]
 
         # Prepare and send a request to get tokens! Yay tokens!
+        client = WebApplicationClient(client_id)
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
             authorization_response=request.url,
@@ -97,7 +97,6 @@ def get_auth_routes(app):
         with OAuthTokenDatabase() as db:
             db.add_token(oauth_id, token_response)
 
-        oauth_in_progress.pop(oauth_id)
         return nice_json(params)
 
     @app.route(f"/{API_VERSION}/device/<uuid>/token/<oauth_id>", methods=['GET'])
