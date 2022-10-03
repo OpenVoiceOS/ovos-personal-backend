@@ -11,16 +11,22 @@
 # limitations under the License.
 #
 
-from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.utils import nice_json
-from ovos_local_backend.backend.decorators import noindex, requires_auth
-from flask import request
 import time
+
+import requests
+from flask import request
+from oauthlib.oauth2 import WebApplicationClient
+
+from ovos_local_backend.backend import API_VERSION
+from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.database.oauth import OAuthTokenDatabase
+from ovos_local_backend.utils import nice_json
 
 
 def get_auth_routes(app):
+    oauth_in_progress = {}
 
-    @app.route("/" + API_VERSION + "/auth/token", methods=['GET'])
+    @app.route(f"/{API_VERSION}/auth/token", methods=['GET'])
     @requires_auth
     @noindex
     def token():
@@ -35,5 +41,71 @@ def get_auth_routes(app):
                   "accessToken": token,
                   "refreshToken": token}
         return nice_json(device)
+
+    @app.route(f"/{API_VERSION}/auth/<oauth_id>/auth_url", methods=['GET'])
+    @requires_auth
+    @noindex
+    def oauth_url(oauth_id):
+        """ send auth url to user to confirm authorization,
+        once user opens it callback is triggered
+        """
+        params = dict(request.args)
+
+        oauth_in_progress[oauth_id] = params
+
+        client = WebApplicationClient(params["client_id"])
+        params["_client"] = client
+        oauth_in_progress[oauth_id] = params
+
+        request_uri = client.prepare_request_uri(
+            params["auth_endpoint"],
+            redirect_uri=request.base_url + "/auth/callback",
+            scope=params["scope"],
+        )
+
+        return request_uri, 200
+
+    @app.route(f"/{API_VERSION}/auth/callback/<oauth_id>", methods=['GET'])
+    @requires_auth
+    @noindex
+    def oauth_callback(oauth_id):
+        """ user completed oauth, save token to db
+        """
+        params = dict(request.args)
+        code = params["code"]
+
+        data = oauth_in_progress[oauth_id]
+        client = data["_client"]
+        client_id = data["client_id"]
+        client_secret = data["client_secret"]
+        token_endpoint = data["token_endpoint"]
+
+        # Prepare and send a request to get tokens! Yay tokens!
+        token_url, headers, body = client.prepare_token_request(
+            token_endpoint,
+            authorization_response=request.url,
+            redirect_url=request.base_url,
+            code=code
+        )
+        token_response = requests.post(
+            token_url,
+            headers=headers,
+            data=body,
+            auth=(client_id, client_secret),
+        ).json()
+
+        with OAuthTokenDatabase() as db:
+            db.add_token(oauth_id, token_response)
+
+        oauth_in_progress.pop(oauth_id)
+        return nice_json(params)
+
+    @app.route(f"/{API_VERSION}/device/<uuid>/token/<oauth_id>", methods=['GET'])
+    @requires_auth
+    @noindex
+    def oauth_token(uuid, oauth_id):
+        """a device is requesting a token for a previously approved OAuth app"""
+        data = OAuthTokenDatabase().get(oauth_id) or {}
+        return nice_json(data)
 
     return app
