@@ -59,7 +59,7 @@ def get_auth_routes(app):
 
         request_uri = client.prepare_request_uri(
             params["auth_endpoint"],
-            redirect_uri=request.base_url + f"/auth/callback/{oauth_id}",
+            redirect_uri=request.base_url + f"/{API_VERSION}/auth/callback/{oauth_id}",
             scope=params["scope"],
         )
 
