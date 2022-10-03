@@ -1,3 +1,4 @@
+import enum
 import json
 import time
 from os import makedirs
@@ -7,6 +8,21 @@ from json_database import JsonDatabaseXDG
 
 from ovos_local_backend.backend.decorators import requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
+
+
+class AudioTag(str, enum.Enum):
+    UNTAGGED = "untagged"
+    WAKE_WORD = "wake_word"
+    SPEECH = "speech"
+    NOISE = "noise"
+    SILENCE = "silence"
+
+
+class SpeakerTag(str, enum.Enum):
+    UNTAGGED = "untagged"
+    MALE = "male"
+    FEMALE = "female"
+    CHILDREN = "children"
 
 
 @requires_opt_in
@@ -38,7 +54,8 @@ def save_ww_recording(uuid, uploads):
 
 
 class WakeWordRecording:
-    def __init__(self, wakeword_id, transcription, path, meta=None, uuid="AnonDevice"):
+    def __init__(self, wakeword_id, transcription, path, meta=None,
+                 uuid="AnonDevice", tag=AudioTag.UNTAGGED, speaker_type=SpeakerTag.UNTAGGED):
         self.wakeword_id = wakeword_id
         self.transcription = transcription
         self.path = path
@@ -46,15 +63,19 @@ class WakeWordRecording:
             meta = json.loads(meta)
         self.meta = meta or []
         self.uuid = uuid
+        self.tag = tag
+        self.speaker_type = speaker_type
 
 
 class JsonWakeWordDatabase(JsonDatabaseXDG):
     def __init__(self):
         super().__init__("ovos_wakewords")
 
-    def add_wakeword(self, transcription, path, meta=None, uuid="AnonDevice"):
+    def add_wakeword(self, transcription, path, meta=None,
+                     uuid="AnonDevice", tag=AudioTag.UNTAGGED,
+                     speaker_type=SpeakerTag.UNTAGGED):
         wakeword_id = self.total_wakewords() + 1
-        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta, uuid)
+        wakeword = WakeWordRecording(wakeword_id, transcription, path, meta, uuid, tag, speaker_type)
         self.add_item(wakeword)
 
     def total_wakewords(self):
