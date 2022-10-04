@@ -8,8 +8,6 @@ This repo is an alternative to the backend meant for personal usage, this allows
 
 This is NOT meant to provision third party devices, but rather to run on the mycroft devices directly or on a private network
 
-No frontend functionality is provided, for that check out the companion project [ovos-personal-backend-ui](https://github.com/OpenVoiceOS/ovos-personal-backend-ui)
-
 For a full backend experience, the official mycroft backend has been open sourced, read the [blog post](https://mycroft.ai/blog/open-sourcing-the-mycroft-backend/)
 
 NOTE: There is no pairing, devices will just activate themselves and work
@@ -25,8 +23,8 @@ pip install ovos-local-backend
 
 ## Companion projects
 
-- [ovos-personal-backend-ui](https://github.com/OpenVoiceOS/ovos-personal-backend-ui) - frontend interface to manage the backend
-- [selene_api](https://github.com/OpenVoiceOS/selene_api) - reference python library to interact with selene/local backend
+- [ovos-backend-client](https://github.com/OpenVoiceOS/ovos-backend-client) - reference python library to interact with selene/local backend
+- [ovos-backend-manager](https://github.com/OpenVoiceOS/ovos-backend-manager) - graphical interface to manage all things backend
 - [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend
 
 
@@ -101,7 +99,7 @@ By default admin api is disabled, to enable it add `"admin_key": "unique_super_s
 you need to provide that key in the request headers for [admin endpoints](./ovos_local_backend/backend/admin.py)
 
 ```python
-from selene_api.api import AdminApi
+from ovos_backend_client.api import AdminApi
 
 admin = AdminApi("secret_admin_key")
 
