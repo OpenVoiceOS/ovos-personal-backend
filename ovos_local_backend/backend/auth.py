@@ -11,6 +11,7 @@
 # limitations under the License.
 #
 
+import os
 import time
 
 import requests
@@ -21,6 +22,8 @@ from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.database.oauth import OAuthTokenDatabase, OAuthApplicationDatabase
 from ovos_local_backend.utils import nice_json
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 def get_auth_routes(app):
@@ -48,10 +51,12 @@ def get_auth_routes(app):
         once user opens it callback is triggered
         """
         params = dict(request.args)
+        params["callback_endpoint"] = request.base_url + f"/{API_VERSION}/auth/callback/{oauth_id}"
+
         client = WebApplicationClient(params["client_id"])
         request_uri = client.prepare_request_uri(
             params["auth_endpoint"],
-            redirect_uri=request.base_url + f"/{API_VERSION}/auth/callback/{oauth_id}",
+            redirect_uri=params["callback_endpoint"],
             scope=params["scope"],
         )
         with OAuthApplicationDatabase() as db:
@@ -61,12 +66,12 @@ def get_auth_routes(app):
                                params["auth_endpoint"],
                                params["token_endpoint"],
                                params["refresh_endpoint"],
+                               params["callback_endpoint"],
                                params["scope"])
 
         return request_uri, 200
 
     @app.route(f"/{API_VERSION}/auth/callback/<oauth_id>", methods=['GET'])
-    @requires_auth
     @noindex
     def oauth_callback(oauth_id):
         """ user completed oauth, save token to db
