@@ -2,11 +2,19 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a2...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a3...HEAD)
 
 **Implemented enhancements:**
 
 - implement oauth endpoints [\#23](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/23)
+- refactor/selene\_api -\> ovos-backend-client [\#35](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/35) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.5a3](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5a3) (2022-10-04)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a2...V0.1.5a3)
+
+**Implemented enhancements:**
+
 - feat/oauth [\#36](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/36) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [V0.1.5a2](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5a2) (2022-10-03)
