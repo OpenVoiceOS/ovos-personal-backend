@@ -6,7 +6,7 @@ from timezonefinder import TimezoneFinder
 
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.session import SESSION as requests
-from selene_api.api import GeolocationApi
+from ovos_backend_client.api import GeolocationApi
 
 
 def get_timezone(latitude, longitude):
