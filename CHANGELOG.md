@@ -2,15 +2,19 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a4...HEAD)
-
-**Fixed bugs:**
-
-- fix/import [\#39](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/39) ([JarbasAl](https://github.com/JarbasAl))
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a5...HEAD)
 
 **Closed issues:**
 
 - ModuleNotFoundError: No module named 'selene\_api' [\#38](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/38)
+
+## [V0.1.5a5](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5a5) (2022-10-10)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a4...V0.1.5a5)
+
+**Fixed bugs:**
+
+- fix/import [\#39](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/39) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [V0.1.5a4](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5a4) (2022-10-04)
 
