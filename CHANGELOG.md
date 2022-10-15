@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a5...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5...HEAD)
+
+**Fixed bugs:**
+
+- fix/handle\_ipgeo\_failures [\#40](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/40) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.5](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5) (2022-10-10)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a5...V0.1.5)
 
 **Closed issues:**
 
