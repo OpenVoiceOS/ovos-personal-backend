@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a1...HEAD)
+
+**Fixed bugs:**
+
+- Fix weather one call from remote device [\#41](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/41) ([builderjer](https://github.com/builderjer))
+
+## [V0.1.6a1](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a1) (2022-10-15)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5...V0.1.6a1)
 
 **Fixed bugs:**
 
