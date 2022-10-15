@@ -68,6 +68,11 @@ class ExternalApiManager:
         self.wolfram_key = self.config.get("wolfram_key")
         self.owm_key = self.config.get("owm_key")
 
+        if self.owm_key:
+            self.local_owm = LocalWeather(self.owm_key)
+        else:
+            self.local_owm = None
+
         self.ovos_wolfram = OvosWolframAlpha()
         self.ovos_owm = OvosWeather()
         if not self.ovos_owm.uuid:
@@ -91,7 +96,7 @@ class ExternalApiManager:
     def _owm(self):
         if self.config.get("weather_provider") == "local":
             if self.owm_key:
-                return
+                return self.local_owm
             if self.config.get("ovos_fallback"):
                 return self.ovos_owm
         elif self.config.get("weather_provider") == "ovos":
@@ -103,7 +108,7 @@ class ExternalApiManager:
                 return self.ovos_owm
         else:  # auto
             if self.owm_key:
-                return
+                return self.local_owm
             if self.selene_owm:
                 return self.selene_owm
             return self.ovos_owm
