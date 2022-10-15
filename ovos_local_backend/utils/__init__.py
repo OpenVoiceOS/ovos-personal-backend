@@ -14,6 +14,7 @@ import json
 import random
 
 from flask import make_response
+from ovos_utils.log import LOG
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
 from ovos_backend_client.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 
@@ -69,7 +70,11 @@ class ExternalApiManager:
 
         self.ovos_wolfram = OvosWolframAlpha()
         self.ovos_owm = OvosWeather()
-
+        if not self.ovos_owm.uuid:
+            try:
+                self.ovos_owm.api.register_device()
+            except Exception as e:
+                LOG.debug(f"Error registering device {e}")
         self.geo = Geocoder()
 
         self.selene_owm = None
