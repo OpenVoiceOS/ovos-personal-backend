@@ -35,19 +35,23 @@ def ip_geolocate(ip=None):
     fields = "status,country,countryCode,region,regionName,city,lat,lon,timezone,query"
     data = requests.get("http://ip-api.com/json/" + ip,
                         params={"fields": fields}).json()
-    region_data = {"code": data["region"], "name": data["regionName"],
+    region_data = {"code": data.get("region"), "name": data.get("regionName"),
                    "country": {
-                       "code": data["countryCode"],
-                       "name": data["country"]}}
-    city_data = {"code": data["city"], "name": data["city"],
+                       "code": data.get("countryCode"),
+                       "name": data.get("country")}}
+    city_data = {"code": data.get("city"), "name": data.get("city"),
                  "state": region_data,
                  "region": region_data}
-    timezone_data = {"code": data["timezone"],
-                     "name": data["timezone"],
-                     "dstOffset": 3600000,
-                     "offset": -21600000}
-    coordinate_data = {"latitude": float(data["lat"]),
-                       "longitude": float(data["lon"])}
+    if "timezone" in data:
+        timezone_data = {"code": data["timezone"],
+                         "name": data["timezone"]}
+    else:
+        timezone_data = {}
+    if "lat" in data and "lon" in data:
+        coordinate_data = {"latitude": float(data["lat"]),
+                           "longitude": float(data["lon"])}
+    else:
+        coordinate_data = {}
     return {"city": city_data,
             "coordinate": coordinate_data,
             "timezone": timezone_data}

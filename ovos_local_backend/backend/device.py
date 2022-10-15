@@ -216,7 +216,10 @@ def get_device_routes(app):
         token = request.json["token"]
 
         # add device to db
-        location = get_request_location()
+        try:
+            location = get_request_location()
+        except:
+            location = CONFIGURATION["default_location"]
         with DeviceDatabase() as db:
             db.add_device(uuid, token, location=location)
 
