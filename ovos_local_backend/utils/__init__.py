@@ -60,7 +60,7 @@ def dict_to_camel_case(data):
 
 
 class ExternalApiManager:
-    def __int__(self):
+    def __init__(self):
         self.config = CONFIGURATION.get("microservices", {})
         self.units = CONFIGURATION["system_unit"]
 
@@ -221,7 +221,7 @@ class ExternalApiManager:
 
 
 class LocalWeather:
-    def __int__(self, key):
+    def __init__(self, key):
         self.key = key
 
     def current(self, lat, lon, units, lang):
@@ -266,7 +266,7 @@ class LocalWeather:
 
 
 class LocalWolfram:
-    def __int__(self, key):
+    def __init__(self, key):
         self.key = key
 
     def spoken(self, query, units):
