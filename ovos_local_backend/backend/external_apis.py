@@ -41,7 +41,6 @@ def _get_latlon():
 def get_services_routes(app):
 
     apis = ExternalApiManager()
-
     @app.route("/" + API_VERSION + '/geolocation', methods=['GET'])
     @noindex
     @check_selene_pairing

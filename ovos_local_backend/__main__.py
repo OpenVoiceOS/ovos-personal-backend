@@ -1,7 +1,6 @@
 from ovos_local_backend.backend import start_backend
 from ovos_local_backend.configuration import CONFIGURATION
 
-
 def main():
     import argparse
 

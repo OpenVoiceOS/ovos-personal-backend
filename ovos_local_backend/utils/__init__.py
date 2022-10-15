@@ -14,6 +14,7 @@ import json
 import random
 
 from flask import make_response
+from ovos_utils.log import LOG
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
 from ovos_backend_client.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 
@@ -60,7 +61,7 @@ def dict_to_camel_case(data):
 
 
 class ExternalApiManager:
-    def __int__(self):
+    def __init__(self):
         self.config = CONFIGURATION.get("microservices", {})
         self.units = CONFIGURATION["system_unit"]
 
@@ -69,7 +70,11 @@ class ExternalApiManager:
 
         self.ovos_wolfram = OvosWolframAlpha()
         self.ovos_owm = OvosWeather()
-
+        if not self.ovos_owm.uuid:
+            try:
+                self.ovos_owm.api.register_device()
+            except Exception as e:
+                LOG.debug(f"Error registering device {e}")
         self.geo = Geocoder()
 
         self.selene_owm = None
@@ -183,7 +188,7 @@ class ExternalApiManager:
             q = {"input": query, "units": units, "output": "xml"}
             return self._wolfram.get_wolfram_full(q)
 
-    def own_current(self, lat, lon, units, lang="en-us"):
+    def owm_current(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
             return self._owm.current(lat, lon, units, lang)
         if isinstance(self._owm, OvosWeather):  # ovos
@@ -201,7 +206,7 @@ class ExternalApiManager:
         if isinstance(self._owm, OpenWeatherMapApi):  # selene
             return self._owm.get_weather((lat, lon), lang, units)
 
-    def own_hourly(self, lat, lon, units, lang="en-us"):
+    def owm_hourly(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
             return self._owm.hourly(lat, lon, units, lang)
         if isinstance(self._owm, OvosWeather):  # ovos
@@ -210,7 +215,7 @@ class ExternalApiManager:
         if isinstance(self._owm, OpenWeatherMapApi):  # selene
             return self._owm.get_hourly((lat, lon), lang, units)
 
-    def own_daily(self, lat, lon, units, lang="en-us"):
+    def owm_daily(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
             return self._owm.daily(lat, lon, units, lang)
         if isinstance(self._owm, OvosWeather):  # ovos
@@ -221,7 +226,7 @@ class ExternalApiManager:
 
 
 class LocalWeather:
-    def __int__(self, key):
+    def __init__(self, key):
         self.key = key
 
     def current(self, lat, lon, units, lang):
@@ -266,7 +271,7 @@ class LocalWeather:
 
 
 class LocalWolfram:
-    def __int__(self, key):
+    def __init__(self, key):
         self.key = key
 
     def spoken(self, query, units):
