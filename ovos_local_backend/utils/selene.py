@@ -11,7 +11,7 @@ from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
 from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase, DeviceDatabase
 
 _selene_pairing_data = None
-_selene_uuid = uuid4()
+_selene_uuid = str(uuid4())
 _selene_cfg = CONFIGURATION.get("selene") or {}
 
 _ident_file = _selene_cfg.get("identity_file", "")
@@ -219,7 +219,7 @@ def get_selene_pairing_data():
     global _selene_pairing_data, _selene_uuid
     if not _selene_pairing_data:
         try:
-            _selene_uuid = uuid4()
+            _selene_uuid = str(uuid4())
             _selene_pairing_data = _device_api.get_code(_selene_uuid)
         except:
             LOG.exception("Failed to get selene pairing data")
