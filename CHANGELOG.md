@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a1...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a2...HEAD)
+
+**Fixed bugs:**
+
+- Fix/selene UUID [\#43](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/43) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.6a2](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a2) (2022-10-15)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a1...V0.1.6a2)
 
 **Fixed bugs:**
 
