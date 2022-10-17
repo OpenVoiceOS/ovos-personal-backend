@@ -51,7 +51,12 @@ class SkillSettings:
                             else:
                                 val = False
                         elif t == "number":
-                            val = float(val)
+                            if val == "False":
+                                val = 0
+                            elif val == "True":
+                                val = 1
+                            else:
+                                val = float(val)
                         elif val.lower() in ["none", "null", "nan"]:
                             val = None
                         elif val == "[]":
@@ -166,9 +171,19 @@ class DeviceSettings:
         # NOTE - selene returns the full listener config
         # this SHOULD NOT be done, since backend has no clue of hardware downstream
         # we return only wake word config
-        ww_cfg = {self.default_ww: self.default_ww_cfg}
+        if self.default_ww and self.default_ww_cfg:
+            ww_cfg = {self.default_ww: self.default_ww_cfg}
+            listener = {"wakeWord": self.default_ww.replace(" ", "_")}
+        else:
+            ww_cfg = {}
+            listener = {}
+
         tts_config = dict(self.default_tts_cfg)
-        tts = tts_config.pop("module")
+        if "module" in tts_config:
+            tts = tts_config.pop("module")
+            tts_settings =  {"module": tts, tts: tts_config}
+        else:
+            tts_settings = {}
         return {
             "dateFormat": self.date_format,
             "optIn": self.opt_in,
@@ -177,9 +192,9 @@ class DeviceSettings:
             "uuid": self.uuid,
             "lang": self.lang,
             "location": self.location,
-            "listenerSetting": {"wakeWord": self.default_ww.replace(" ", "_")},
+            "listenerSetting": listener,
             "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
-            'ttsSettings': {"module": tts, tts: tts_config}
+            'ttsSettings': tts_settings
         }
 
     def serialize(self):
