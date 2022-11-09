@@ -2,7 +2,16 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a2...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a3...HEAD)
+
+**Merged pull requests:**
+
+- Feat/workflows [\#44](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/44) ([JarbasAl](https://github.com/JarbasAl))
+- Fix local api key usage [\#42](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/42) ([builderjer](https://github.com/builderjer))
+
+## [V0.1.6a3](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a3) (2022-10-17)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a2...V0.1.6a3)
 
 **Fixed bugs:**
 
