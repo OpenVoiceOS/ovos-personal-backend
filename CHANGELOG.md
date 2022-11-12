@@ -2,7 +2,40 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a5...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a3...HEAD)
+
+**Merged pull requests:**
+
+- Feat/workflows [\#44](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/44) ([JarbasAl](https://github.com/JarbasAl))
+- Fix local api key usage [\#42](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/42) ([builderjer](https://github.com/builderjer))
+
+## [V0.1.6a3](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a3) (2022-10-17)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a2...V0.1.6a3)
+
+**Fixed bugs:**
+
+- Fix/selene UUID [\#43](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/43) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.6a2](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a2) (2022-10-15)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a1...V0.1.6a2)
+
+**Fixed bugs:**
+
+- Fix weather one call from remote device [\#41](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/41) ([builderjer](https://github.com/builderjer))
+
+## [V0.1.6a1](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a1) (2022-10-15)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5...V0.1.6a1)
+
+**Fixed bugs:**
+
+- fix/handle\_ipgeo\_failures [\#40](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/40) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.5](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.5) (2022-10-10)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.5a5...V0.1.5)
 
 **Closed issues:**
 
