@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a3...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a4...HEAD)
+
+**Merged pull requests:**
+
+- Bug/default ww [\#45](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/45) ([builderjer](https://github.com/builderjer))
+
+## [V0.1.6a4](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a4) (2022-11-09)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a3...V0.1.6a4)
 
 **Merged pull requests:**
 
