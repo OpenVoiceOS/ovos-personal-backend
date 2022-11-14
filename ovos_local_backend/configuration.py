@@ -57,92 +57,116 @@ DEFAULT_CONFIG = {
             "offset": -21600000
         }
     },
-    "default_ww": "hey_mycroft (tflite)",  # needs to be present below
+    "default_ww": "hey_mycroft",  # needs to be present below
     "ww_configs": {  # these can be exposed in a web UI for selection
-            "android (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "android": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/android.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "computer (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "computer": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/computer.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_chatterbox (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_chatterbox": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_chatterbox.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_firefox (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_firefox": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_firefox.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_k9 (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_k9": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_k9.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_kit (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_kit": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_kit.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_moxie (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_moxie": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_moxie.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_mycroft (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_mycroft": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_scout (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "hey_scout": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_scout.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "marvin (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "marvin": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/marvin.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "o_sauro (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "o_sauro": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/o_sauro.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "sheila (tflite)": {"module": "ovos-ww-plugin-precise-lite",
+            "sheila": {"module": "ovos-ww-plugin-precise-lite",
                             "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/sheila.tflite",
                             "expected_duration": 3,
                             "trigger_level": 3,
                             "sensitivity": 0.5
                         },
-            "hey_jarvis (psphinx)": {"module": "ovos-ww-plugin-pocketsphinx",
-                            "phonemes": "HH EY . JH AA R V AH S .",
-                            "threshold": 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+            "hey_jarvis": {"module": "ovos-ww-plugin-vosk",
+                            "rule": "fuzzy",
+                            "samples": [
+                                "hay jarvis",
+                                "hey jarvis",
+                                "hay jarbis",
+                                "hey jarbis"
+                                ]
                         },
-            "christopher (psphinx)": {"module": "ovos-ww-plugin-pocketsphinx",
-                            "phonemes": "K R IH S T AH F ER .",
-                            "threshold": 1e-25
+            "christopher": {"module": "ovos-ww-plugin-vosk",
+                            "rule": "fuzzy",
+                            "samples": [
+                                "christopher"
+                                ]
                         },
-            "hey_ezra (psphinx)": {"module": "ovos-ww-plugin-pocketsphinx",
-                            "phonemes": "HH EY . EH Z R AH",
-                            "threshold": 1e-10
-                        }
+            "hey_ezra": {"module": "ovos-ww-plugin-vosk",
+                            "rule": "fuzzy",
+                            "samples": [
+                                "hay ezra",
+                                "hey ezra"
+                                ]
+                        },
+            "hey_ziggy": {"module": "ovos-ww-plugin-vosk",
+                        "rule": "fuzzy",
+                        "samples": [
+                            "hey ziggy",
+                            "hay ziggy"
+                            ]
+                        },
+            "hey_neon": {"module": "ovos-ww-plugin-vosk",
+                         "rule": "fuzzy",
+                         "samples": [
+                             "hey neon",
+                             "hay neon"
+                             ]
+                         }
     },
     "default_tts": "American Male",  # needs to be present below
     "tts_configs": {  # these can be exposed in a web UI for selection
