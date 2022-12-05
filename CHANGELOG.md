@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a4...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a5...HEAD)
+
+**Merged pull requests:**
+
+- port shared oauth db utils [\#46](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/46) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.6a5](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a5) (2022-11-14)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a4...V0.1.6a5)
 
 **Merged pull requests:**
 
