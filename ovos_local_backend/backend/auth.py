@@ -20,7 +20,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.database.oauth import OAuthTokenDatabase, OAuthApplicationDatabase
+from ovos_backend_client.database import OAuthTokenDatabase, OAuthApplicationDatabase
 from ovos_local_backend.utils import nice_json
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
