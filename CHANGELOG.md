@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
+## [V0.1.6a6](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a6) (2022-12-05)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a5...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a5...V0.1.6a6)
 
 **Merged pull requests:**
 
