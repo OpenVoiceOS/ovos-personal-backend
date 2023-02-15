@@ -1,6 +1,9 @@
 name: Publish Local Backend Container
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 env:
   REGISTRY: ghcr.io
