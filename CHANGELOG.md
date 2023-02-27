@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a7...HEAD)
+
+**Closed issues:**
+
+- Personal-backend manager [\#48](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/48)
+
+**Merged pull requests:**
+
+- add backend manager to docker composition [\#49](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/49) ([emphasize](https://github.com/emphasize))
+
+## [V0.1.6a7](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a7) (2023-02-15)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a6...V0.1.6a7)
+
 ## [V0.1.6a6](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a6) (2022-12-05)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a5...V0.1.6a6)
