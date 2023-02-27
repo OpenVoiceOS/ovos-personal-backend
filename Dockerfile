@@ -8,4 +8,6 @@ RUN pip3 install SpeechRecognition==3.8.1
 COPY . /tmp/ovos-backend
 RUN pip3 install /tmp/ovos-backend
 
-ENTRYPOINT ovos-local-backend --flask-host 0.0.0.0
+RUN pip3 install git+https://github.com/OpenVoiceOS/ovos-backend-manager
+
+CMD ./tmp/ovos-backend/scripts/entrypoints.sh
