@@ -183,7 +183,7 @@ def get_database_crud(app):
     @noindex
     def create_voice_rec():
         # b64 decode bytes before saving
-        data = flask.flask.request.json
+        data = flask.request.json
         audio_b64 = data.pop("audio_b64")
         data["byte_data"] = base64.decodestring(audio_b64)
         entry = db.add_stt_recording(**data)

@@ -11,7 +11,8 @@
 # limitations under the License.
 #
 from functools import wraps
-from flask import make_response, request, Response
+from flask import Response
+import flask
 from ovos_local_backend.configuration import CONFIGURATION
 
 
@@ -30,7 +31,7 @@ def requires_opt_in(f):
     def decorated(*args, **kwargs):
         from ovos_local_backend.database import get_device
 
-        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
         device = get_device(uuid)
         if device and device.opt_in:
@@ -45,7 +46,7 @@ def requires_auth(f):
         # skip_auth option is usually unsafe
         # use cases such as docker or ovos-qubes can not share a identity file between devices
         if not CONFIGURATION.get("skip_auth"):
-            auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+            auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
             if not auth or not uuid or not check_auth(uuid, auth):
                 return Response(
@@ -61,7 +62,7 @@ def requires_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         admin_key = CONFIGURATION.get("admin_key")
-        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         if not auth or not admin_key or auth != admin_key:
             return Response(
                 'Could not verify your access level for that URL.\n'
@@ -79,7 +80,7 @@ def add_response_headers(headers=None):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            resp = make_response(f(*args, **kwargs))
+            resp = flask.make_response(f(*args, **kwargs))
             h = resp.headers
             for header, value in headers.items():
                 h[header] = value

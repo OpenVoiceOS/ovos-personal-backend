@@ -13,7 +13,7 @@
 import json
 from tempfile import NamedTemporaryFile
 
-from flask import request
+import flask
 from speech_recognition import Recognizer, AudioFile
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
@@ -36,8 +36,8 @@ def get_stt_routes(app):
     @noindex
     @requires_auth
     def stt():
-        flac_audio = request.data
-        lang = str(request.args.get("lang", "en-us"))
+        flac_audio = flask.request.data
+        lang = str(flask.request.args.get("lang", "en-us"))
         with NamedTemporaryFile() as fp:
             fp.write(flac_audio)
             with AudioFile(fp.name) as source:
@@ -48,7 +48,7 @@ def get_stt_routes(app):
                 utterance = ""
 
         if CONFIGURATION["record_utterances"]:
-            auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+            auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
             save_stt_recording(uuid, audio, utterance)
 

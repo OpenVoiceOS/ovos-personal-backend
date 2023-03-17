@@ -12,20 +12,21 @@
 #
 import time
 
-from flask import request
+import flask
 
+import ovos_local_backend.database as db
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database import SkillSettings
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
-from ovos_local_backend.database import (
-    save_metric,
-    get_device,
-    add_device,
-    SkillSettings
-)
+
+
+@requires_opt_in
+def save_metric(uuid, name, data):
+    db.add_metric(uuid, name, data)
 
 
 def get_device_routes(app):
@@ -33,28 +34,18 @@ def get_device_routes(app):
     @requires_auth
     def settingsmeta(uuid):
         """ new style skill settings meta (upload only) """
-        s = SkillSettings.deserialize(request.json)
-
-        # TODO - sql db
-        # save new settings meta to db
-        with SettingsDatabase() as db:
-            # keep old settings, update meta only
-            old_s = db.get_setting(s.skill_id, uuid)
-            if old_s:
-                s.settings = old_s.settings
-            db.add_setting(uuid, s.skill_id, s.settings, s.meta,
-                           s.display_name, s.remote_id)
-        # end TODO
-
+        s = SkillSettings.deserialize(flask.request.json)
+        # ignore s.settings on purpose
+        db.update_skill_settings(s.remote_id,
+                                 metadata_json=s.meta,
+                                 display_name=s.display_name)
         return nice_json({"success": True, "uuid": uuid})
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skill/settings", methods=['GET'])
     @requires_auth
     def skill_settings_v2(uuid):
         """ new style skill settings (download only)"""
-        # TODO
-        db = SettingsDatabase()
-        return {s.skill_id: s.settings for s in db.get_device_settings(uuid)}
+        return {s.skill_id: s.settings for s in db.get_skill_settings_for_device(uuid)}
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skill", methods=['GET', 'PUT'])
     @requires_auth
@@ -62,16 +53,15 @@ def get_device_routes(app):
         """ old style skill settings/settingsmeta - supports 2 way sync
          PUT - json for 1 skill
          GET - list of all skills """
-        # TODO
-        if request.method == 'PUT':
-            # update local db
-            with SettingsDatabase() as db:
-                s = SkillSettings.deserialize(request.json)
-                db.add_setting(uuid, s.skill_id, s.settings, s.meta,
-                               s.display_name, s.remote_id)
+        if flask.request.method == 'PUT':
+            s = SkillSettings.deserialize(flask.request.json)
+            db.update_skill_settings(s.remote_id,
+                                     settings_json=s.settings,
+                                     metadata_json=s.meta,
+                                     display_name=s.display_name)
             return nice_json({"success": True, "uuid": uuid})
         else:
-            return nice_json([s.serialize() for s in SettingsDatabase().get_device_settings(uuid)])
+            return nice_json([s.serialize() for s in db.get_skill_settings_for_device(uuid)])
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skillJson", methods=['PUT'])
     @requires_auth
@@ -79,7 +69,7 @@ def get_device_routes(app):
         """ device is communicating to the backend what skills are installed
         drop the info and don't track it! maybe if we add a UI and it becomes useful..."""
         # everything works in skill settings without using this
-        data = request.json
+        data = flask.request.json
         # {'blacklist': [],
         # 'skills': [{'name': 'fallback-unknown',
         #             'origin': 'default',
@@ -95,7 +85,7 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def location(uuid):
-        device = get_device(uuid)
+        device = db.get_device(uuid)
         if device:
             return device.location_json
         return get_request_location()
@@ -104,7 +94,7 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def setting(uuid=""):
-        device = get_device(uuid)
+        device = db.get_device(uuid)
         if device:
             return device.selene_settings
         return {}
@@ -113,9 +103,9 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def get_uuid(uuid):
-        if request.method == 'PATCH':
+        if flask.request.method == 'PATCH':
             # drop the info, we do not track it
-            data = request.json
+            data = flask.request.json
             # {'coreVersion': '21.2.2',
             # 'platform': 'unknown',
             # 'platform_build': None,
@@ -123,12 +113,12 @@ def get_device_routes(app):
             return {}
 
         # get from local db
-        device = get_device(uuid)
+        device = db.get_device(uuid)
         if device:
             return device.selene_device
 
         # dummy valid data
-        token = request.headers.get('Authorization', '').replace("Bearer ", "")
+        token = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         uuid = token.split(":")[-1]
         return {
             "description": "unknown",
@@ -148,7 +138,7 @@ def get_device_routes(app):
         """ device is asking for pairing token
         we simplify things and use a deterministic access token, same as pairing token created here
         """
-        uuid = request.args["state"]
+        uuid = flask.request.args["state"]
         code = generate_code()
 
         # pairing device with backend
@@ -165,17 +155,17 @@ def get_device_routes(app):
         in local backend we pair the device automatically in this step
         in selene this would only succeed after user paired via browser
         """
-        uuid = request.json["state"]
+        uuid = flask.request.json["state"]
 
         # we simplify things and use a deterministic access token, shared with pairing token
-        token = request.json["token"]
+        token = flask.request.json["token"]
 
         # add device to db
         try:
             location = get_request_location()
         except:
             location = CONFIGURATION["default_location"]
-        add_device(uuid, token, location=location)
+        db.add_device(uuid, token, location=location)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
@@ -188,11 +178,11 @@ def get_device_routes(app):
     @requires_auth
     def send_mail(uuid=""):
 
-        data = request.json
+        data = flask.request.json
         skill_id = data["sender"]  # TODO - auto append to body ?
 
         target_email = None
-        device = get_device(uuid)
+        device = db.get_device(uuid)
         if device:
             target_email = device.email
         send_email(data["title"], data["body"], target_email)
@@ -201,7 +191,7 @@ def get_device_routes(app):
     @noindex
     @requires_auth
     def metric(uuid="", name=""):
-        data = request.json
+        data = flask.request.json
         save_metric(uuid, name, data)
         return nice_json({"success": True,
                           "uuid": uuid,
@@ -219,7 +209,7 @@ def get_device_routes(app):
     @noindex
     @requires_auth
     def get_subscriber_voice_url(uuid=""):
-        arch = request.args["arch"]
+        arch = flask.request.args["arch"]
         return nice_json({"link": "", "arch": arch})
 
     return app
