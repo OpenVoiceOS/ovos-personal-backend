@@ -17,11 +17,15 @@ from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.metrics import save_metric
-from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
+from ovos_local_backend.database import (
+    save_metric,
+    get_device,
+    add_device,
+    SkillSettings
+)
 
 
 def get_device_routes(app):
@@ -31,6 +35,7 @@ def get_device_routes(app):
         """ new style skill settings meta (upload only) """
         s = SkillSettings.deserialize(request.json)
 
+        # TODO - sql db
         # save new settings meta to db
         with SettingsDatabase() as db:
             # keep old settings, update meta only
@@ -39,6 +44,7 @@ def get_device_routes(app):
                 s.settings = old_s.settings
             db.add_setting(uuid, s.skill_id, s.settings, s.meta,
                            s.display_name, s.remote_id)
+        # end TODO
 
         return nice_json({"success": True, "uuid": uuid})
 
@@ -46,6 +52,7 @@ def get_device_routes(app):
     @requires_auth
     def skill_settings_v2(uuid):
         """ new style skill settings (download only)"""
+        # TODO
         db = SettingsDatabase()
         return {s.skill_id: s.settings for s in db.get_device_settings(uuid)}
 
@@ -55,6 +62,7 @@ def get_device_routes(app):
         """ old style skill settings/settingsmeta - supports 2 way sync
          PUT - json for 1 skill
          GET - list of all skills """
+        # TODO
         if request.method == 'PUT':
             # update local db
             with SettingsDatabase() as db:
@@ -87,7 +95,7 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def location(uuid):
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.location
         return get_request_location()
@@ -96,7 +104,7 @@ def get_device_routes(app):
     @requires_auth
     @noindex
     def setting(uuid=""):
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.selene_settings
         return {}
@@ -115,7 +123,7 @@ def get_device_routes(app):
             return {}
 
         # get from local db
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.selene_device
 
@@ -167,8 +175,7 @@ def get_device_routes(app):
             location = get_request_location()
         except:
             location = CONFIGURATION["default_location"]
-        with DeviceDatabase() as db:
-            db.add_device(uuid, token, location=location)
+        add_device(uuid, token, location=location)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
@@ -185,7 +192,7 @@ def get_device_routes(app):
         skill_id = data["sender"]  # TODO - auto append to body ?
 
         target_email = None
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             target_email = device.email
         send_email(data["title"], data["body"], target_email)

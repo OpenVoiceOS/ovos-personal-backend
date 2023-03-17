@@ -16,6 +16,7 @@ from json_database import JsonConfigXDG
 from ovos_utils.log import LOG
 
 DEFAULT_CONFIG = {
+    "database": "sqlite:///ovos_backend.db",
     "stt": {
         "module": "ovos-stt-plugin-server",
         "ovos-stt-plugin-server": {

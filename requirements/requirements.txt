@@ -9,3 +9,6 @@ geocoder
 timezonefinder
 requests_cache
 oauthlib~=3.0
+Flask-SQLAlchemy
+Flask-MySQLdb
+sqlalchemy-json
