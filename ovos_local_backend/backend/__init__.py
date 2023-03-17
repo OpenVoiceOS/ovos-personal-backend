@@ -13,12 +13,15 @@
 
 from flask import Flask
 from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database import connect_db
 
 API_VERSION = CONFIGURATION["api_version"]
 
 
 def create_app():
     app = Flask(__name__)
+
+    app, db = connect_db(app)
 
     from ovos_local_backend.utils import nice_json
     from ovos_local_backend.backend.decorators import noindex
