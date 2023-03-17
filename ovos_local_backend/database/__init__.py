@@ -75,14 +75,14 @@ class Metric(db.Model):
 
 @requires_opt_in
 def save_metric(uuid, name, data):
-    m = Metric(
+    entry = Metric(
         id=db.session.query(Metric).count() + 1,
         metric_type=name,
         metadata_json=data,
         uuid=uuid,
         timestamp=time.time()
     )
-    db.session.add(m)
+    db.session.add(entry)
     db.session.commit()
 
 
@@ -94,6 +94,21 @@ class UtteranceRecording(db.Model):
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String)  # TODO - link to devices table
+
+
+@requires_opt_in
+def save_stt_recording(uuid, audio, utterance):
+    entry = UtteranceRecording(
+        utterance_id=db.session.query(UtteranceRecording).count() + 1,
+        transcription=utterance,
+        sample=audio.get_wav_data(),
+        metadata_json="{}",  # TODO - allow expanding in future
+
+        uuid=uuid,
+        timestamp=time.time()
+    )
+    db.session.add(entry)
+    db.session.commit()
 
 
 class WakeWordRecording(db.Model):

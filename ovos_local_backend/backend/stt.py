@@ -18,7 +18,7 @@ from speech_recognition import Recognizer, AudioFile
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.utterances import save_stt_recording
+from ovos_local_backend.database import save_stt_recording
 from ovos_local_backend.utils.selene import upload_utterance
 from ovos_plugin_manager.stt import OVOSSTTFactory
 
