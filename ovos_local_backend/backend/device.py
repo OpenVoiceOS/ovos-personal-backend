@@ -19,7 +19,7 @@ from ovos_backend_client.pairing import is_paired
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.metrics import save_metric
+from ovos_local_backend.database import save_metric
 from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location

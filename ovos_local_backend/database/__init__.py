@@ -1,4 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
+from ovos_local_backend.backend.decorators import requires_opt_in
+import time
+
 
 # create the extension
 db = SQLAlchemy()
@@ -68,6 +71,19 @@ class Metric(db.Model):
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String)  # TODO - link to devices table
+
+
+@requires_opt_in
+def save_metric(uuid, name, data):
+    m = Metric(
+        id=db.session.query(Metric).count() + 1,
+        metric_type=name,
+        metadata_json=data,
+        uuid=uuid,
+        timestamp=time.time()
+    )
+    db.session.add(m)
+    db.session.commit()
 
 
 class UtteranceRecording(db.Model):
