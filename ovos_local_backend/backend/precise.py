@@ -2,7 +2,7 @@ from flask import request
 
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.wakewords import save_ww_recording
+from ovos_local_backend.database import save_ww_recording
 from ovos_local_backend.utils.selene import upload_ww
 
 

@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from ovos_local_backend.backend.decorators import requires_opt_in
 import time
+import json
 
 
 # create the extension
@@ -121,3 +122,39 @@ class WakeWordRecording(db.Model):
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String)  # TODO - link to devices table
+
+
+@requires_opt_in
+def save_ww_recording(uuid, uploads):
+    meta = {}
+    audio = None
+    for ww_file in uploads:
+        # Werkzeug FileStorage objects
+        fn = uploads[ww_file].filename
+        if fn == 'audio':
+            audio = uploads[ww_file].read()
+        if fn == 'metadata':
+            meta = json.load(uploads[ww_file])
+
+    if not audio:
+        return  # TODO - some error? just ignore entry for now
+
+    # classic mycroft devices send
+    # {"name": "hey-mycroft",
+    # "engine": "0f4df281688583e010c26831abdc2222",
+    # "time": "1592192357852",
+    # "sessionId": "7d18e208-05b5-401e-add6-ee23ae821967",
+    # "accountId": "0",
+    # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
+
+    entry = WakeWordRecording(
+        wakeword_id=db.session.query(WakeWordRecording).count() + 1,
+        transcription=meta["name"],
+        sample=audio,
+        metadata_json=json.dumps(meta),
+
+        uuid=uuid,
+        timestamp=time.time()
+    )
+    db.session.add(entry)
+    db.session.commit()
