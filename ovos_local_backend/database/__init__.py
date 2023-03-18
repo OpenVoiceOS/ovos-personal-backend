@@ -33,6 +33,22 @@ class VoiceDefinition(db.Model):
     gender = db.Column(db.String)
 
 
+def get_voice_id(plugin_name, lang, tts_cfg):
+    # taken from https://github.com/OpenVoiceOS/ovos-plugin-manager/pull/131
+    skip_keys = ["module", "meta"]
+    keys = sorted([f"{k}_{v}" for k, v in tts_cfg.items() if k not in skip_keys])
+    voiceid = f"{plugin_name}_{lang}_{keys}.json".replace("/", "_")
+    return voiceid
+
+
+def get_ww_id(plugin_name, ww_name, ww_cfg):
+    # taken from https://github.com/OpenVoiceOS/ovos-plugin-manager/pull/131
+    skip_keys = ["display_name", "meta"]
+    keys = sorted([f"{k}_{v}" for k, v in ww_cfg.items() if k not in skip_keys])
+    voiceid = f"{plugin_name}_{ww_name}_{keys}.json".replace("/", "_")
+    return voiceid
+
+
 class WakeWordDefinition(db.Model):
     ww_id = db.Column(db.String, primary_key=True)
     name = db.Column(db.String, nullable=False)
@@ -117,6 +133,49 @@ class Device(db.Model):
             "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
             'ttsSettings': tts_settings
         }
+
+    @staticmethod
+    def deserialize(data):
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        lang = data.get("lang") or CONFIGURATION.get("lang") or "en-us"
+
+        voice_id = None
+        tts_module = data.get("default_tts")
+        tts_cfg = data.get("default_tts_cfg") or {}
+        if tts_module:
+            voice_id = get_voice_id(tts_module, lang, tts_cfg)
+
+        ww_id = None
+        ww_name = data.get("default_ww")
+        ww_cfg = data.get("default_ww_cfg") or {}
+        ww_module = ww_cfg.get("module")
+        if ww_module:
+            ww_id = get_ww_id(ww_module, ww_name, ww_cfg)
+
+        location_json = data.get("location") or CONFIGURATION["default_location"]
+        if isinstance(location_json, dict):
+            location_json = json.dumps(location_json)
+
+        mail_cfg = CONFIGURATION.get("email", {})
+        email = data.get("email") or \
+                mail_cfg.get("recipient") or \
+                mail_cfg.get("smtp", {}).get("username")
+
+        return Device(uuid=data["uuid"],
+                      token=data["token"],
+                      placement=data.get("device_location") or "somewhere",
+                      name=data.get("name") or f"Device-{data['uuid']}",
+                      isolated_skills=data.get("isolated_skills", False),
+                      location_json=location_json,
+                      opt_in=data.get("opt_in"),
+                      system_unit=data.get("system_unit") or CONFIGURATION.get("system_unit") or "metric",
+                      date_fmt=data.get("date_format") or CONFIGURATION.get("date_format") or "DMY",
+                      time_fmt=data.get("time_format") or CONFIGURATION.get("time_format") or "full",
+                      email=email,
+                      ww_id=ww_id,
+                      voice_id=voice_id)
 
     def serialize(self):
         mail_cfg = CONFIGURATION.get("email", {})
