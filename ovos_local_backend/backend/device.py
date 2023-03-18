@@ -19,8 +19,8 @@ from ovos_backend_client.pairing import is_paired
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database import save_metric, get_device
-from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
+from ovos_local_backend.database import save_metric, get_device, add_device
+from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
@@ -220,8 +220,7 @@ def get_device_routes(app):
             location = get_request_location()
         except:
             location = CONFIGURATION["default_location"]
-        with DeviceDatabase() as db:
-            db.add_device(uuid, token, location=location)
+        add_device(uuid, token, location=location)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,

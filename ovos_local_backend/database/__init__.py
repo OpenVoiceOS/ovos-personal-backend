@@ -236,13 +236,15 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
             mail_cfg.get("recipient") or \
             mail_cfg.get("smtp", {}).get("username")
 
+    if isinstance(location, dict):
+        location = json.dumps(location)
     entry = Device(uuid=uuid,
                    token=token,
                    lang=lang,
                    placement=device_location,
                    name=name or f"Device-{uuid}",
                    isolated_skills=isolated_skills,
-                   location_json=json.dumps(location),
+                   location_json=location,
                    opt_in=opt_in,
                    system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
                    date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",

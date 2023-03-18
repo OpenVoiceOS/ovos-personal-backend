@@ -2,14 +2,14 @@ import json
 from uuid import uuid4
 
 from flask import request
-from ovos_utils.log import LOG
 from ovos_backend_client.api import DeviceApi, STTApi
 from ovos_backend_client.identity import IdentityManager
 from ovos_backend_client.pairing import has_been_paired
+from ovos_utils.log import LOG
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
-from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase, DeviceDatabase
-from ovos_local_backend.database import get_device
+from ovos_local_backend.database import get_device, update_device
+from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase
 
 _selene_pairing_data = None
 _selene_uuid = str(uuid4())
@@ -73,10 +73,7 @@ def download_selene_location(uuid):
         api = DeviceApi(url, version, identity_file)
         # update in local db
         loc = api.get_location()
-        with DeviceDatabase() as db:
-            device = db.get_device(uuid)
-            device.location = loc
-            db.update_device(device)
+        update_device(uuid, location=loc)
 
 
 def download_selene_preferences(uuid):
@@ -89,12 +86,11 @@ def download_selene_preferences(uuid):
         api = DeviceApi(url, version, identity_file)
         data = api.get_settings()
         # update in local db
-        with DeviceDatabase() as db:
-            device = db.get_device(uuid)
-            device.system_unit = data["systemUnit"]
-            device.time_format = data["timeFormat"]
-            device.date_format = data["dateFormat"]
-            db.update_device(device)
+
+        update_device(uuid,
+                      system_unit=data["systemUnit"],
+                      time_format=data["timeFormat"],
+                      date_format=data["dateFormat"])
 
 
 def send_selene_email(title, body, sender):
