@@ -1,8 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy
-from ovos_local_backend.backend.decorators import requires_opt_in
-import time
 import json
+import time
 
+from flask_sqlalchemy import SQLAlchemy
+
+from ovos_local_backend.backend.decorators import requires_opt_in
+from ovos_local_backend.configuration import CONFIGURATION
 
 # create the extension
 db = SQLAlchemy()
@@ -45,6 +47,7 @@ class Device(db.Model):
     name = db.Column(db.String)
     placement = db.Column(db.String)  # indoor location
     isolated_skills = db.Column(db.Boolean)
+    opt_in = db.Column(db.Boolean)
     email = db.Column(db.String)  # for sending email api, not registering
     # remote mycroft.conf settings
     date_fmt = db.Column(db.String)
@@ -81,7 +84,7 @@ class Device(db.Model):
         ww_cfg = {}
         listener = {}
         if self.ww_id:
-            ww = db.session.query(WakeWordDefinition).\
+            ww = db.session.query(WakeWordDefinition). \
                 filter(WakeWordDefinition.ww_id == self.ww_id).first()
 
             if ww:
@@ -104,7 +107,7 @@ class Device(db.Model):
 
         return {
             "dateFormat": self.date_fmt,
-           # "optIn": self.opt_in, # backend should not be able to decide this, needs to happen device side
+            "optIn": self.opt_in,
             "systemUnit": self.system_unit,
             "timeFormat": self.time_fmt,
             "uuid": self.uuid,
@@ -113,6 +116,52 @@ class Device(db.Model):
             "listenerSetting": listener,
             "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
             'ttsSettings': tts_settings
+        }
+
+    def serialize(self):
+        mail_cfg = CONFIGURATION.get("email", {})
+        email = self.email or \
+                mail_cfg.get("recipient") or \
+                mail_cfg.get("smtp", {}).get("username")
+        location = self.location_json or CONFIGURATION["default_location"]
+        if isinstance(location, str):
+            location = json.loads(location)
+
+        default_tts = None
+        default_tts_cfg = {}
+        if self.voice_id:
+            voice = db.session.query(VoiceDefinition). \
+                filter(VoiceDefinition.voice_id == self.voice_id).first()
+            if voice:
+                default_tts_cfg = json.loads(voice.voice_cfg)
+                default_tts = voice.plugin
+
+        default_ww = None
+        default_ww_cfg = {}
+        if self.ww_id:
+            ww = db.session.query(WakeWordDefinition). \
+                filter(WakeWordDefinition.ww_id == self.ww_id).first()
+            if ww:
+                default_ww_cfg = json.loads(ww.ww_cfg)
+                default_ww = ww.name
+
+        return {
+            "uuid": self.uuid,
+            "token": self.token,
+            "isolated_skills": self.isolated_skills,
+            "opt_in": self.opt_in,
+            "name": self.name or f"Device-{self.uuid}",
+            "device_location": self.placement or "somewhere",
+            "email": email,
+            "time_format": self.time_fmt,
+            "date_format": self.date_fmt,
+            "system_unit": self.system_unit,
+            "lang": self.lang or CONFIGURATION.get("lang") or "en-us",
+            "location": location,
+            "default_tts": default_tts,
+            "default_tts_cfg": default_tts_cfg,
+            "default_ww": default_ww,
+            "default_ww_cfg": default_ww_cfg
         }
 
 
