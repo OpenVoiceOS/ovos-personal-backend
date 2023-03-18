@@ -224,6 +224,107 @@ class Device(db.Model):
         }
 
 
+def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False,
+               location=None, lang=None, date_format=None, system_unit=None,
+               time_format=None, email=None, isolated_skills=False,
+               ww_id="hey mycroft", voice_id=None):
+
+    lang = lang or CONFIGURATION.get("lang") or "en-us"
+
+    mail_cfg = CONFIGURATION.get("email", {})
+    email = email or \
+            mail_cfg.get("recipient") or \
+            mail_cfg.get("smtp", {}).get("username")
+
+    entry = Device(uuid=uuid,
+                   token=token,
+                   lang=lang,
+                   placement=device_location,
+                   name=name or f"Device-{uuid}",
+                   isolated_skills=isolated_skills,
+                   location_json=json.dumps(location),
+                   opt_in=opt_in,
+                   system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
+                   date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",
+                   time_fmt=time_format or CONFIGURATION.get("time_format") or "full",
+                   email=email,
+                   ww_id=ww_id,
+                   voice_id=voice_id)
+    db.session.add(entry)
+    db.session.commit()
+
+
+def update_device(uuid, **kwargs):
+
+    device = Device.query.filter_by(uuid=uuid).first()
+    if not device:
+        raise ValueError(f"unknown uuid - {uuid}")
+
+    if "name" in kwargs:
+        device.name = kwargs["name"]
+    if "lang" in kwargs:
+        device.lang = kwargs["lang"]
+    if "opt_in" in kwargs:
+        device.opt_in = kwargs["opt_in"]
+    if "device_location" in kwargs:
+        device.placement = kwargs["device_location"]
+    if "placement" in kwargs:
+        device.placement = kwargs["placement"]
+    if "email" in kwargs:
+        device.email = kwargs["email"]
+    if "isolated_skills" in kwargs:
+        device.isolated_skills = kwargs["isolated_skills"]
+    if "location" in kwargs:
+        loc = kwargs["location"]
+        if isinstance(loc, dict):
+            loc = json.dumps(loc)
+        device.location_json = loc
+    if "time_format" in kwargs:
+        device.time_format = kwargs["time_format"]
+    if "date_format" in kwargs:
+        device.date_format = kwargs["date_format"]
+    if "time_fmt" in kwargs:
+        device.time_format = kwargs["time_fmt"]
+    if "date_fmt" in kwargs:
+        device.date_format = kwargs["date_fmt"]
+    if "system_unit" in kwargs:
+        device.system_unit = kwargs["system_unit"]
+
+    if "tts_module" in kwargs:
+        tts_plug = kwargs["tts_module"]
+        if "tts_config" in kwargs:
+            tts_cfg = kwargs["tts_config"]
+        elif tts_plug in CONFIGURATION["tts_configs"]:
+            tts_cfg = CONFIGURATION["tts_configs"][tts_plug]
+        else:
+            tts_cfg = {}
+        voice_id = get_voice_id(tts_plug, device.lang, tts_cfg)
+        voice = VoiceDefinition.query.filter_by(voice_id=voice_id).first()
+        if not voice:
+            pass  # TODO add voice def
+        device.voice_id = voice_id
+
+    if "wake_word" in kwargs:
+        default_ww = kwargs["wake_word"]
+        ww_module = kwargs["ww_module"]
+        if "ww_config" in kwargs:
+            ww_cfg = kwargs["ww_config"]
+        elif default_ww  in CONFIGURATION["ww_configs"]:
+            ww_cfg = CONFIGURATION["ww_configs"][default_ww]
+        else:
+            ww_cfg = {}
+        ww_id = get_ww_id(ww_module, default_ww, ww_cfg)
+        ww = WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
+        if not ww:
+            pass  # TODO add ww def
+        device.ww_id = ww_id
+
+    data = device.serialize()
+    db.session.commit()
+
+    return data
+
+
 class SkillSettings(db.Model):
     remote_id = db.Column(db.String,
                           primary_key=True)  # depends on Device.isolated_skills, @{uuid}|{skill_id} or {skill_id}
