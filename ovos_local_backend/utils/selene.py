@@ -9,6 +9,7 @@ from ovos_backend_client.pairing import has_been_paired
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
 from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase, DeviceDatabase
+from ovos_local_backend.database import get_device
 
 _selene_pairing_data = None
 _selene_uuid = str(uuid4())
@@ -160,7 +161,7 @@ def selene_opted_in():
     if uuid in _selene_cfg.get("opt_in_blacklist", []):
         return False
     # check device db for per-device opt_in settings
-    device = DeviceDatabase().get_device(uuid)
+    device = get_device(uuid)
     if not device or not device.opt_in:
         return False
     return True

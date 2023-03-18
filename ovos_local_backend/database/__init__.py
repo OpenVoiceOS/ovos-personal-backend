@@ -254,6 +254,10 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
     db.session.commit()
 
 
+def get_device(uuid):
+    return Device.query.filter_by(uuid=uuid).first()
+
+
 def update_device(uuid, **kwargs):
 
     device = Device.query.filter_by(uuid=uuid).first()

@@ -19,7 +19,7 @@ from ovos_backend_client.pairing import is_paired
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database import save_metric
+from ovos_local_backend.database import save_metric, get_device
 from ovos_local_backend.database.settings import DeviceDatabase, SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
@@ -125,7 +125,7 @@ def get_device_routes(app):
         if selene_cfg.get("download_location"):
             download_selene_location(uuid)
 
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.location
         return get_request_location()
@@ -140,7 +140,7 @@ def get_device_routes(app):
         if selene_cfg.get("download_prefs"):
             download_selene_preferences(uuid)
 
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.selene_settings
         return {}
@@ -159,7 +159,7 @@ def get_device_routes(app):
             return {}
 
         # get from local db
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             return device.selene_device
 
@@ -243,7 +243,7 @@ def get_device_routes(app):
             return send_selene_email(data["title"], data["body"], skill_id)
 
         target_email = None
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device:
             target_email = device.email
         send_email(data["title"], data["body"], target_email)
