@@ -12,8 +12,10 @@ db = SQLAlchemy()
 
 def connect_db(app):
     # configure the SQLite database, relative to the app instance folder
-    # TODO - path from config
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+
+    # "mysql+mysqldb://scott:tiger@192.168.0.134/test?ssl_ca=/path/to/ca.pem&ssl_cert=/path/to/client-cert.pem&ssl_key=/path/to/client-key.pem"
+    # "sqlite:///ovos_backend.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = CONFIGURATION["database"]
     # initialize the app with the extension
     db.init_app(app)
 

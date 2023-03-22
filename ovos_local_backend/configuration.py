@@ -19,6 +19,7 @@ from ovos_utils.log import LOG
 BACKEND_IDENTITY = f"{get_xdg_data_save_path('ovos_backend')}/identity2.json"
 
 DEFAULT_CONFIG = {
+    "database": "sqlite:///ovos_backend.db",
     "stt": {
         "module": "ovos-stt-plugin-server",
         "ovos-stt-plugin-server": {
