@@ -72,10 +72,43 @@ class Device(db.Model):
     time_fmt = db.Column(db.String(length=255))
     system_unit = db.Column(db.String(length=255))
     lang = db.Column(db.String(length=255))
-    location_json = db.Column(db.String(length=255))  # we don't care about querying sub data
-
+    # location fields, explicit so we can query them
+    city = db.Column(db.String(length=50))
+    state = db.Column(db.String(length=50))
+    state_code = db.Column(db.String(length=10))
+    country = db.Column(db.String(length=50))
+    country_code = db.Column(db.String(length=10))
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    tz_code = db.Column(db.String(length=25))
+    tz_name = db.Column(db.String(length=15))
+    # ww settings
     voice_id = db.Column(db.String(length=255))
     ww_id = db.Column(db.String(length=255))
+
+    @property
+    def location_json(self):
+        return {
+            "city": {
+                "name": self.city,
+                "state": {
+                    "name": self.state,
+                    "code": self.state_code,
+                    "country": {
+                        "name": self.country,
+                        "code": self.country_code
+                    }
+                }
+            },
+            "coordinate": {
+                "latitude": self.latitude,
+                "longitude": self.longitude
+            },
+            "timezone": {
+                "code": self.tz_code,
+                "name": self.tz_name
+            }
+        }
 
     @property
     def selene_device(self):
@@ -130,7 +163,7 @@ class Device(db.Model):
             "timeFormat": self.time_fmt,
             "uuid": self.uuid,
             "lang": self.lang,
-            "location": json.loads(self.location_json),
+            "location": self.location_json,
             "listenerSetting": listener,
             "hotwordsSetting": ww_cfg,  # not present in selene, parsed correctly by core
             'ttsSettings': tts_settings
@@ -156,9 +189,7 @@ class Device(db.Model):
         if ww_module:
             ww_id = get_ww_id(ww_module, ww_name, ww_cfg)
 
-        location_json = data.get("location") or CONFIGURATION["default_location"]
-        if isinstance(location_json, dict):
-            location_json = json.dumps(location_json)
+        loc = data.get("location") or CONFIGURATION["default_location"]
 
         mail_cfg = CONFIGURATION.get("email", {})
         email = data.get("email") or \
@@ -170,7 +201,15 @@ class Device(db.Model):
                       placement=data.get("device_location") or "somewhere",
                       name=data.get("name") or f"Device-{data['uuid']}",
                       isolated_skills=data.get("isolated_skills", False),
-                      location_json=location_json,
+                      city=loc["city"]["name"],
+                      state=loc["city"]["state"]["name"],
+                      country=loc["city"]["state"]["country"]["name"],
+                      state_code=loc["city"]["state"]["code"],
+                      country_code=loc["city"]["state"]["country"]["code"],
+                      latitude=loc["coordinate"]["latitude"],
+                      longitude=loc["coordinate"]["longitude"],
+                      tz_name=loc["timezone"]["name"],
+                      tz_code=loc["timezone"]["code"],
                       opt_in=data.get("opt_in"),
                       system_unit=data.get("system_unit") or CONFIGURATION.get("system_unit") or "metric",
                       date_fmt=data.get("date_format") or CONFIGURATION.get("date_format") or "DMY",
@@ -184,9 +223,6 @@ class Device(db.Model):
         email = self.email or \
                 mail_cfg.get("recipient") or \
                 mail_cfg.get("smtp", {}).get("username")
-        location = self.location_json or CONFIGURATION["default_location"]
-        if isinstance(location, str):
-            location = json.loads(location)
 
         default_tts = None
         default_tts_cfg = {}
@@ -218,7 +254,7 @@ class Device(db.Model):
             "date_format": self.date_fmt,
             "system_unit": self.system_unit,
             "lang": self.lang or CONFIGURATION.get("lang") or "en-us",
-            "location": location,
+            "location": self.location_json,
             "default_tts": default_tts,
             "default_tts_cfg": default_tts_cfg,
             "default_ww": default_ww,
@@ -230,7 +266,6 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
                location=None, lang=None, date_format=None, system_unit=None,
                time_format=None, email=None, isolated_skills=False,
                ww_id="hey mycroft", voice_id=None):
-
     lang = lang or CONFIGURATION.get("lang") or "en-us"
 
     mail_cfg = CONFIGURATION.get("email", {})
@@ -238,15 +273,22 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
             mail_cfg.get("recipient") or \
             mail_cfg.get("smtp", {}).get("username")
 
-    if isinstance(location, dict):
-        location = json.dumps(location)
+    loc = location or CONFIGURATION["default_location"]
     entry = Device(uuid=uuid,
                    token=token,
                    lang=lang,
                    placement=device_location,
                    name=name or f"Device-{uuid}",
                    isolated_skills=isolated_skills,
-                   location_json=location,
+                   city=loc["city"]["name"],
+                   state=loc["city"]["state"]["name"],
+                   country=loc["city"]["state"]["country"]["name"],
+                   state_code=loc["city"]["state"]["code"],
+                   country_code=loc["city"]["state"]["country"]["code"],
+                   latitude=loc["coordinate"]["latitude"],
+                   longitude=loc["coordinate"]["longitude"],
+                   tz_name=loc["timezone"]["name"],
+                   tz_code=loc["timezone"]["code"],
                    opt_in=opt_in,
                    system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
                    date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",
@@ -263,7 +305,6 @@ def get_device(uuid):
 
 
 def update_device(uuid, **kwargs):
-
     device = Device.query.filter_by(uuid=uuid).first()
     if not device:
         raise ValueError(f"unknown uuid - {uuid}")
@@ -284,9 +325,17 @@ def update_device(uuid, **kwargs):
         device.isolated_skills = kwargs["isolated_skills"]
     if "location" in kwargs:
         loc = kwargs["location"]
-        if isinstance(loc, dict):
-            loc = json.dumps(loc)
-        device.location_json = loc
+        if isinstance(loc, str):
+            loc = json.loads(loc)
+        device.city = loc["city"]["name"]
+        device.state = loc["city"]["state"]["name"]
+        device.country = loc["city"]["state"]["country"]["name"]
+        device.state_code = loc["city"]["state"]["code"]
+        device.country_code = loc["city"]["state"]["country"]["code"]
+        device.latitude = loc["coordinate"]["latitude"]
+        device.longitude = loc["coordinate"]["longitude"]
+        device.tz_name = loc["timezone"]["name"]
+        device.tz_code = loc["timezone"]["code"]
     if "time_format" in kwargs:
         device.time_format = kwargs["time_format"]
     if "date_format" in kwargs:
@@ -317,7 +366,7 @@ def update_device(uuid, **kwargs):
         ww_module = kwargs["ww_module"]
         if "ww_config" in kwargs:
             ww_cfg = kwargs["ww_config"]
-        elif default_ww  in CONFIGURATION["ww_configs"]:
+        elif default_ww in CONFIGURATION["ww_configs"]:
             ww_cfg = CONFIGURATION["ww_configs"][default_ww]
         else:
             ww_cfg = {}
