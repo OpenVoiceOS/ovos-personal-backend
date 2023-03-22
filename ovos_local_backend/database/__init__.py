@@ -24,13 +24,13 @@ def connect_db(app):
 
 
 class VoiceDefinition(db.Model):
-    voice_id = db.Column(db.String, primary_key=True)
-    lang = db.Column(db.String, nullable=False)
-    plugin = db.Column(db.String, nullable=False)  # "module" in mycroft.conf
-    voice_cfg = db.Column(db.String, nullable=False)  # arbitrary data for mycroft.conf/OPM
+    voice_id = db.Column(db.String(length=255), primary_key=True)
+    lang = db.Column(db.String(length=255), nullable=False)
+    plugin = db.Column(db.String(length=255), nullable=False)  # "module" in mycroft.conf
+    voice_cfg = db.Column(db.String(length=255), nullable=False)  # arbitrary data for mycroft.conf/OPM
     offline = db.Column(db.Boolean, nullable=False)
     # optional metadata
-    gender = db.Column(db.String)
+    gender = db.Column(db.String(length=255))
 
 
 def get_voice_id(plugin_name, lang, tts_cfg):
@@ -50,30 +50,30 @@ def get_ww_id(plugin_name, ww_name, ww_cfg):
 
 
 class WakeWordDefinition(db.Model):
-    ww_id = db.Column(db.String, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    plugin = db.Column(db.String, nullable=False)  # "module" in mycroft.conf
-    ww_cfg = db.Column(db.String, nullable=False)  # arbitrary data for mycroft.conf/OPM
+    ww_id = db.Column(db.String(length=255), primary_key=True)
+    name = db.Column(db.String(length=255), nullable=False)
+    plugin = db.Column(db.String(length=255), nullable=False)  # "module" in mycroft.conf
+    ww_cfg = db.Column(db.String(length=255), nullable=False)  # arbitrary data for mycroft.conf/OPM
 
 
 class Device(db.Model):
-    uuid = db.Column(db.String, primary_key=True)
-    token = db.Column(db.String)  # access token, sent to device during pairing
+    uuid = db.Column(db.String(length=255), primary_key=True)
+    token = db.Column(db.String(length=255))  # access token, sent to device during pairing
     # device backend preferences
-    name = db.Column(db.String)
-    placement = db.Column(db.String)  # indoor location
+    name = db.Column(db.String(length=255))
+    placement = db.Column(db.String(length=255))  # indoor location
     isolated_skills = db.Column(db.Boolean)
     opt_in = db.Column(db.Boolean)
-    email = db.Column(db.String)  # for sending email api, not registering
+    email = db.Column(db.String(length=255))  # for sending email api, not registering
     # remote mycroft.conf settings
-    date_fmt = db.Column(db.String)
-    time_fmt = db.Column(db.String)
-    system_unit = db.Column(db.String)
-    lang = db.Column(db.String)
-    location_json = db.Column(db.String)  # we don't care about querying sub data
+    date_fmt = db.Column(db.String(length=255))
+    time_fmt = db.Column(db.String(length=255))
+    system_unit = db.Column(db.String(length=255))
+    lang = db.Column(db.String(length=255))
+    location_json = db.Column(db.String(length=255))  # we don't care about querying sub data
 
-    voice_id = db.Column(db.String)
-    ww_id = db.Column(db.String)
+    voice_id = db.Column(db.String(length=255))
+    ww_id = db.Column(db.String(length=255))
 
     @property
     def selene_device(self):
@@ -332,11 +332,11 @@ def update_device(uuid, **kwargs):
 
 
 class SkillSettings(db.Model):
-    remote_id = db.Column(db.String,
+    remote_id = db.Column(db.String(length=255),
                           primary_key=True)  # depends on Device.isolated_skills, @{uuid}|{skill_id} or {skill_id}
-    display_name = db.Column(db.String)  # for friendly UI, default to skill_id
-    settings_json = db.Column(db.String, nullable=False)  # actual skill settings file
-    metadata_json = db.Column(db.String, nullable=False)  # how to display user facing settings editor
+    display_name = db.Column(db.String(length=255))  # for friendly UI, default to skill_id
+    settings_json = db.Column(db.String(length=255), nullable=False)  # actual skill settings file
+    metadata_json = db.Column(db.String(length=255), nullable=False)  # how to display user facing settings editor
 
     def serialize(self):
         # settings meta with updated placeholder values from settings
@@ -418,12 +418,12 @@ class SkillSettings(db.Model):
 
 class Metric(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    metric_type = db.Column(db.String, nullable=False)
-    metadata_json = db.Column(db.String, nullable=False)  # arbitrary data
+    metric_type = db.Column(db.String(length=255), nullable=False)
+    metadata_json = db.Column(db.String(length=255), nullable=False)  # arbitrary data
     # TODO - extract explicit fields from json for things we want to be queryable
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String)  # TODO - link to devices table
+    uuid = db.Column(db.String(length=255))  # TODO - link to devices table
 
 
 @requires_opt_in
@@ -441,12 +441,12 @@ def save_metric(uuid, name, data):
 
 class UtteranceRecording(db.Model):
     utterance_id = db.Column(db.Integer, primary_key=True)
-    transcription = db.Column(db.String, nullable=False)
-    metadata_json = db.Column(db.String)  # arbitrary metadata
+    transcription = db.Column(db.String(length=255), nullable=False)
+    metadata_json = db.Column(db.String(length=255))  # arbitrary metadata
     sample = db.Column(db.LargeBinary, nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String)  # TODO - link to devices table
+    uuid = db.Column(db.String(length=255))  # TODO - link to devices table
 
 
 @requires_opt_in
@@ -466,14 +466,14 @@ def save_stt_recording(uuid, audio, utterance):
 
 class WakeWordRecording(db.Model):
     wakeword_id = db.Column(db.Integer, primary_key=True)
-    transcription = db.Column(db.String, nullable=False)
-    audio_tag = db.Column(db.String)  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
-    speaker_tag = db.Column(db.String)  # "untagged" / "male" / "female" / "children"
-    metadata_json = db.Column(db.String, nullable=False)  # arbitrary metadata
+    transcription = db.Column(db.String(length=255), nullable=False)
+    audio_tag = db.Column(db.String(length=255))  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
+    speaker_tag = db.Column(db.String(length=255))  # "untagged" / "male" / "female" / "children"
+    metadata_json = db.Column(db.String(length=255), nullable=False)  # arbitrary metadata
     sample = db.Column(db.LargeBinary, nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String)  # TODO - link to devices table
+    uuid = db.Column(db.String(length=255))  # TODO - link to devices table
 
 
 @requires_opt_in
