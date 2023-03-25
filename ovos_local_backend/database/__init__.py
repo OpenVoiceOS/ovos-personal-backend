@@ -494,7 +494,7 @@ class UtteranceRecording(db.Model):
     utterance_id = db.Column(db.Integer, primary_key=True)
     transcription = db.Column(db.String(length=255), nullable=False)
     metadata_json = db.Column(db.String(length=255))  # arbitrary metadata
-    sample = db.Column(db.LargeBinary, nullable=False)  # audio data
+    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(length=255))  # TODO - link to devices table
@@ -521,7 +521,7 @@ class WakeWordRecording(db.Model):
     audio_tag = db.Column(db.String(length=255))  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
     speaker_tag = db.Column(db.String(length=255))  # "untagged" / "male" / "female" / "children"
     metadata_json = db.Column(db.String(length=255), nullable=False)  # arbitrary metadata
-    sample = db.Column(db.LargeBinary, nullable=False)  # audio data
+    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(length=255))  # TODO - link to devices table
