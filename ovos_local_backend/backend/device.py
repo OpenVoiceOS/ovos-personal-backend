@@ -19,14 +19,25 @@ from ovos_backend_client.pairing import is_paired
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, check_selene_pairing
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database import save_metric, get_device, add_device
-from ovos_local_backend.database.settings import SkillSettings, SettingsDatabase
 from ovos_local_backend.utils import generate_code, nice_json
-from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
-from ovos_local_backend.utils.selene import get_selene_code, download_selene_location, \
-    download_selene_skill_settings, upload_selene_skill_settings, upload_selene_skill_settingsmeta, \
-    download_selene_preferences, send_selene_email, report_selene_metric
+from ovos_local_backend.database import (
+    save_metric,
+    get_device,
+    add_device,
+    get_device_location,
+    SkillSettings
+)
+from ovos_local_backend.utils.selene import (
+    get_selene_code,
+    download_selene_location,
+    download_selene_skill_settings,
+    upload_selene_skill_settings,
+    upload_selene_skill_settingsmeta,
+    download_selene_preferences,
+    send_selene_email,
+    report_selene_metric
+)
 
 
 def get_device_routes(app):
@@ -35,25 +46,17 @@ def get_device_routes(app):
     @requires_auth
     def settingsmeta(uuid):
         """ new style skill settings meta (upload only) """
-        s = SkillSettings.deserialize(request.json)
-
-        # save new settings meta to db
-        with SettingsDatabase() as db:
-            # keep old settings, update meta only
-            old_s = db.get_setting(s.skill_id, uuid)
-            if old_s:
-                s.settings = old_s.settings
-            db.add_setting(uuid, s.skill_id, s.settings, s.meta,
-                           s.display_name, s.remote_id)
+        settings = SkillSettings.deserialize(request.json)
 
         # upload settings meta to selene if enabled
         selene_cfg = CONFIGURATION.get("selene") or {}
         if selene_cfg.get("upload_settings"):
+            # TODO are those keys known to mycroft-selene?
             if selene_cfg.get("force2way"):
                 # forced 2 way sync
-                upload_selene_skill_settings(s.serialize())
+                upload_selene_skill_settings(settings)
             else:
-                upload_selene_skill_settingsmeta(s.meta)
+                upload_selene_skill_settingsmeta(settings["metadata_json"])
 
         return nice_json({"success": True, "uuid": uuid})
 
@@ -62,13 +65,13 @@ def get_device_routes(app):
     @requires_auth
     def skill_settings_v2(uuid):
         """ new style skill settings (download only)"""
+        settings = []
         # get settings from selene if enabled
         selene_cfg = CONFIGURATION.get("selene") or {}
         if selene_cfg.get("download_settings"):
-            download_selene_skill_settings()
+            settings = download_selene_skill_settings()
 
-        db = SettingsDatabase()
-        return {s.skill_id: s.settings for s in db.get_device_settings(uuid)}
+        return {s["skill_gid"]: s for s in settings}
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skill", methods=['GET', 'PUT'])
     @check_selene_pairing
@@ -82,19 +85,16 @@ def get_device_routes(app):
             if selene_cfg.get("upload_settings"):
                 # upload settings to selene if enabled
                 upload_selene_skill_settings(request.json)
+            
+            SkillSettings.deserialize(request.json)
 
-            # update local db
-            with SettingsDatabase() as db:
-                s = SkillSettings.deserialize(request.json)
-                db.add_setting(uuid, s.skill_id, s.settings, s.meta,
-                               s.display_name, s.remote_id)
             return nice_json({"success": True, "uuid": uuid})
         else:
             if selene_cfg.get("download_settings"):
                 # get settings from selene if enabled
-                download_selene_skill_settings()
+                all_settings = download_selene_skill_settings()
 
-            return nice_json([s.serialize() for s in SettingsDatabase().get_device_settings(uuid)])
+            return nice_json(all_settings)
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skillJson", methods=['PUT'])
     @requires_auth
@@ -125,10 +125,7 @@ def get_device_routes(app):
         if selene_cfg.get("download_location"):
             download_selene_location(uuid)
 
-        device = get_device(uuid)
-        if device:
-            return device.location
-        return get_request_location()
+        return get_device_location(uuid, old_conf=True)
 
     @app.route(f"/{API_VERSION}/device/<uuid>/setting", methods=['GET'])
     @check_selene_pairing
@@ -215,12 +212,7 @@ def get_device_routes(app):
         # we simplify things and use a deterministic access token, shared with pairing token
         token = request.json["token"]
 
-        # add device to db
-        try:
-            location = get_request_location()
-        except:
-            location = CONFIGURATION["default_location"]
-        add_device(uuid, token, location=location)
+        add_device(uuid, token)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,

@@ -8,8 +8,7 @@ from ovos_backend_client.pairing import has_been_paired
 from ovos_utils.log import LOG
 
 from ovos_local_backend.configuration import CONFIGURATION, BACKEND_IDENTITY
-from ovos_local_backend.database import get_device, update_device
-from ovos_local_backend.database.settings import SkillSettings, SharedSettingsDatabase
+from ovos_local_backend.utils.geolocate import Location
 
 _selene_pairing_data = None
 _selene_uuid = str(uuid4())
@@ -47,6 +46,7 @@ def upload_selene_skill_settingsmeta(meta):
 
 
 def download_selene_skill_settings():
+    from ovos_local_backend.database import SkillSettings
     selene_cfg = CONFIGURATION.get("selene") or {}
     if selene_cfg.get("enabled"):
         url = selene_cfg.get("url")
@@ -55,15 +55,17 @@ def download_selene_skill_settings():
         # get settings from selene if enabled
         api = DeviceApi(url, version, identity_file)
         sets = api.get_skill_settings()
-        for skill_id, s in sets.items():
-            s = SkillSettings.deserialize(s)
+        all_settings = []
+        for _, s in sets.items():
             # sync local db with selene
-            with SharedSettingsDatabase() as db:
-                db.add_setting(s.skill_id, s.settings, s.meta,
-                               s.display_name, s.remote_id)
+            settings = SkillSettings.deserialize(s)
+            all_settings.append(settings)
+        return all_settings
 
 
 def download_selene_location(uuid):
+    from ovos_local_backend.database import update_device
+
     # get location from selene if enabled
     selene_cfg = CONFIGURATION.get("selene") or {}
     if selene_cfg.get("enabled"):
@@ -72,11 +74,13 @@ def download_selene_location(uuid):
         identity_file = selene_cfg.get("identity_file")
         api = DeviceApi(url, version, identity_file)
         # update in local db
-        loc = api.get_location()
-        update_device(uuid, location=loc)
+        loc = Location(api.get_location())
+        update_device(uuid, **loc.serialize)
 
 
 def download_selene_preferences(uuid):
+    from ovos_local_backend.database import update_device
+
     # get location from selene if enabled
     selene_cfg = CONFIGURATION.get("selene") or {}
     if selene_cfg.get("enabled"):
@@ -150,6 +154,8 @@ def upload_ww(files):
 
 
 def selene_opted_in():
+    from ovos_local_backend.database import get_device
+
     if not _selene_cfg.get("enabled") or not _selene_cfg.get("opt_in"):
         return False
     auth = request.headers.get('Authorization', '').replace("Bearer ", "")

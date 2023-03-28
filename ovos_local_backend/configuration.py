@@ -35,28 +35,15 @@ DEFAULT_CONFIG = {
     "admin_key": "",  # To enable simply set this string to something
     "skip_auth": False,  # you almost certainly do not want this, only for atypical use cases such as ovos-qubes
     "default_location": {
-        "city": {
-            "code": "Lawrence",
-            "name": "Lawrence",
-            "state": {
-                "code": "KS",
-                "name": "Kansas",
-                "country": {
-                    "code": "US",
-                    "name": "United States"
-                }
-            }
-        },
-        "coordinate": {
-            "latitude": 38.971669,
-            "longitude": -95.23525
-        },
-        "timezone": {
-            "code": "America/Chicago",
-            "name": "Central Standard Time",
-            "dstOffset": 3600000,
-            "offset": -21600000
-        }
+        "city": "Lawrence",
+        "address": "Lawrence",
+        "state": "Kansas",
+        "region": "Kansas",
+        "country": "United States",
+        "country_code": "US",
+        "latitude": 38.971669,
+        "longitude": -95.23525,
+        "tz_short": "CST",
     },
     "default_ww": "hey_mycroft",  # needs to be present below
     "ww_configs": {  # these can be exposed in a web UI for selection

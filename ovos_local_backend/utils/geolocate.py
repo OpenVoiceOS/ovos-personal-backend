@@ -23,10 +23,19 @@ def get_request_location():
     if CONFIGURATION["override_location"]:
         new_location = CONFIGURATION["default_location"]
     elif CONFIGURATION["geolocate"]:
-        new_location = ip_geolocate(ip)
+        new_location = Geocoder().get_location(ip)
     else:
         new_location = {}
-    return new_location
+    return Location(new_location)
+
+
+def get_device_location():
+    try:
+        location = get_request_location()
+    except:
+        location = Location(CONFIGURATION["default_location"])
+    
+    return location.serialize
 
 
 def ip_geolocate(ip=None):
@@ -35,26 +44,16 @@ def ip_geolocate(ip=None):
     fields = "status,country,countryCode,region,regionName,city,lat,lon,timezone,query"
     data = requests.get("http://ip-api.com/json/" + ip,
                         params={"fields": fields}).json()
-    region_data = {"code": data.get("region"), "name": data.get("regionName"),
-                   "country": {
-                       "code": data.get("countryCode"),
-                       "name": data.get("country")}}
-    city_data = {"code": data.get("city"), "name": data.get("city"),
-                 "state": region_data,
-                 "region": region_data}
-    if "timezone" in data:
-        timezone_data = {"code": data["timezone"],
-                         "name": data["timezone"]}
-    else:
-        timezone_data = {}
-    if "lat" in data and "lon" in data:
-        coordinate_data = {"latitude": float(data["lat"]),
-                           "longitude": float(data["lon"])}
-    else:
-        coordinate_data = {}
-    return {"city": city_data,
-            "coordinate": coordinate_data,
-            "timezone": timezone_data}
+    return {
+        'city': data.get("city"),
+        'state': data.get("region"),
+        'country': data.get("country"),
+        'country_code': data.get("countryCode"),
+        'region': data.get("regionName"),
+        'latitude': float(data["lat"]),
+        'longitude': float(data["lon"]),
+        'tz_short': data.get("timezone")
+    }
 
 
 class GeocoderProviders(str, enum.Enum):
@@ -94,7 +93,7 @@ class Geocoder:
         raise ValueError(f"Unknown geolocation provider: {self.provider}")
 
     def _geolocate(self, address):
-        data = {}
+        location = None
         error = ""
         location_data = self.engine(address)
         if location_data.ok:
@@ -103,71 +102,95 @@ class Geocoder:
                 error = location_data["raw"]["error"]
             elif location_data.get("accuracy") == "Unmatchable":
                 error = "No results found"
+            else:
+                location = Location(location_data)
 
-            data["raw"] = location_data
-            data["country"] = location_data.get("country")
-            data["country_code"] = location_data.get("country_code")
-            data["region"] = location_data.get("region")
-            data["address"] = location_data.get("address")
-            data["state"] = location_data.get("state")
-            data["confidence"] = location_data.get("confidence")
-            data["lat"] = location_data.get("lat")
-            data["lon"] = location_data.get("lng")
-            data["city"] = location_data.get("city") or location_data.get("address")
-
-            data["postal"] = location_data.get("postal")
-            data["timezone"] = location_data.get("timezone_short")
-        if not data:
+        if not location:
             error = "No results found"
         if error:
             raise RuntimeError(error)
-        return data
+        return location
 
     def get_location(self, address):
 
         if self.provider == GeocoderProviders.SELENE:
             return self.engine(address)  # selene proxy, special handling
+        
+        return self._geolocate(address)
 
-        location = {
+
+class Location:
+    def __init__(self, location_data):
+        if not isinstance(location_data, dict):
+            raise TypeError
+        self._raw = location_data
+        # backwards comp
+        old_conf = isinstance(location_data.get("city"), dict)
+
+        self.city = location_data["city"]["name"] if old_conf else \
+                location_data.get("city") or location_data.get("address")
+        self.address = location_data.get("address")
+        self.state = location_data["city"]["state"]["name"] if old_conf else \
+                location_data.get("state")
+        self.country_code = location_data["city"]["state"]["country"]["code"] if old_conf else \
+                location_data.get("country_code") 
+        self.country = location_data["city"]["state"]["country"]["name"] if old_conf else \
+                location_data.get("country")
+        self.region = location_data.get("region")
+        self.latitude = location_data["coordinates"]["latitude"] if old_conf else \
+                location_data.get("latitude") 
+        self.longitude = location_data["coordinates"]["longitude"] if old_conf else \
+                location_data.get("longitude")
+        self.tz_short = location_data["timezone"]["name"] if old_conf else \
+                location_data.get("tz_short")
+        self.tz_code = location_data.get("tz_code") or get_timezone(self.latitude,
+                                                                    self.longitude)
+        # data["postal"] = location_data.get("postal")
+
+    @property
+    def serialize(self):
+        # empty dict
+        if not self._raw:
+            return self._raw
+        return {
+            'city': self.city,
+            'address': self.address,
+            'state': self.state,
+            'country': self.country,
+            'country_code': self.country_code,
+            'region': self.region,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'tz_short': self.tz_short,
+            'tz_code': self.tz_code
+        }
+    
+    @property
+    def old_conf(self):
+        return {
             "city": {
-                "code": "",
-                "name": "",
+                "code": self.city,
+                "name": self.city,
                 "state": {
-                    "code": "",
-                    "name": "",
+                    "code": self.state,
+                    "name": self.state,
                     "country": {
-                        "code": "US",
-                        "name": "United States"
+                        "code": self.country_code,
+                        "name": self.country
                     }
                 }
             },
             "coordinate": {
-                "latitude": 37.2,
-                "longitude": 121.53
+                "latitude": self.latitude,
+                "longitude": self.longitude
             },
             "timezone": {
-                "dstOffset": 3600000,
-                "offset": -21600000
+                "code": self.tz_code,
+                "name": self.tz_short,
+                "dstOffset": 0,
+                "offset": 0
             }
         }
-
-        data = self._geolocate(address)
-        location["city"]["code"] = data["city"]
-        location["city"]["name"] = data["city"]
-        location["city"]["state"]["name"] = data["state"]
-        # TODO state code
-        location["city"]["state"]["code"] = data["state"]
-        location["city"]["state"]["country"]["name"] = data["country"]
-        # TODO country code
-        location["city"]["state"]["country"]["code"] = data["country"]
-        location["coordinate"]["latitude"] = data["lat"]
-        location["coordinate"]["longitude"] = data["lon"]
-
-        timezone = get_timezone(data["lat"], data["lon"])
-        location["timezone"]["name"] = data["timezone"]
-        location["timezone"]["code"] = timezone
-
-        return location
 
 
 def geolocate(address):
@@ -182,10 +205,10 @@ def get_location_config(address):
 
 if __name__ == "__main__":
     g = Geocoder(GeocoderProviders.OSM)
-    print(g.get_location("Lisboa"))
+    print(g.get_location("Lisboa").serialize)
 
     g = Geocoder(GeocoderProviders.ARCGIS)
-    print(g.get_location("Moscow"))
+    print(g.get_location("Moscow").serialize)
 
     g = Geocoder(GeocoderProviders.GEOCODE_FARM)
-    print(g.get_location("Berlin"))
+    print(g.get_location("Berlin").serialize)

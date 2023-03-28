@@ -19,7 +19,7 @@ from ovos_local_backend.backend.decorators import noindex, requires_admin
 from ovos_local_backend.database import add_device, update_device
 from ovos_local_backend.utils import generate_code
 from ovos_local_backend.utils import nice_json
-from ovos_local_backend.utils.geolocate import get_request_location
+from ovos_local_backend.utils.geolocate import Location
 
 
 def get_admin_routes(app):
@@ -30,8 +30,7 @@ def get_admin_routes(app):
         code = generate_code()
         token = f"{code}:{uuid}"
         # add device to db
-        location = get_request_location()
-        add_device(uuid, token, location=location)
+        add_device(uuid, token)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
@@ -50,7 +49,7 @@ def get_admin_routes(app):
     @requires_admin
     @noindex
     def set_location(uuid):
-        device_data = update_device(uuid, location=request.json)
+        device_data = update_device(uuid, **Location(request.json).serialize)
         return nice_json(device_data)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/prefs", methods=['PUT'])
