@@ -61,8 +61,10 @@ class VoiceDefinition(db.Model):
         }
 
 
-def add_voice_definition(**definition) -> VoiceDefinition:
-    entry = VoiceDefinition(**definition)
+def add_voice_definition(voice_id, lang=None, plugin=None,
+                         tts_config=None, offline=None, gender=None) -> VoiceDefinition:
+    entry = VoiceDefinition(voice_id=voice_id, lang=lang, plugin=plugin,
+                            tts_config=tts_config, offline=offline, gender=gender)
 
     db.session.add(entry)
     db.session.commit()
@@ -74,21 +76,23 @@ def get_voice_definition(voice_id) -> VoiceDefinition:
     return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
 
 
-def update_voice_definition(voice_id, **definition) -> dict:
+def update_voice_definition(voice_id, lang=None, plugin=None,
+                            tts_config=None, offline=None, gender=None) -> dict:
     voice_def: VoiceDefinition = get_voice_definition(voice_id)
     if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, **definition)
+        voice_def = add_voice_definition(voice_id=voice_id, lang=lang, plugin=plugin,
+                                         tts_config=tts_config, offline=offline, gender=gender)
     else:
-        if "lang" in definition:
-            voice_def.lang = definition["lang"]
-        if "plugin" in definition:
-            voice_def.plugin = definition["plugin"]
-        if "tts_config" in definition:
-            voice_def.tts_config = definition["tts_config"]
-        if "offline" in definition:
-            voice_def.offline = definition["offline"]
-        if "gender" in definition:
-            voice_def.gender = definition["gender"]
+        if lang:
+            voice_def.lang = lang
+        if plugin:
+            voice_def.plugin = plugin
+        if tts_config:
+            voice_def.tts_config = tts_config
+        if offline:
+            voice_def.offline = offline
+        if gender:
+            voice_def.gender = gender
         db.session.commit()
 
     return voice_def.serialize()
@@ -333,7 +337,7 @@ class Device(db.Model):
 def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False,
                location=None, lang=None, date_format=None, system_unit=None,
                time_format=None, email=None, isolated_skills=False,
-               ww_id="hey mycroft", voice_id=None):
+               ww_id=None, voice_id=None):
     lang = lang or CONFIGURATION.get("lang") or "en-us"
 
     email = email or \
@@ -365,9 +369,7 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
                    voice_id=voice_id)
     db.session.add(entry)
     db.session.commit()
-
-    #update_wakeword_definition(ww_id, **ww_definition)
-    #update_voice_definition(voice_id, **voice_definition)
+    return entry
 
 
 def get_device(uuid) -> Device:
@@ -429,11 +431,10 @@ def update_device(uuid, **kwargs):
         else:
             tts_config = {}
         voice_id = get_voice_id(tts_plug, device.lang, tts_config)
-        voice = VoiceDefinition.query.filter_by(voice_id=voice_id).first()
-        if not voice:
-            pass  # TODO add voice def
-
-        # update_voice_definition(voice_id, **voice_definition)
+        update_voice_definition(voice_id,
+                                lang=device.lang,
+                                tts_config=tts_config,
+                                plugin=tts_plug)
         device.voice_id = voice_id
 
     if "wake_word" in kwargs:
@@ -446,17 +447,15 @@ def update_device(uuid, **kwargs):
         else:
             ww_config = {}
         ww_id = get_ww_id(ww_module, default_ww, ww_config)
-        ww = WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
-        if not ww:
-            pass  # TODO add ww def
-
-        update_wakeword_definition(ww_id, name=default_ww, ww_config=ww_config, plugin=ww_module)
+        update_wakeword_definition(ww_id,
+                                   name=default_ww,
+                                   ww_config=ww_config,
+                                   plugin=ww_module)
         device.ww_id = ww_id
 
     db.session.commit()
 
     return device.serialize()
-
 
 
 class SkillSettings(db.Model):
