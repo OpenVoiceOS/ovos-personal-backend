@@ -56,7 +56,7 @@ setup(
               'ovos_local_backend.backend'],
     install_requires=required("requirements/requirements.txt"),
     extras_requires={
-        "mysql": ["Flask-MySQLdb"]
+        "mysql": ["Flask-MySQLdb", "mysqlclient"]
     },
     package_data={'': package_files('ovos_local_backend')},
     include_package_data=True,
