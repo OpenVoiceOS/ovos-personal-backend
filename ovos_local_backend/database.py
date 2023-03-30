@@ -7,7 +7,7 @@ from sqlalchemy_json import NestedMutableJson
 
 from ovos_local_backend.backend.decorators import requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
-
+from hashlib import md5
 # create the extension
 db = SQLAlchemy()
 
@@ -29,20 +29,16 @@ def connect_db(app):
     return app, db
 
 
+# TODO - port to OPM to standardize the concept
 def get_voice_id(plugin_name, lang, tts_config):
-    # taken from https://github.com/OpenVoiceOS/ovos-plugin-manager/pull/131
-    skip_keys = ["module", "meta"]
-    keys = sorted([f"{k}_{v}" for k, v in tts_config.items() if k not in skip_keys])
-    voiceid = f"{plugin_name}_{lang}_{keys}.json".replace("/", "_")
-    return voiceid
+    tts_hash = md5(json.dumps(tts_config, sort_keys=True)).hexdigest()
+    return f"{plugin_name}_{lang}_{tts_hash}"
 
 
+# TODO - port to OPM to standardize the concept
 def get_ww_id(plugin_name, ww_name, ww_config):
-    # taken from https://github.com/OpenVoiceOS/ovos-plugin-manager/pull/131
-    skip_keys = ["display_name", "meta"]
-    keys = sorted([f"{k}_{v}" for k, v in ww_config.items() if k not in skip_keys])
-    voiceid = f"{plugin_name}_{ww_name}_{keys}.json".replace("/", "_")
-    return voiceid
+    ww_hash = md5(json.dumps(ww_config, sort_keys=True)).hexdigest()
+    return f"{plugin_name}_{ww_name}_{ww_hash}"
 
 
 class VoiceDefinition(db.Model):
@@ -78,21 +74,21 @@ def get_voice_definition(voice_id) -> VoiceDefinition:
     return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
 
 
-def update_voice_definition(voice_id, **kwargs) -> dict:
+def update_voice_definition(voice_id, **definition) -> dict:
     voice_def: VoiceDefinition = get_voice_definition(voice_id)
     if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, **kwargs)
+        voice_def = add_voice_definition(voice_id=voice_id, **definition)
     else:
-        if "lang" in kwargs:
-            voice_def.lang = kwargs["lang"]
-        if "plugin" in kwargs:
-            voice_def.plugin = kwargs["plugin"]
-        if "tts_config" in kwargs:
-            voice_def.tts_config = kwargs["tts_config"]
-        if "offline" in kwargs:
-            voice_def.offline = kwargs["offline"]
-        if "gender" in kwargs:
-            voice_def.gender = kwargs["gender"]
+        if "lang" in definition:
+            voice_def.lang = definition["lang"]
+        if "plugin" in definition:
+            voice_def.plugin = definition["plugin"]
+        if "tts_config" in definition:
+            voice_def.tts_config = definition["tts_config"]
+        if "offline" in definition:
+            voice_def.offline = definition["offline"]
+        if "gender" in definition:
+            voice_def.gender = definition["gender"]
         db.session.commit()
 
     return voice_def.serialize()
@@ -113,12 +109,10 @@ class WakeWordDefinition(db.Model):
         }
 
 
-def add_wakeword_definition(**definition):
-    entry = WakeWordDefinition(**definition)
-
+def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
+    entry = WakeWordDefinition(ww_id, name=name, ww_config=ww_config, plugin=plugin)
     db.session.add(entry)
     db.session.commit()
-
     return entry
 
 
@@ -126,20 +120,15 @@ def get_wakeword_definition(ww_id):
     return WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
 
 
-def update_wakeword_definition(ww_id, **kwargs):
+def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
     ww_def: WakeWordDefinition = get_wakeword_definition(ww_id)
     if not ww_def:
-        ww_def = add_wakeword_definition(ww_id=ww_id, **kwargs)
-
+        ww_def = add_wakeword_definition(ww_id=ww_id, name=name, ww_config=ww_config, plugin=plugin)
     else:
-        if "name" in kwargs:
-            ww_def.name = kwargs["name"]
-        if "plugin" in kwargs:
-            ww_def.plugin = kwargs["plugin"]
-        if "ww_config" in kwargs:
-            ww_def.ww_config = kwargs["ww_config"]
+        ww_def.name = name
+        ww_def.plugin = plugin
+        ww_def.ww_config = ww_config
         db.session.commit()
-
     return ww_def.serialize()
 
 
@@ -172,7 +161,7 @@ class Device(db.Model):
     tz_name = db.Column(db.String(length=15))
     # ww settings
     voice_id = db.Column(db.String(255), default=get_voice_id(CONFIGURATION.get("default_tts")))
-    ww_id = db.Column(db.String(255), default=get_wakeword_id(CONFIGURATION.get("default_ww")))
+    ww_id = db.Column(db.String(255), default=get_ww_id(CONFIGURATION.get("default_ww")))
 
     @property
     def location_json(self):
@@ -461,7 +450,7 @@ def update_device(uuid, **kwargs):
         if not ww:
             pass  # TODO add ww def
 
-        # update_wakeword_definition(ww_id, **ww_definition)
+        update_wakeword_definition(ww_id, name=default_ww, ww_config=ww_config, plugin=ww_module)
         device.ww_id = ww_id
 
     db.session.commit()
