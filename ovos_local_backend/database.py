@@ -4,10 +4,9 @@ from copy import deepcopy
 from hashlib import md5
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy_json import NestedMutableJson
-
 from ovos_local_backend.backend.decorators import requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
+from sqlalchemy_json import NestedMutableJson
 
 # create the extension
 db = SQLAlchemy()
@@ -51,8 +50,6 @@ def connect_db(app):
         db.create_all()
 
     return app, db
-
-
 
 
 class OAuthToken(db.Model):
@@ -410,7 +407,8 @@ class SkillSettings(db.Model):
 
 
 class Metric(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    # metric_id = f"@{uuid}|{name}|{count}"
+    metric_id = db.Column(db.String(255), primary_key=True)
     metric_type = db.Column(db.String(255), nullable=False)
     metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary data
     # TODO - extract explicit fields from json for things we want to be queryable
@@ -419,7 +417,8 @@ class Metric(db.Model):
 
 
 class UtteranceRecording(db.Model):
-    utterance_id = db.Column(db.Integer, primary_key=True)
+    #  rec_id = f"@{uuid}|{transcription}|{count}"
+    recording_id = db.Column(db.String(255), primary_key=True)
     transcription = db.Column(db.String(255), nullable=False)
     metadata_json = db.Column(NestedMutableJson)  # arbitrary metadata
     sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
@@ -429,7 +428,8 @@ class UtteranceRecording(db.Model):
 
 
 class WakeWordRecording(db.Model):
-    wakeword_id = db.Column(db.Integer, primary_key=True)
+    #  rec_id = f"@{uuid}|{transcription}|{count}"
+    recording_id = db.Column(db.String(255), primary_key=True)
     transcription = db.Column(db.String(255))
     audio_tag = db.Column(db.String(255))  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
     speaker_tag = db.Column(db.String(255))  # "untagged" / "male" / "female" / "children"
@@ -442,8 +442,14 @@ class WakeWordRecording(db.Model):
 
 @requires_opt_in
 def save_metric(uuid, name, data):
+    add_metric(uuid, name, data)
+
+
+def add_metric(uuid, name, data):
+    count = db.session.query(Metric).count() + 1
+    metric_id = f"@{uuid}|{name}|{count}"
     entry = Metric(
-        id=db.session.query(Metric).count() + 1,
+        metric_id=count,
         metric_type=name,
         metadata_json=data,
         uuid=uuid,
@@ -451,6 +457,27 @@ def save_metric(uuid, name, data):
     )
     db.session.add(entry)
     db.session.commit()
+    return entry
+
+
+def get_metric(metric_id):
+    return Metric.query.filter_by(metric_id=metric_id).first()
+
+
+def update_metric(metric_id, data):
+    metric: Metric = get_metric(metric_id)
+    if not metric:
+        uuid, name, count = metric_id.split("|")
+        uuid = uuid.lstrip("@")
+        metric = add_metric(uuid, name, data)
+    else:
+        metric.metadata_json = data
+        db.session.commit()
+    return metric
+
+
+def list_metrics():
+    return Metric.query.all()
 
 
 def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
@@ -464,6 +491,14 @@ def get_wakeword_definition(ww_id):
     return WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
 
 
+def list_wakeword_definition():
+    return WakeWordDefinition.query.all()
+
+
+def list_voice_definitions():
+    return VoiceDefinition.query.all()
+
+
 def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
     ww_def: WakeWordDefinition = get_wakeword_definition(ww_id)
     if not ww_def:
@@ -473,7 +508,7 @@ def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
         ww_def.plugin = plugin
         ww_def.ww_config = ww_config
         db.session.commit()
-    return ww_def.serialize()
+    return ww_def
 
 
 def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False,
@@ -599,6 +634,10 @@ def update_device(uuid, **kwargs):
     return device.serialize()
 
 
+def list_devices():
+    return Device.query.all()
+
+
 def add_skill_settings(remote_id, display_name=None,
                        settings_json=None, metadata_json=None):
     entry = SkillSettings(remote_id, display_name=display_name,
@@ -607,6 +646,10 @@ def add_skill_settings(remote_id, display_name=None,
     db.session.add(entry)
     db.session.commit()
     return entry
+
+
+def list_skill_settings():
+    return SkillSettings.query.all()
 
 
 def get_skill_settings(remote_id):
@@ -640,16 +683,8 @@ def update_skill_settings(remote_id, display_name=None,
 
 @requires_opt_in
 def save_stt_recording(uuid, audio, utterance):
-    entry = UtteranceRecording(
-        utterance_id=db.session.query(UtteranceRecording).count() + 1,
-        transcription=utterance,
-        sample=audio.get_wav_data(),
-        metadata_json={},  # TODO - allow expanding in future
-        uuid=uuid,
-        timestamp=time.time()
-    )
-    db.session.add(entry)
-    db.session.commit()
+    audio_bytes = audio.get_wav_data()
+    add_stt_recording(uuid, audio_bytes, utterance)
 
 
 @requires_opt_in
@@ -675,17 +710,59 @@ def save_ww_recording(uuid, uploads):
     # "accountId": "0",
     # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
 
+    add_ww_recording(uuid,
+                     audio,
+                     meta.get("name", "").replace("_", " "),
+                     meta)
+    return True
+
+
+def add_ww_recording(uuid, byte_data, transcription, meta):
+    count = db.session.query(WakeWordRecording).count() + 1
+    rec_id = f"@{uuid}|{transcription}|{count}"
     entry = WakeWordRecording(
-        wakeword_id=db.session.query(WakeWordRecording).count() + 1,
-        transcription=meta.get("name", "").replace("_", " "),
-        sample=audio,
+        recording_id=rec_id,
+        transcription=transcription,
+        sample=byte_data,
         metadata_json=meta,
         uuid=uuid,
         timestamp=time.time()
     )
     db.session.add(entry)
     db.session.commit()
-    return True
+    return entry
+
+
+def get_ww_recording(rec_id):
+    return WakeWordRecording.query.filter_by(recording_id=rec_id).first()
+
+
+def list_ww_recordings():
+    return WakeWordRecording.query.all()
+
+
+def add_stt_recording(uuid, byte_data, utterance):
+    count = db.session.query(UtteranceRecording).count() + 1
+    rec_id = f"@{uuid}|{transcription}|{count}"
+    entry = UtteranceRecording(
+        recording_id=rec_id,
+        transcription=utterance,
+        sample=byte_data,
+        metadata_json={},  # TODO - allow expanding in future
+        uuid=uuid,
+        timestamp=time.time()
+    )
+    db.session.add(entry)
+    db.session.commit()
+    return entry
+
+
+def get_stt_recording(rec_id):
+    return UtteranceRecording.query.filter_by(recording_id=rec_id).first()
+
+
+def list_stt_recordings():
+    return UtteranceRecording.query.all()
 
 
 def add_oauth_token(token_id, token_data):
@@ -697,6 +774,10 @@ def add_oauth_token(token_id, token_data):
 
 def get_oauth_token(token_id):
     return OAuthToken.query.filter_by(token_id=token_id).first()
+
+
+def list_oauth_tokens():
+    return OAuthToken.query.all()
 
 
 def add_oauth_application(token_id, client_id, client_secret,
@@ -719,6 +800,10 @@ def add_oauth_application(token_id, client_id, client_secret,
 
 def get_oauth_application(token_id):
     return OAuthApplication.query.filter_by(token_id=token_id).first()
+
+
+def list_oauth_applications():
+    return OAuthApplication.query.all()
 
 
 def add_voice_definition(voice_id, lang=None, plugin=None,
@@ -755,4 +840,4 @@ def update_voice_definition(voice_id, lang=None, plugin=None,
             voice_def.gender = gender
         db.session.commit()
 
-    return voice_def.serialize()
+    return voice_def

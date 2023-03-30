@@ -12,10 +12,11 @@
 #
 import time
 
+import base64
 from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_admin
-from ovos_local_backend.database import add_device, update_device
+import ovos_local_backend.database as db
 from ovos_local_backend.utils import generate_code
 from ovos_local_backend.utils import nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
@@ -28,62 +29,111 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_skill_settings(uuid):
-        return {}  # TODO
+        data = request.json
+        skill_id = data.pop("skill_id")
+        # TODO - depending on device shared_settings flag
+        #  either use remote_id or skill_id
+        shared = False
+        if shared:
+            remote_id = skill_id
+        else:
+            remote_id = f"@{uuid}|{skill_id}"
+        entry = db.add_skill_settings(remote_id, **data)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_skill_settings(uuid):
-        return {}  # TODO
+        # TODO - depending on device shared_settings flag
+        #  either use remote_id or skill_id
+        shared = False
+        if shared:
+            entries = []
+        else:
+            entries = db.get_skill_settings_for_device(uuid)
+        return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings/<skill_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
     def get_skill_settings(uuid, skill_id):
-        return {}  # TODO
+        # TODO - depending on device shared_settings flag
+        #  either use remote_id or skill_id
+        shared = False
+        if shared:
+            remote_id = skill_id
+        else:
+            remote_id = f"@{uuid}|{skill_id}"
+        if flask.request.method == 'DELETE':
+            # TODO
+            pass
+        elif flask.request.method == 'PUT':
+            entry = db.update_skill_settings(remote_id, **request.json)
+        else: # GET
+            entry = db.get_skill_settings(remote_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/skill_settings",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_shared_skill_settings():
-        return {}  # TODO
+        data = request.json
+        skill_id = data.pop("skill_id")
+        entry = db.add_skill_settings(skill_id, **data)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/skill_settings/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_shared_skill_settings():
-        return {}  # TODO
+        entries = db.list_skill_settings()
+        return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/skill_settings/<skill_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
     def get_shared_skill_settings(skill_id):
-        return {}  # TODO
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            entry = db.update_skill_settings(skill_id, **request.json)
+        else: # GET
+            entry = db.get_skill_settings(skill_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_apps",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_oauth_app(uuid):
-        return {}  # TODO
+    def create_oauth_app():
+        entry = db.add_oauth_application(**request.json)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_apps/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_oauth_apps(uuid):
-        return {}  # TODO
+        entries = db.list_oauth_applications()
+        return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/oauth_apps/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/oauth_apps/<token_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
-    def get_oauth_apps(uuid):
+    def get_oauth_apps(token_id):
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            pass # TODO
+        else:  # GET
+            entry = db.get_oauth_application(token_id)
         return {}  # TODO
 
     @app.route("/" + API_VERSION + "/admin/oauth_toks",
@@ -98,140 +148,206 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def list_oauth_toks():
-        return {}  # TODO
+        entries = db.list_oauth_tokens()
+        return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/oauth_toks/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/oauth_toks/<token_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
-    def get_oauth_toks(uuid):
-        return {}  # TODO
+    def get_oauth_toks(token_id):
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            pass # TODO
+        else:  # GET
+            entry = db.get_oauth_token(token_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_recs",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_voice_rec():
-        return {}  # TODO
+        # b64 decode bytes before saving
+        data = request.json
+        audio_b64 = data.pop("audio_b64")
+        data["byte_data"] = base64.decodestring(audio_b64)
+        entry = db.add_stt_recording(**data)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_recs/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_voice_recs():
-        return {}  # TODO
+        entries = db.list_stt_recordings()
+        return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/voice_recs/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/voice_recs/<recording_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
-    def get_voice_recs(uuid):
-        return {}  # TODO
+    def get_voice_rec(recording_id):
+        # rec_id = f"@{uuid}|{transcription}|{count}"
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            pass # TODO
+        else:  # GET
+            entry = db.get_stt_recording(recording_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_recs",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_ww_rec():
-        return {}  # TODO
+        # b64 decode bytes before saving
+        data = request.json
+        audio_b64 = data.pop("audio_b64")
+        data["byte_data"] = base64.decodestring(audio_b64)
+        entry = db.add_ww_recording(**data)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_recs/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_ww_recs():
-        return {}  # TODO
+        entries = db.list_ww_recordings()
+        return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/ww_recs/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/ww_recs/<recording_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
-    def get_ww_recs(uuid):
-        return {}  # TODO
+    def get_ww_rec(recording_id):
+        #  rec_id = f"@{uuid}|{transcription}|{count}"
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            pass # TODO
+        else:  # GET
+            entry = db.get_ww_recording(recording_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/metrics",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_metric():
-        return {}  # TODO
+        entry = db.add_metric(**request.json)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/metrics/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_metrics():
-        return {}  # TODO
+        entries = db.list_metrics()
+        return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/metrics/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/metrics/<metric_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
-    def get_metric(uuid):
-        return {}  # TODO
+    def get_metric(metric_id):
+        # metric_id = f"@{uuid}|{name}|{count}"
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            entry = db.update_metric(metric_id, request.json)
+        else:  # GET
+            entry = db.get_metric(metric_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/devices",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_device():
-        return {}  # TODO
+        entry = db.add_device(**request.json)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/devices/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_devices():
-        return {}  # TODO
+        entries = db.list_devices()
+        return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/device/<uuid>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
     def get_device(uuid):
-        return {}  # TODO
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            entry = db.update_device(uuid, **request.json)
+        else:  # GET
+            entry = db.get_device()
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_defs",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_voice_defs():
-        return {}  # TODO
+        entry = db.add_voice_definition(**request.json)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_defs/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_voice_defs():
-        return {}  # TODO
+        entries = db.list_voice_definitions()
+        return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/voice_defs/<voice_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
     def get_voice_def(voice_id):
-        return {}  # TODO
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            entry = db.update_voice_definition(voice_id, **request.json)
+        else:  # GET
+            entry = db.get_voice_definition(voice_id)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_defs",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_ww_def():
-        return {}  # TODO
+        entry = db.add_wakeword_definition(**request.json)
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_defs/list",
                methods=['GET'])
     @requires_admin
     @noindex
     def list_ww_defs():
-        return {}  # TODO
+        entries = db.list_wakeword_definition()
+        return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/ww_defs/<ww_id>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex
     def get_ww_def(ww_id):
-        return {}  # TODO
+        if flask.request.method == 'DELETE':
+            pass # TODO
+        elif flask.request.method == 'PUT':
+            entry = db.update_wakeword_definition(ww_id, **request.json)
+        else:  # GET
+            entry = db.get_wakeword_definition(ww_id)
+        return entry.serialize()
 
     return app
 
