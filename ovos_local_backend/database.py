@@ -16,6 +16,28 @@ _mail_cfg = CONFIGURATION.get("email", {})
 _loc = CONFIGURATION["default_location"]
 
 
+# TODO - port to OPM to standardize the concept
+def get_voice_id(plugin_name, lang, tts_config):
+    tts_hash = md5(json.dumps(tts_config, sort_keys=True).encode("utf-8")).hexdigest()
+    return f"{plugin_name}_{lang}_{tts_hash}"
+
+
+# TODO - port to OPM to standardize the concept
+def get_ww_id(plugin_name, ww_name, ww_config):
+    ww_hash = md5(json.dumps(ww_config, sort_keys=True).encode("utf-8")).hexdigest()
+    return f"{plugin_name}_{ww_name}_{ww_hash}"
+
+
+_tts_plug = CONFIGURATION.get("default_tts")
+_tts_config = CONFIGURATION["tts_configs"][_tts_plug]
+_default_voice_id = get_voice_id(_tts_plug, CONFIGURATION["lang"], _tts_config)
+
+_default_ww = CONFIGURATION["default_ww"]
+_ww_module = CONFIGURATION["ww_configs"][_default_ww]["module"]
+_ww_config = CONFIGURATION["ww_configs"][_default_ww]
+_default_ww_id = get_ww_id(_ww_module, _default_ww, _ww_config)
+
+
 def connect_db(app):
     # configure the SQLite database, relative to the app instance folder
 
@@ -31,16 +53,6 @@ def connect_db(app):
     return app, db
 
 
-# TODO - port to OPM to standardize the concept
-def get_voice_id(plugin_name, lang, tts_config):
-    tts_hash = md5(json.dumps(tts_config, sort_keys=True)).hexdigest()
-    return f"{plugin_name}_{lang}_{tts_hash}"
-
-
-# TODO - port to OPM to standardize the concept
-def get_ww_id(plugin_name, ww_name, ww_config):
-    ww_hash = md5(json.dumps(ww_config, sort_keys=True)).hexdigest()
-    return f"{plugin_name}_{ww_name}_{ww_hash}"
 
 
 class OAuthToken(db.Model):
@@ -130,18 +142,18 @@ class Device(db.Model):
     lang = db.Column(db.String(5), default=CONFIGURATION.get("lang", "en-us"))
 
     # location fields, explicit so we can query them
-    city = db.Column(db.String(length=50, default=_loc["city"]["name"]))
-    state = db.Column(db.String(length=50, default=_loc["city"]["state"]["name"]))
-    state_code = db.Column(db.String(length=10, default=_loc["city"]["state"]["code"]))
-    country = db.Column(db.String(length=50, default=_loc["city"]["state"]["country"]["name"]))
-    country_code = db.Column(db.String(length=10, default=_loc["city"]["state"]["country"]["code"]))
+    city = db.Column(db.String(length=50), default=_loc["city"]["name"])
+    state = db.Column(db.String(length=50), default=_loc["city"]["state"]["name"])
+    state_code = db.Column(db.String(length=10), default=_loc["city"]["state"]["code"])
+    country = db.Column(db.String(length=50), default=_loc["city"]["state"]["country"]["name"])
+    country_code = db.Column(db.String(length=10), default=_loc["city"]["state"]["country"]["code"])
     latitude = db.Column(db.Float, default=_loc["coordinate"]["latitude"])
     longitude = db.Column(db.Float, default=_loc["coordinate"]["longitude"])
-    tz_code = db.Column(db.String(length=25, default=_loc["timezone"]["name"]))
-    tz_name = db.Column(db.String(length=15, default=_loc["timezone"]["code"]))
+    tz_code = db.Column(db.String(length=25), default=_loc["timezone"]["name"])
+    tz_name = db.Column(db.String(length=15), default=_loc["timezone"]["code"])
     # ww settings
-    voice_id = db.Column(db.String(255), default=get_voice_id(CONFIGURATION.get("default_tts")))
-    ww_id = db.Column(db.String(255), default=get_ww_id(CONFIGURATION.get("default_ww")))
+    voice_id = db.Column(db.String(255), default=_default_voice_id)
+    ww_id = db.Column(db.String(255), default=_default_ww_id)
 
     @property
     def location_json(self):
