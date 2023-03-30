@@ -2,11 +2,19 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a7...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a8...HEAD)
+
+**Breaking changes:**
+
+- feat/no\_more\_selene [\#53](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/53) ([JarbasAl](https://github.com/JarbasAl))
 
 **Closed issues:**
 
 - Personal-backend manager [\#48](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/48)
+
+## [V0.1.6a8](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a8) (2023-02-27)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a7...V0.1.6a8)
 
 **Merged pull requests:**
 
