@@ -59,7 +59,6 @@ def ip_geolocate(ip=None):
 
 class GeocoderProviders(str, enum.Enum):
     AUTO = "auto"
-    SELENE = "selene"
     OSM = "osm"
     ARCGIS = "arcgis"
     GEOCODE_FARM = "geocode_farm"
@@ -82,14 +81,6 @@ class Geocoder:
             return geocoder.arcgis
         elif self.provider == GeocoderProviders.GEOCODE_FARM:
             return geocoder.geocodefarm
-        elif self.provider == GeocoderProviders.SELENE:
-            cfg = CONFIGURATION["selene"]
-            if not cfg["enabled"] or not cfg.get("proxy_geolocation"):
-                raise ValueError("Selene selected for geolocation, but it is disabled in config!")
-            _url = cfg.get("url")
-            _version = cfg.get("version") or "v1"
-            _identity_file = cfg.get("identity_file")
-            return GeolocationApi(_url, _version, _identity_file).get_geolocation
 
         raise ValueError(f"Unknown geolocation provider: {self.provider}")
 
@@ -124,10 +115,6 @@ class Geocoder:
         return data
 
     def get_location(self, address):
-
-        if self.provider == GeocoderProviders.SELENE:
-            return self.engine(address)  # selene proxy, special handling
-
         location = {
             "city": {
                 "code": "",

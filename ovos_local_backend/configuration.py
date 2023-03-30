@@ -23,11 +23,6 @@ DEFAULT_CONFIG = {
         "module": "ovos-stt-plugin-server",
         "ovos-stt-plugin-server": {
             "url": "https://stt.openvoiceos.com/stt"
-        },
-        "ovos-stt-plugin-selene": {
-            "url": "https://api.mycroft.ai",
-            "version": "v1",
-            "identity_file": BACKEND_IDENTITY  # path to identity2.json file
         }
     },
     "backend_port": 6712,
@@ -185,12 +180,12 @@ DEFAULT_CONFIG = {
     "microservices": {
         # if query fail, attempt to use free ovos services
         "ovos_fallback": True,
-        # backend can be auto/local/ovos/selene
-        # auto == attempt local -> selene (if enabled) -> ovos
+        # backend can be auto/local/ovos
+        # auto == attempt local -> ovos
         "wolfram_provider": "auto",
         "weather_provider": "auto",
         # auto == OpenStreetMap default
-        # valid - selene/osm/arcgis/geocode_farm
+        # valid - osm/arcgis/geocode_farm
         "geolocation_provider": "auto",
         # secret keys
         "wolfram_key": "",
@@ -199,45 +194,6 @@ DEFAULT_CONFIG = {
     "email": {
         "username": None,
         "password": None
-    },
-    "selene": {
-        "enabled": False,  # needs to be explicitly enabled by user
-        "url": "https://api.mycroft.ai",  # change if you are self hosting selene
-        "version": "v1",
-        # pairing settings
-        # NOTE: the file should be used exclusively by backend, do not share with a mycroft-core instance
-        "identity_file": BACKEND_IDENTITY,  # path to identity2.json file
-        # send the pairing from selene to any device that attempts to pair with local backend
-        # this will provide voice/gui prompts to the user and avoid the need to copy a identity file
-        # only happens if backend is not paired with selene (hopefully exactly once)
-        # if False you need to pair an existing mycroft-core as usual and move the file for backend usage
-        "proxy_pairing": False,
-
-        # micro service settings
-        # NOTE: STT is handled at plugin level, configure ovos-stt-plugin-selene
-        "proxy_weather": True,  # use selene for weather api calls
-        "proxy_wolfram": True,  # use selene for wolfram alpha api calls
-        "proxy_geolocation": True,  # use selene for geolocation api calls
-        "proxy_email": False,  # use selene for sending email (only for email registered in selene)
-
-        # device settings - if you want to spoof data in selene set these to False
-        "download_location": True,  # set default location from selene
-        "download_prefs": True,  # set default device preferences from selene
-        "download_settings": True,  # download shared skill settings from selene
-        "upload_settings": True,  # upload shared skill settings to selene
-        "force2way": False,  # this forcefully re-enables 2way settings sync with selene
-        # this functionality was removed from core, we hijack the settingsmeta endpoint to upload settings
-        # upload will happen when mycroft-core boots and overwrite any values in selene (no checks for settings changed)
-        # the assumption is that selene changes are downloaded instantaneously
-        # if a device is offline when selene changes those changes will be discarded on next device boot
-
-        # opt-in settings - what data to share with selene
-        # NOTE: these also depend on opt_in being set in selene
-        "opt_in": False,  # share data from all devices with selene (as if from a single device)
-        "opt_in_blacklist": [],  # list of uuids that should ignore opt_in flag (never share data)
-        "upload_metrics": True,  # upload device metrics to selene
-        "upload_wakewords": True,  # upload wake word samples to selene
-        "upload_utterances": True  # upload utterance samples to selene
     }
 }
 
