@@ -6,7 +6,7 @@ RUN apt-get update && \
 RUN pip3 install SpeechRecognition==3.8.1
 
 COPY . /tmp/ovos-backend
-RUN pip3 install /tmp/ovos-backend
+RUN pip3 install /tmp/ovos-backend[mysql]
 
 RUN pip3 install git+https://github.com/OpenVoiceOS/ovos-backend-manager
 
