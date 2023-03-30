@@ -16,7 +16,6 @@ import random
 from flask import make_response
 from ovos_utils.log import LOG
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
-from ovos_backend_client.api import GeolocationApi, WolframAlphaApi, OpenWeatherMapApi
 
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.session import SESSION as requests
@@ -82,16 +81,6 @@ class ExternalApiManager:
                 LOG.debug(f"Error registering device {e}")
         self.geo = Geocoder()
 
-        self.selene_owm = None
-        self.selene_wolf = None
-        self.selene_cfg = CONFIGURATION.get("selene") or {}
-        if self.selene_cfg.get("enabled"):
-            _url = self.selene_cfg.get("url")
-            _version = self.selene_cfg.get("version") or "v1"
-            _identity_file = self.selene_cfg.get("identity_file")
-            self.selene_owm = OpenWeatherMapApi(_url, _version, _identity_file)
-            self.selene_wolfram = WolframAlphaApi(_url, _version, _identity_file)
-
     @property
     def _owm(self):
         if self.config.get("weather_provider") == "local":
@@ -101,16 +90,9 @@ class ExternalApiManager:
                 return self.ovos_owm
         elif self.config.get("weather_provider") == "ovos":
             return self.ovos_owm
-        elif self.config.get("weather_provider") == "selene":
-            if self.selene_owm:
-                return self.selene_owm
-            if self.config.get("ovos_fallback"):
-                return self.ovos_owm
         else:  # auto
             if self.owm_key:
                 return self.local_owm
-            if self.selene_owm:
-                return self.selene_owm
             return self.ovos_owm
 
     @property
@@ -122,16 +104,9 @@ class ExternalApiManager:
                 return self.ovos_wolfram
         elif self.config.get("wolfram_provider") == "ovos":
             return self.ovos_wolfram
-        elif self.config.get("wolfram_provider") == "selene":
-            if self.selene_wolfram:
-                return self.selene_wolfram
-            if self.config.get("ovos_fallback"):
-                return self.ovos_wolfram
         else:  # auto
             if self.wolfram_key:
                 return LocalWolfram(self.wolfram_key)
-            if self.selene_wolfram:
-                return self.selene_wolfram
             return self.ovos_wolfram
 
     def geolocate(self, address):
@@ -149,8 +124,7 @@ class ExternalApiManager:
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram) or \
-                isinstance(self._wolfram, WolframAlphaApi):  # local + selene
+        if isinstance(self._wolfram, LocalWolfram):  # local
             # TODO - lat lon, not used? selene accepts it but....
             # https://products.wolframalpha.com/spoken-results-api/documentation/
             return self._wolfram.spoken(query, units)
@@ -162,8 +136,7 @@ class ExternalApiManager:
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram) or \
-                isinstance(self._wolfram, WolframAlphaApi):  # local + selene
+        if isinstance(self._wolfram, LocalWolfram):  # local
             return self._wolfram.simple(query, units)
         if isinstance(self._wolfram, OvosWolframAlpha):  # ovos api
             q = {"input": query, "units": units}
@@ -175,8 +148,6 @@ class ExternalApiManager:
             units = "imperial"
         if isinstance(self._wolfram, LocalWolfram):
             return self._wolfram.full(query, units)
-        if isinstance(self._wolfram, WolframAlphaApi):  # selene
-            return self._wolfram.full_results(query, units, lat_lon, {"output": "json"})
         if isinstance(self._wolfram, OvosWolframAlpha):  # ovos api
             q = {"input": query, "units": units}
             return self._wolfram.get_wolfram_full(q)
@@ -187,8 +158,6 @@ class ExternalApiManager:
             units = "imperial"
         if isinstance(self._wolfram, LocalWolfram):
             return self._wolfram.full(query, units, output="xml")
-        if isinstance(self._wolfram, WolframAlphaApi):
-            return self._wolfram.full_results(query, units, lat_lon, {"output": "xml"})
         if isinstance(self._wolfram, OvosWolframAlpha):
             q = {"input": query, "units": units, "output": "xml"}
             return self._wolfram.get_wolfram_full(q)
@@ -199,8 +168,6 @@ class ExternalApiManager:
         if isinstance(self._owm, OvosWeather):  # ovos
             params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
             return self._owm.get_current(params)
-        if isinstance(self._owm, OpenWeatherMapApi):  # selene
-            return self._owm.get_current((lat, lon), lang, units)
 
     def owm_onecall(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
@@ -208,8 +175,6 @@ class ExternalApiManager:
         if isinstance(self._owm, OvosWeather):  # ovos
             params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
             return self._owm.get_weather_onecall(params)
-        if isinstance(self._owm, OpenWeatherMapApi):  # selene
-            return self._owm.get_weather((lat, lon), lang, units)
 
     def owm_hourly(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
@@ -217,8 +182,6 @@ class ExternalApiManager:
         if isinstance(self._owm, OvosWeather):  # ovos
             params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
             return self._owm.get_hourly(params)
-        if isinstance(self._owm, OpenWeatherMapApi):  # selene
-            return self._owm.get_hourly((lat, lon), lang, units)
 
     def owm_daily(self, lat, lon, units, lang="en-us"):
         if isinstance(self._owm, LocalWeather):  # local
@@ -226,8 +189,6 @@ class ExternalApiManager:
         if isinstance(self._owm, OvosWeather):  # ovos
             params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
             return self._owm.get_forecast(params)
-        if isinstance(self._owm, OpenWeatherMapApi):  # selene
-            return self._owm.get_daily((lat, lon), lang, units)
 
 
 class LocalWeather:

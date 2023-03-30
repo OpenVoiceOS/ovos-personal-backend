@@ -8,5 +8,4 @@ ovos-stt-plugin-server
 geocoder
 timezonefinder
 requests_cache
-ovos-backend-client~=0.0, >=0.0.6a10
 oauthlib~=3.0
