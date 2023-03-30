@@ -461,20 +461,24 @@ def update_device(uuid, **kwargs):
 class SkillSettings(db.Model):
     remote_id = db.Column(db.String(255), primary_key=True)  # depends on Device.isolated_skills, @{uuid}|{skill_id} or {skill_id}
     display_name = db.Column(db.String(255))  # for friendly UI, default to skill_id
-    settings_json = db.Column(NestedMutableJson, nullable=False, default="{}")  # actual skill settings file
-    metadata_json = db.Column(NestedMutableJson, nullable=False, default="{}")  # how to display user facing settings editor
+    settings = db.Column(NestedMutableJson, nullable=False, default="{}")  # actual skill settings file
+    meta = db.Column(NestedMutableJson, nullable=False, default="{}")  # how to display user facing settings editor
+
+    @property
+    def skill_id(self):
+        return self.remote_id.split("|", 1)[-1]
 
     def serialize(self):
         # settings meta with updated placeholder values from settings
         # old style selene db stored skill settings this way
-        meta = deepcopy(self.metadata_json)
+        meta = deepcopy(self.meta)
         for idx, section in enumerate(meta.get('sections', [])):
             for idx2, field in enumerate(section["fields"]):
                 if "value" not in field:
                     continue
-                if field["name"] in self.settings_json:
+                if field["name"] in self.settings:
                     meta['sections'][idx]["fields"][idx2]["value"] = \
-                        self.settings_json[field["name"]]
+                        self.settings[field["name"]]
         return {'skillMetadata': meta,
                 "skill_gid": self.remote_id,
                 "display_name": self.display_name}
@@ -534,42 +538,49 @@ class SkillSettings(db.Model):
         display_name = data.get("display_name") or \
                        skill_id.split(".")[0].replace("-", " ").replace("_", " ").title()
 
-        settings = {
-            "display_name": display_name,
-            "settings_json": skill_json,
-            "metadata_json": skill_meta
-        }
-
-        return update_skill_settings(remote_id, **settings)
+        return update_skill_settings(remote_id,
+                                     display_name=display_name,
+                                     settings_json=skill_json,
+                                     metadata_json=skill_meta)
 
 
-def add_skill_settings(**kwargs):
-    entry = SkillSettings(**kwargs)
+def add_skill_settings(remote_id, display_name=None,
+                       settings_json=None, metadata_json=None):
+    entry = SkillSettings(remote_id, display_name=display_name,
+                          settings_json=settings_json,
+                          metadata_json=metadata_json)
     db.session.add(entry)
     db.session.commit()
-
     return entry
 
 
-def get_skill_settings(ident):
-    return SkillSettings.query.filter_by(remote_id=ident).first()
+def get_skill_settings(remote_id):
+    return SkillSettings.query.filter_by(remote_id=remote_id).first()
 
 
-def update_skill_settings(ident, **kwargs):
-    settings: SkillSettings = get_skill_settings(ident)
+def get_skill_settings_for_device(uuid):
+    return SkillSettings.query.filter(SkillSettings.remote_id.startswith(f"{uuid}|")).all()
+
+    
+def update_skill_settings(remote_id, display_name=None,
+                          settings_json=None, metadata_json=None):
+    settings: SkillSettings = get_skill_settings(remote_id)
     if not settings:
-        settings = add_skill_settings(remote_id=ident, **kwargs)
+        settings = add_skill_settings(remote_id=remote_id,
+                                      display_name=display_name,
+                                      settings_json=settings_json,
+                                      metadata_json=metadata_json)
 
     else:
-        if "display_name" in kwargs:
-            settings.display_name = kwargs["display_name"]
-        if "settings_json" in kwargs:
-            settings.settings_json = kwargs["settings_json"]
-        if "metadata_json" in kwargs:
-            settings.metadata_json = kwargs["metadata_json"]
+        if display_name:
+            settings.display_name = display_name
+        if settings_json:
+            settings.settings = settings_json
+        if metadata_json:
+            settings.meta = metadata_json
         db.session.commit()
 
-    return settings.serialize()
+    return settings
 
 
 class Metric(db.Model):
