@@ -1,13 +1,14 @@
 import json
 import time
 from copy import deepcopy
+from hashlib import md5
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_json import NestedMutableJson
 
 from ovos_local_backend.backend.decorators import requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
-from hashlib import md5
+
 # create the extension
 db = SQLAlchemy()
 
@@ -42,6 +43,40 @@ def get_ww_id(plugin_name, ww_name, ww_config):
     return f"{plugin_name}_{ww_name}_{ww_hash}"
 
 
+class OAuthToken(db.Model):
+    # @{uuid}|{oauth_id} -> @{uuid}|spotify
+    token_id = db.Column(db.String(255), primary_key=True)
+    data = db.Column(NestedMutableJson, default={}, nullable=False)
+
+
+class OAuthApplication(db.Model):
+    # @{uuid}|{oauth_id} -> @{uuid}|spotify
+    token_id = db.Column(db.String(255), primary_key=True)
+    client_id = db.Column(db.String(255), nullable=False)
+    auth_endpoint = db.Column(db.String(255), nullable=False)
+    token_endpoint = db.Column(db.String(255), nullable=False)
+    callback_endpoint = db.Column(db.String(255), nullable=False)
+    # afaik some oauth implementations dont require these
+    scope = db.Column(db.String(255), default="")
+    client_secret = db.Column(db.String(255))
+    refresh_endpoint = db.Column(db.String(255))
+    # ovos GUI flag
+    shell_integration = db.Column(db.Boolean, default=True)
+
+    def serialize(self):
+        return {
+            "oauth_service": self.oauth_service,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "auth_endpoint": self.auth_endpoint,
+            "token_endpoint": self.token_endpoint,
+            "refresh_endpoint": self.refresh_endpoint,
+            "callback_endpoint": self.callback_endpoint,
+            "scope": self.scope,
+            "shell_integration": self.shell_integration
+        }
+
+
 class VoiceDefinition(db.Model):
     voice_id = db.Column(db.String(255), primary_key=True)
     lang = db.Column(db.String(255), default="en-us", nullable=False)
@@ -62,43 +97,6 @@ class VoiceDefinition(db.Model):
         }
 
 
-def add_voice_definition(voice_id, lang=None, plugin=None,
-                         tts_config=None, offline=None, gender=None) -> VoiceDefinition:
-    entry = VoiceDefinition(voice_id=voice_id, lang=lang, plugin=plugin,
-                            tts_config=tts_config, offline=offline, gender=gender)
-
-    db.session.add(entry)
-    db.session.commit()
-
-    return entry
-
-
-def get_voice_definition(voice_id) -> VoiceDefinition:
-    return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
-
-
-def update_voice_definition(voice_id, lang=None, plugin=None,
-                            tts_config=None, offline=None, gender=None) -> dict:
-    voice_def: VoiceDefinition = get_voice_definition(voice_id)
-    if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, lang=lang, plugin=plugin,
-                                         tts_config=tts_config, offline=offline, gender=gender)
-    else:
-        if lang:
-            voice_def.lang = lang
-        if plugin:
-            voice_def.plugin = plugin
-        if tts_config:
-            voice_def.tts_config = tts_config
-        if offline:
-            voice_def.offline = offline
-        if gender:
-            voice_def.gender = gender
-        db.session.commit()
-
-    return voice_def.serialize()
-
-
 class WakeWordDefinition(db.Model):
     ww_id = db.Column(db.String(255), primary_key=True)
     name = db.Column(db.String(255), default="", nullable=False)
@@ -112,29 +110,6 @@ class WakeWordDefinition(db.Model):
             "plugin": self.plugin,
             "ww_config": self.ww_config
         }
-
-
-def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
-    entry = WakeWordDefinition(ww_id, name=name, ww_config=ww_config, plugin=plugin)
-    db.session.add(entry)
-    db.session.commit()
-    return entry
-
-
-def get_wakeword_definition(ww_id):
-    return WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
-
-
-def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
-    ww_def: WakeWordDefinition = get_wakeword_definition(ww_id)
-    if not ww_def:
-        ww_def = add_wakeword_definition(ww_id=ww_id, name=name, ww_config=ww_config, plugin=plugin)
-    else:
-        ww_def.name = name
-        ww_def.plugin = plugin
-        ww_def.ww_config = ww_config
-        db.session.commit()
-    return ww_def.serialize()
 
 
 class Device(db.Model):
@@ -335,132 +310,9 @@ class Device(db.Model):
         }
 
 
-def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False,
-               location=None, lang=None, date_format=None, system_unit=None,
-               time_format=None, email=None, isolated_skills=False,
-               ww_id=None, voice_id=None):
-    lang = lang or CONFIGURATION.get("lang") or "en-us"
-
-    email = email or \
-            _mail_cfg.get("recipient") or \
-            _mail_cfg.get("smtp", {}).get("username")
-
-    loc = location or _loc
-    entry = Device(uuid=uuid,
-                   token=token,
-                   lang=lang,
-                   placement=device_location,
-                   name=name or f"Device-{uuid}",
-                   isolated_skills=isolated_skills,
-                   city=loc["city"]["name"],
-                   state=loc["city"]["state"]["name"],
-                   country=loc["city"]["state"]["country"]["name"],
-                   state_code=loc["city"]["state"]["code"],
-                   country_code=loc["city"]["state"]["country"]["code"],
-                   latitude=loc["coordinate"]["latitude"],
-                   longitude=loc["coordinate"]["longitude"],
-                   tz_name=loc["timezone"]["name"],
-                   tz_code=loc["timezone"]["code"],
-                   opt_in=opt_in,
-                   system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
-                   date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",
-                   time_fmt=time_format or CONFIGURATION.get("time_format") or "full",
-                   email=email,
-                   ww_id=ww_id,
-                   voice_id=voice_id)
-    db.session.add(entry)
-    db.session.commit()
-    return entry
-
-
-def get_device(uuid) -> Device:
-    if uuid is None:
-        return None
-    return Device.query.filter_by(uuid=uuid).first()
-
-
-def update_device(uuid, **kwargs):
-
-    device: Device = Device.query.filter_by(uuid=uuid).first()
-    if not device:
-        raise ValueError(f"unknown uuid - {uuid}")
-
-    if "name" in kwargs:
-        device.name = kwargs["name"]
-    if "lang" in kwargs:
-        device.lang = kwargs["lang"]
-    if "opt_in" in kwargs:
-        device.opt_in = kwargs["opt_in"]
-    if "device_location" in kwargs:
-        device.placement = kwargs["device_location"]
-    if "placement" in kwargs:
-        device.placement = kwargs["placement"]
-    if "email" in kwargs:
-        device.email = kwargs["email"]
-    if "isolated_skills" in kwargs:
-        device.isolated_skills = kwargs["isolated_skills"]
-    if "location" in kwargs:
-        loc = kwargs["location"]
-        if isinstance(loc, str):
-            loc = json.loads(loc)
-        device.city = loc["city"]["name"]
-        device.state = loc["city"]["state"]["name"]
-        device.country = loc["city"]["state"]["country"]["name"]
-        device.state_code = loc["city"]["state"]["code"]
-        device.country_code = loc["city"]["state"]["country"]["code"]
-        device.latitude = loc["coordinate"]["latitude"]
-        device.longitude = loc["coordinate"]["longitude"]
-        device.tz_name = loc["timezone"]["name"]
-        device.tz_code = loc["timezone"]["code"]
-    if "time_format" in kwargs:
-        device.time_format = kwargs["time_format"]
-    if "date_format" in kwargs:
-        device.date_format = kwargs["date_format"]
-    if "time_fmt" in kwargs:
-        device.time_format = kwargs["time_fmt"]
-    if "date_fmt" in kwargs:
-        device.date_format = kwargs["date_fmt"]
-    if "system_unit" in kwargs:
-        device.system_unit = kwargs["system_unit"]
-
-    if "tts_module" in kwargs:
-        tts_plug = kwargs["tts_module"]
-        if "tts_config" in kwargs:
-            tts_config = kwargs["tts_config"]
-        elif tts_plug in CONFIGURATION["tts_configs"]:
-            tts_config = CONFIGURATION["tts_configs"][tts_plug]
-        else:
-            tts_config = {}
-        voice_id = get_voice_id(tts_plug, device.lang, tts_config)
-        update_voice_definition(voice_id,
-                                lang=device.lang,
-                                tts_config=tts_config,
-                                plugin=tts_plug)
-        device.voice_id = voice_id
-
-    if "wake_word" in kwargs:
-        default_ww = kwargs["wake_word"]
-        ww_module = kwargs["ww_module"]
-        if "ww_config" in kwargs:
-            ww_config = kwargs["ww_config"]
-        elif default_ww in CONFIGURATION["ww_configs"]:
-            ww_config = CONFIGURATION["ww_configs"][default_ww]
-        else:
-            ww_config = {}
-        ww_id = get_ww_id(ww_module, default_ww, ww_config)
-        update_wakeword_definition(ww_id,
-                                   name=default_ww,
-                                   ww_config=ww_config,
-                                   plugin=ww_module)
-        device.ww_id = ww_id
-
-    db.session.commit()
-
-    return device.serialize()
-
-
 class SkillSettings(db.Model):
-    remote_id = db.Column(db.String(255), primary_key=True)  # depends on Device.isolated_skills, @{uuid}|{skill_id} or {skill_id}
+    remote_id = db.Column(db.String(255),
+                          primary_key=True)  # depends on Device.isolated_skills, @{uuid}|{skill_id} or {skill_id}
     display_name = db.Column(db.String(255))  # for friendly UI, default to skill_id
     settings = db.Column(NestedMutableJson, nullable=False, default="{}")  # actual skill settings file
     meta = db.Column(NestedMutableJson, nullable=False, default="{}")  # how to display user facing settings editor
@@ -545,6 +397,196 @@ class SkillSettings(db.Model):
                                      metadata_json=skill_meta)
 
 
+class Metric(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    metric_type = db.Column(db.String(255), nullable=False)
+    metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary data
+    # TODO - extract explicit fields from json for things we want to be queryable
+    timestamp = db.Column(db.Integer)  # unix seconds
+    uuid = db.Column(db.String(255))  # TODO - link to devices table
+
+
+class UtteranceRecording(db.Model):
+    utterance_id = db.Column(db.Integer, primary_key=True)
+    transcription = db.Column(db.String(255), nullable=False)
+    metadata_json = db.Column(NestedMutableJson)  # arbitrary metadata
+    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
+
+    timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
+    uuid = db.Column(db.String(255))  # TODO - link to devices table
+
+
+class WakeWordRecording(db.Model):
+    wakeword_id = db.Column(db.Integer, primary_key=True)
+    transcription = db.Column(db.String(255))
+    audio_tag = db.Column(db.String(255))  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
+    speaker_tag = db.Column(db.String(255))  # "untagged" / "male" / "female" / "children"
+    metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary metadata
+    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
+
+    timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
+    uuid = db.Column(db.String(255))  # TODO - link to devices table
+
+
+@requires_opt_in
+def save_metric(uuid, name, data):
+    entry = Metric(
+        id=db.session.query(Metric).count() + 1,
+        metric_type=name,
+        metadata_json=data,
+        uuid=uuid,
+        timestamp=time.time()
+    )
+    db.session.add(entry)
+    db.session.commit()
+
+
+def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
+    entry = WakeWordDefinition(ww_id, name=name, ww_config=ww_config, plugin=plugin)
+    db.session.add(entry)
+    db.session.commit()
+    return entry
+
+
+def get_wakeword_definition(ww_id):
+    return WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
+
+
+def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
+    ww_def: WakeWordDefinition = get_wakeword_definition(ww_id)
+    if not ww_def:
+        ww_def = add_wakeword_definition(ww_id=ww_id, name=name, ww_config=ww_config, plugin=plugin)
+    else:
+        ww_def.name = name
+        ww_def.plugin = plugin
+        ww_def.ww_config = ww_config
+        db.session.commit()
+    return ww_def.serialize()
+
+
+def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False,
+               location=None, lang=None, date_format=None, system_unit=None,
+               time_format=None, email=None, isolated_skills=False,
+               ww_id=None, voice_id=None):
+    lang = lang or CONFIGURATION.get("lang") or "en-us"
+
+    email = email or \
+            _mail_cfg.get("recipient") or \
+            _mail_cfg.get("smtp", {}).get("username")
+
+    loc = location or _loc
+    entry = Device(uuid=uuid,
+                   token=token,
+                   lang=lang,
+                   placement=device_location,
+                   name=name or f"Device-{uuid}",
+                   isolated_skills=isolated_skills,
+                   city=loc["city"]["name"],
+                   state=loc["city"]["state"]["name"],
+                   country=loc["city"]["state"]["country"]["name"],
+                   state_code=loc["city"]["state"]["code"],
+                   country_code=loc["city"]["state"]["country"]["code"],
+                   latitude=loc["coordinate"]["latitude"],
+                   longitude=loc["coordinate"]["longitude"],
+                   tz_name=loc["timezone"]["name"],
+                   tz_code=loc["timezone"]["code"],
+                   opt_in=opt_in,
+                   system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
+                   date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",
+                   time_fmt=time_format or CONFIGURATION.get("time_format") or "full",
+                   email=email,
+                   ww_id=ww_id,
+                   voice_id=voice_id)
+    db.session.add(entry)
+    db.session.commit()
+    return entry
+
+
+def get_device(uuid) -> Device:
+    if uuid is None:
+        return None
+    return Device.query.filter_by(uuid=uuid).first()
+
+
+def update_device(uuid, **kwargs):
+    device: Device = Device.query.filter_by(uuid=uuid).first()
+    if not device:
+        raise ValueError(f"unknown uuid - {uuid}")
+
+    if "name" in kwargs:
+        device.name = kwargs["name"]
+    if "lang" in kwargs:
+        device.lang = kwargs["lang"]
+    if "opt_in" in kwargs:
+        device.opt_in = kwargs["opt_in"]
+    if "device_location" in kwargs:
+        device.placement = kwargs["device_location"]
+    if "placement" in kwargs:
+        device.placement = kwargs["placement"]
+    if "email" in kwargs:
+        device.email = kwargs["email"]
+    if "isolated_skills" in kwargs:
+        device.isolated_skills = kwargs["isolated_skills"]
+    if "location" in kwargs:
+        loc = kwargs["location"]
+        if isinstance(loc, str):
+            loc = json.loads(loc)
+        device.city = loc["city"]["name"]
+        device.state = loc["city"]["state"]["name"]
+        device.country = loc["city"]["state"]["country"]["name"]
+        device.state_code = loc["city"]["state"]["code"]
+        device.country_code = loc["city"]["state"]["country"]["code"]
+        device.latitude = loc["coordinate"]["latitude"]
+        device.longitude = loc["coordinate"]["longitude"]
+        device.tz_name = loc["timezone"]["name"]
+        device.tz_code = loc["timezone"]["code"]
+    if "time_format" in kwargs:
+        device.time_format = kwargs["time_format"]
+    if "date_format" in kwargs:
+        device.date_format = kwargs["date_format"]
+    if "time_fmt" in kwargs:
+        device.time_format = kwargs["time_fmt"]
+    if "date_fmt" in kwargs:
+        device.date_format = kwargs["date_fmt"]
+    if "system_unit" in kwargs:
+        device.system_unit = kwargs["system_unit"]
+
+    if "tts_module" in kwargs:
+        tts_plug = kwargs["tts_module"]
+        if "tts_config" in kwargs:
+            tts_config = kwargs["tts_config"]
+        elif tts_plug in CONFIGURATION["tts_configs"]:
+            tts_config = CONFIGURATION["tts_configs"][tts_plug]
+        else:
+            tts_config = {}
+        voice_id = get_voice_id(tts_plug, device.lang, tts_config)
+        update_voice_definition(voice_id,
+                                lang=device.lang,
+                                tts_config=tts_config,
+                                plugin=tts_plug)
+        device.voice_id = voice_id
+
+    if "wake_word" in kwargs:
+        default_ww = kwargs["wake_word"]
+        ww_module = kwargs["ww_module"]
+        if "ww_config" in kwargs:
+            ww_config = kwargs["ww_config"]
+        elif default_ww in CONFIGURATION["ww_configs"]:
+            ww_config = CONFIGURATION["ww_configs"][default_ww]
+        else:
+            ww_config = {}
+        ww_id = get_ww_id(ww_module, default_ww, ww_config)
+        update_wakeword_definition(ww_id,
+                                   name=default_ww,
+                                   ww_config=ww_config,
+                                   plugin=ww_module)
+        device.ww_id = ww_id
+
+    db.session.commit()
+
+    return device.serialize()
+
+
 def add_skill_settings(remote_id, display_name=None,
                        settings_json=None, metadata_json=None):
     entry = SkillSettings(remote_id, display_name=display_name,
@@ -562,7 +604,7 @@ def get_skill_settings(remote_id):
 def get_skill_settings_for_device(uuid):
     return SkillSettings.query.filter(SkillSettings.remote_id.startswith(f"@{uuid}|")).all()
 
-    
+
 def update_skill_settings(remote_id, display_name=None,
                           settings_json=None, metadata_json=None):
     settings: SkillSettings = get_skill_settings(remote_id)
@@ -584,38 +626,6 @@ def update_skill_settings(remote_id, display_name=None,
     return settings
 
 
-class Metric(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    metric_type = db.Column(db.String(255), nullable=False)
-    metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary data
-    # TODO - extract explicit fields from json for things we want to be queryable
-    timestamp = db.Column(db.Integer)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
-
-
-@requires_opt_in
-def save_metric(uuid, name, data):
-    entry = Metric(
-        id=db.session.query(Metric).count() + 1,
-        metric_type=name,
-        metadata_json=data,
-        uuid=uuid,
-        timestamp=time.time()
-    )
-    db.session.add(entry)
-    db.session.commit()
-
-
-class UtteranceRecording(db.Model):
-    utterance_id = db.Column(db.Integer, primary_key=True)
-    transcription = db.Column(db.String(255), nullable=False)
-    metadata_json = db.Column(NestedMutableJson)  # arbitrary metadata
-    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
-
-    timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
-
-
 @requires_opt_in
 def save_stt_recording(uuid, audio, utterance):
     entry = UtteranceRecording(
@@ -628,18 +638,6 @@ def save_stt_recording(uuid, audio, utterance):
     )
     db.session.add(entry)
     db.session.commit()
-
-
-class WakeWordRecording(db.Model):
-    wakeword_id = db.Column(db.Integer, primary_key=True)
-    transcription = db.Column(db.String(255))
-    audio_tag = db.Column(db.String(255))  # "untagged" / "wake_word" / "speech" / "noise" / "silence"
-    speaker_tag = db.Column(db.String(255))  # "untagged" / "male" / "female" / "children"
-    metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary metadata
-    sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
-
-    timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
 
 
 @requires_opt_in
@@ -676,3 +674,73 @@ def save_ww_recording(uuid, uploads):
     db.session.add(entry)
     db.session.commit()
     return True
+
+
+def add_oauth_token(token_id, token_data):
+    entry = OAuthToken(token_id=token_id, data=token_data)
+    db.session.add(entry)
+    db.session.commit()
+    return entry
+
+
+def get_oauth_token(token_id):
+    return OAuthToken.query.filter_by(token_id=token_id).first()
+
+
+def add_oauth_application(token_id, client_id, client_secret,
+                          auth_endpoint, token_endpoint, refresh_endpoint,
+                          callback_endpoint, scope, shell_integration=True):
+    entry = OAuthApplication(token_id=token_id,
+                             client_id=client_id,
+                             client_secret=client_secret,
+                             auth_endpoint=auth_endpoint,
+                             token_endpoint=token_endpoint,
+                             refresh_endpoint=refresh_endpoint,
+                             callback_endpoint=callback_endpoint,
+                             scope=scope,
+                             shell_integration=shell_integration)
+    db.session.add(entry)
+    db.session.commit()
+
+    return entry
+
+
+def get_oauth_application(token_id):
+    return OAuthApplication.query.filter_by(token_id=token_id).first()
+
+
+def add_voice_definition(voice_id, lang=None, plugin=None,
+                         tts_config=None, offline=None, gender=None) -> VoiceDefinition:
+    entry = VoiceDefinition(voice_id=voice_id, lang=lang, plugin=plugin,
+                            tts_config=tts_config, offline=offline, gender=gender)
+
+    db.session.add(entry)
+    db.session.commit()
+
+    return entry
+
+
+def get_voice_definition(voice_id) -> VoiceDefinition:
+    return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
+
+
+def update_voice_definition(voice_id, lang=None, plugin=None,
+                            tts_config=None, offline=None, gender=None) -> dict:
+    voice_def: VoiceDefinition = get_voice_definition(voice_id)
+    if not voice_def:
+        voice_def = add_voice_definition(voice_id=voice_id, lang=lang, plugin=plugin,
+                                         tts_config=tts_config, offline=offline, gender=gender)
+    else:
+        if lang:
+            voice_def.lang = lang
+        if plugin:
+            voice_def.plugin = plugin
+        if tts_config:
+            voice_def.tts_config = tts_config
+        if offline:
+            voice_def.offline = offline
+        if gender:
+            voice_def.gender = gender
+        db.session.commit()
+
+    return voice_def.serialize()
