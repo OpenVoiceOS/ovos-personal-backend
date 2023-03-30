@@ -12,6 +12,7 @@ from hashlib import md5
 db = SQLAlchemy()
 
 _mail_cfg = CONFIGURATION.get("email", {})
+_loc = CONFIGURATION["default_location"]
 
 
 def connect_db(app):
@@ -154,15 +155,15 @@ class Device(db.Model):
     lang = db.Column(db.String(5), default=CONFIGURATION.get("lang", "en-us"))
 
     # location fields, explicit so we can query them
-    city = db.Column(db.String(length=50, default="TODO"))
-    state = db.Column(db.String(length=50))
-    state_code = db.Column(db.String(length=10))
-    country = db.Column(db.String(length=50))
-    country_code = db.Column(db.String(length=10))
-    latitude = db.Column(db.Float)
-    longitude = db.Column(db.Float)
-    tz_code = db.Column(db.String(length=25))
-    tz_name = db.Column(db.String(length=15))
+    city = db.Column(db.String(length=50, default=_loc["city"]["name"]))
+    state = db.Column(db.String(length=50, default=_loc["city"]["state"]["name"]))
+    state_code = db.Column(db.String(length=10, default=_loc["city"]["state"]["code"]))
+    country = db.Column(db.String(length=50, default=_loc["city"]["state"]["country"]["name"]))
+    country_code = db.Column(db.String(length=10, default=_loc["city"]["state"]["country"]["code"]))
+    latitude = db.Column(db.Float, default=_loc["coordinate"]["latitude"])
+    longitude = db.Column(db.Float, default=_loc["coordinate"]["longitude"])
+    tz_code = db.Column(db.String(length=25, default=_loc["timezone"]["name"]))
+    tz_name = db.Column(db.String(length=15, default=_loc["timezone"]["code"]))
     # ww settings
     voice_id = db.Column(db.String(255), default=get_voice_id(CONFIGURATION.get("default_tts")))
     ww_id = db.Column(db.String(255), default=get_ww_id(CONFIGURATION.get("default_ww")))
@@ -264,7 +265,7 @@ class Device(db.Model):
         if ww_module:
             ww_id = get_ww_id(ww_module, ww_name, ww_config)
 
-        loc = data.get("location") or CONFIGURATION["default_location"]
+        loc = data.get("location") or _loc
 
         email = data.get("email") or \
                 _mail_cfg.get("recipient") or \
@@ -344,7 +345,7 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
             _mail_cfg.get("recipient") or \
             _mail_cfg.get("smtp", {}).get("username")
 
-    loc = location or CONFIGURATION["default_location"]
+    loc = location or _loc
     entry = Device(uuid=uuid,
                    token=token,
                    lang=lang,
@@ -559,7 +560,7 @@ def get_skill_settings(remote_id):
 
 
 def get_skill_settings_for_device(uuid):
-    return SkillSettings.query.filter(SkillSettings.remote_id.startswith(f"{uuid}|")).all()
+    return SkillSettings.query.filter(SkillSettings.remote_id.startswith(f"@{uuid}|")).all()
 
     
 def update_skill_settings(remote_id, display_name=None,
