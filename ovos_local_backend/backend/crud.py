@@ -46,13 +46,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def list_skill_settings(uuid):
-        device = db.get_device(uuid)
-        if not device:
-            return {"error": f"unknown uuid: {uuid}"}
-        if device.isolated_skills:
-            entries = db.get_skill_settings_for_device(uuid)
-        else:
-            entries = db.list_skill_settings()
+        entries = db.get_skill_settings_for_device(uuid)
         return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings/<skill_id>",
@@ -68,8 +62,8 @@ def get_database_crud(app):
         else:
             remote_id = skill_id
         if flask.request.method == 'DELETE':
-            # TODO
-            pass
+            success = db.delete_skill_settings(remote_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_skill_settings(remote_id, **request.json)
         else: # GET
@@ -100,7 +94,8 @@ def get_database_crud(app):
     @noindex
     def get_shared_skill_settings(skill_id):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_skill_settings(skill_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_skill_settings(skill_id, **request.json)
         else: # GET
@@ -129,7 +124,8 @@ def get_database_crud(app):
     @noindex
     def get_oauth_apps(token_id):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_oauth_application(token_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             pass # TODO
         else:  # GET
@@ -158,7 +154,8 @@ def get_database_crud(app):
     @noindex
     def get_oauth_toks(token_id):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_oauth_token(token_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             pass # TODO
         else:  # GET
@@ -192,7 +189,8 @@ def get_database_crud(app):
     def get_voice_rec(recording_id):
         # rec_id = f"@{uuid}|{transcription}|{count}"
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_stt_recording(recording_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             pass # TODO
         else:  # GET
@@ -226,7 +224,8 @@ def get_database_crud(app):
     def get_ww_rec(recording_id):
         #  rec_id = f"@{uuid}|{transcription}|{count}"
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_ww_recording(recording_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             pass # TODO
         else:  # GET
@@ -256,7 +255,8 @@ def get_database_crud(app):
     def get_metric(metric_id):
         # metric_id = f"@{uuid}|{name}|{count}"
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_metric(metric_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_metric(metric_id, request.json)
         else:  # GET
@@ -285,7 +285,8 @@ def get_database_crud(app):
     @noindex
     def get_device(uuid):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_device(uuid)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_device(uuid, **request.json)
         else:  # GET
@@ -314,7 +315,8 @@ def get_database_crud(app):
     @noindex
     def get_voice_def(voice_id):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_voice_definition(voice_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_voice_definition(voice_id, **request.json)
         else:  # GET
@@ -343,7 +345,8 @@ def get_database_crud(app):
     @noindex
     def get_ww_def(ww_id):
         if flask.request.method == 'DELETE':
-            pass # TODO
+            success = db.delete_wakeword_definition(ww_id)
+            return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_wakeword_definition(ww_id, **request.json)
         else:  # GET

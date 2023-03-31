@@ -452,6 +452,13 @@ def add_metric(uuid, name, data):
 def get_metric(metric_id):
     return Metric.query.filter_by(metric_id=metric_id).first()
 
+def delete_metric(metric_id):
+    entry = get_metric(metric_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
 
 def update_metric(metric_id, data):
     metric: Metric = get_metric(metric_id)
@@ -479,6 +486,14 @@ def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
 def get_wakeword_definition(ww_id):
     return WakeWordDefinition.query.filter_by(ww_id=ww_id).first()
 
+
+def delete_wakeword_definition(ww_id):
+    entry = get_wakeword_definition(ww_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
 
 def list_wakeword_definition():
     return WakeWordDefinition.query.all()
@@ -627,6 +642,12 @@ def list_devices():
     return Device.query.all()
 
 
+def delete_device(uuid):
+    device = get_device(uuid)
+    db.session.delete(device)
+    db.session.commit()
+
+
 def add_skill_settings(remote_id, display_name=None,
                        settings_json=None, metadata_json=None):
     entry = SkillSettings(remote_id, display_name=display_name,
@@ -646,8 +667,27 @@ def get_skill_settings(remote_id):
 
 
 def get_skill_settings_for_device(uuid):
+    device = get_device(uuid)
+    if not device or not device.isolated_skills:
+        return list_skill_settings()
     return SkillSettings.query.filter(SkillSettings.remote_id.startswith(f"@{uuid}|")).all()
 
+
+def delete_skill_settings(remote_id):
+    entry = get_skill_settings(remote_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
+
+def delete_skill_settings_for_device(uuid):
+    entry = get_skill_settings_for_device(uuid)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
 
 def update_skill_settings(remote_id, display_name=None,
                           settings_json=None, metadata_json=None):
@@ -690,6 +730,14 @@ def get_ww_recording(rec_id):
     return WakeWordRecording.query.filter_by(recording_id=rec_id).first()
 
 
+def delete_ww_recording(rec_id):
+    entry = get_ww_recording(rec_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
+
 def list_ww_recordings():
     return WakeWordRecording.query.all()
 
@@ -714,6 +762,16 @@ def get_stt_recording(rec_id):
     return UtteranceRecording.query.filter_by(recording_id=rec_id).first()
 
 
+def delete_stt_recording(rec_id):
+    entry = get_stt_recording(rec_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
+
+
+
 def list_stt_recordings():
     return UtteranceRecording.query.all()
 
@@ -727,6 +785,16 @@ def add_oauth_token(token_id, token_data):
 
 def get_oauth_token(token_id):
     return OAuthToken.query.filter_by(token_id=token_id).first()
+
+
+def delete_oauth_token(token_id):
+    entry = get_oauth_token(token_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
+
 
 
 def list_oauth_tokens():
@@ -755,6 +823,15 @@ def get_oauth_application(token_id):
     return OAuthApplication.query.filter_by(token_id=token_id).first()
 
 
+def delete_oauth_application(token_id):
+    entry = get_oauth_application(token_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
+
+
 def list_oauth_applications():
     return OAuthApplication.query.all()
 
@@ -772,6 +849,14 @@ def add_voice_definition(voice_id, lang=None, plugin=None,
 
 def get_voice_definition(voice_id) -> VoiceDefinition:
     return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
+
+def delete_voice_definition(voice_id):
+    entry = get_voice_definition(voice_id)
+    if not entry:
+        return False
+    db.session.delete(entry)
+    db.session.commit()
+    return True
 
 
 def update_voice_definition(voice_id, lang=None, plugin=None,
