@@ -76,7 +76,7 @@ class OAuthApplication(db.Model):
 class VoiceDefinition(db.Model):
     voice_id = db.Column(db.String(255), primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    lang = db.Column(db.String(255), default="en-us", nullable=False)
+    lang = db.Column(db.String(5), default="en-us", nullable=False)
     plugin = db.Column(db.String(255), default="", nullable=False)  # "module" in mycroft.conf
     tts_config = db.Column(NestedMutableJson, default={}, nullable=False)  # arbitrary data for mycroft.conf/OPM
     offline = db.Column(db.Boolean, default=False, nullable=False)
@@ -97,6 +97,7 @@ class VoiceDefinition(db.Model):
 class WakeWordDefinition(db.Model):
     ww_id = db.Column(db.String(255), primary_key=True)
     name = db.Column(db.String(255), default="", nullable=False)
+    lang = db.Column(db.String(5), default="en-us", nullable=False)
     plugin = db.Column(db.String(255), default="", nullable=False)  # "module" in mycroft.conf
     ww_config = db.Column(NestedMutableJson, default={}, nullable=False)  # arbitrary data for mycroft.conf/OPM
 
@@ -104,6 +105,7 @@ class WakeWordDefinition(db.Model):
         return {
             "ww_id": self.ww_id,
             "name": self.name,
+            "lang": self.lang,
             "plugin": self.plugin,
             "ww_config": self.ww_config
         }
@@ -471,8 +473,9 @@ def list_metrics():
     return Metric.query.all()
 
 
-def add_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
-    entry = WakeWordDefinition(ww_id, name=name, ww_config=ww_config, plugin=plugin)
+def add_wakeword_definition(ww_id, name, lang, ww_config, plugin):
+    entry = WakeWordDefinition(ww_id, lang=lang, name=name,
+                               ww_config=ww_config, plugin=plugin)
     db.session.add(entry)
     db.session.commit()
     return entry
@@ -499,14 +502,20 @@ def list_voice_definitions():
     return VoiceDefinition.query.all()
 
 
-def update_wakeword_definition(ww_id, name=None, ww_config=None, plugin=None):
+def update_wakeword_definition(ww_id, name=None, lang=None, ww_config=None, plugin=None):
     ww_def: WakeWordDefinition = get_wakeword_definition(ww_id)
     if not ww_def:
-        ww_def = add_wakeword_definition(ww_id=ww_id, name=name, ww_config=ww_config, plugin=plugin)
+        ww_def = add_wakeword_definition(ww_id=ww_id, lang=lang, name=name,
+                                         ww_config=ww_config, plugin=plugin)
     else:
-        ww_def.name = name
-        ww_def.plugin = plugin
-        ww_def.ww_config = ww_config
+        if name:
+            ww_def.name = name
+        if plugin:
+            ww_def.plugin = plugin
+        if lang:
+            ww_def.lang = lang
+        if ww_config:
+            ww_def.ww_config = ww_config
         db.session.commit()
     return ww_def
 
@@ -727,8 +736,10 @@ def add_ww_recording(uuid, byte_data, transcription, meta):
 def update_ww_recording(rec_id, transcription, metadata):
     entry = get_ww_recording(rec_id)
     if entry:
-        entry.transcription = transcription
-        entry.metadata_json = metadata
+        if transcription:
+            entry.transcription = transcription
+        if metadata:
+            entry.metadata_json = metadata
         db.session.commit()
     return entry
 
@@ -769,8 +780,10 @@ def add_stt_recording(uuid, byte_data, transcription, metadata=None):
 def update_stt_recording(rec_id, transcription, metadata):
     entry = get_stt_recording(rec_id)
     if entry:
-        entry.transcription = transcription
-        entry.metadata_json = metadata
+        if transcription:
+            entry.transcription = transcription
+        if metadata:
+            entry.metadata_json = metadata
         db.session.commit()
     return entry
 
