@@ -10,16 +10,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import time
 
 import base64
+
+import ovos_local_backend.database as db
 from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_admin
-import ovos_local_backend.database as db
-from ovos_local_backend.utils import generate_code
-from ovos_local_backend.utils import nice_json
-from ovos_local_backend.utils.geolocate import get_request_location
 
 
 def get_database_crud(app):
@@ -39,6 +36,8 @@ def get_database_crud(app):
         else:
             remote_id = skill_id
         entry = db.add_skill_settings(remote_id, **data)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings/list",
@@ -66,8 +65,10 @@ def get_database_crud(app):
             return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_skill_settings(remote_id, **request.json)
-        else: # GET
+        else:  # GET
             entry = db.get_skill_settings(remote_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/skill_settings",
@@ -78,6 +79,8 @@ def get_database_crud(app):
         data = request.json
         skill_id = data.pop("skill_id")
         entry = db.add_skill_settings(skill_id, **data)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/skill_settings/list",
@@ -98,8 +101,10 @@ def get_database_crud(app):
             return {"success": success}
         elif flask.request.method == 'PUT':
             entry = db.update_skill_settings(skill_id, **request.json)
-        else: # GET
+        else:  # GET
             entry = db.get_skill_settings(skill_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_apps",
@@ -108,6 +113,8 @@ def get_database_crud(app):
     @noindex
     def create_oauth_app():
         entry = db.add_oauth_application(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_apps/list",
@@ -127,9 +134,11 @@ def get_database_crud(app):
             success = db.delete_oauth_application(token_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            pass # TODO
+            entry = db.update_oauth_application(token_id, **request.json)
         else:  # GET
             entry = db.get_oauth_application(token_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_toks",
@@ -138,6 +147,8 @@ def get_database_crud(app):
     @noindex
     def create_oauth_toks():
         entry = db.add_oauth_token(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_toks/list",
@@ -157,9 +168,11 @@ def get_database_crud(app):
             success = db.delete_oauth_token(token_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            pass # TODO
+            entry = db.update_oauth_token(token_id, **request.json)
         else:  # GET
             entry = db.get_oauth_token(token_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_recs",
@@ -172,6 +185,8 @@ def get_database_crud(app):
         audio_b64 = data.pop("audio_b64")
         data["byte_data"] = base64.decodestring(audio_b64)
         entry = db.add_stt_recording(**data)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_recs/list",
@@ -192,9 +207,11 @@ def get_database_crud(app):
             success = db.delete_stt_recording(recording_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            pass # TODO
+            entry = db.update_stt_recording(recording_id, **request.json)
         else:  # GET
             entry = db.get_stt_recording(recording_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_recs",
@@ -207,6 +224,8 @@ def get_database_crud(app):
         audio_b64 = data.pop("audio_b64")
         data["byte_data"] = base64.decodestring(audio_b64)
         entry = db.add_ww_recording(**data)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_recs/list",
@@ -227,9 +246,11 @@ def get_database_crud(app):
             success = db.delete_ww_recording(recording_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            pass # TODO
+            entry = db.update_ww_recording(recording_id, **request.json)
         else:  # GET
             entry = db.get_ww_recording(recording_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/metrics",
@@ -238,6 +259,8 @@ def get_database_crud(app):
     @noindex
     def create_metric():
         entry = db.add_metric(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/metrics/list",
@@ -261,6 +284,8 @@ def get_database_crud(app):
             entry = db.update_metric(metric_id, request.json)
         else:  # GET
             entry = db.get_metric(metric_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/devices",
@@ -269,6 +294,8 @@ def get_database_crud(app):
     @noindex
     def create_device():
         entry = db.add_device(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/devices/list",
@@ -291,6 +318,8 @@ def get_database_crud(app):
             entry = db.update_device(uuid, **request.json)
         else:  # GET
             entry = db.get_device()
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_defs",
@@ -299,6 +328,8 @@ def get_database_crud(app):
     @noindex
     def create_voice_defs():
         entry = db.add_voice_definition(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/voice_defs/list",
@@ -321,6 +352,8 @@ def get_database_crud(app):
             entry = db.update_voice_definition(voice_id, **request.json)
         else:  # GET
             entry = db.get_voice_definition(voice_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_defs",
@@ -329,6 +362,8 @@ def get_database_crud(app):
     @noindex
     def create_ww_def():
         entry = db.add_wakeword_definition(**request.json)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/ww_defs/list",
@@ -351,8 +386,8 @@ def get_database_crud(app):
             entry = db.update_wakeword_definition(ww_id, **request.json)
         else:  # GET
             entry = db.get_wakeword_definition(ww_id)
+        if not entry:
+            return {"error": "entry not found"}
         return entry.serialize()
 
     return app
-
-

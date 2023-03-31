@@ -1,23 +1,18 @@
 import json
 import time
 from copy import deepcopy
-from hashlib import md5
 
 from flask_sqlalchemy import SQLAlchemy
 from ovos_local_backend.configuration import CONFIGURATION
-from sqlalchemy_json import NestedMutableJson
 from ovos_plugin_manager.tts import get_voice_id
 from ovos_plugin_manager.wakewords import get_ww_id
-
+from sqlalchemy_json import NestedMutableJson
 
 # create the extension
 db = SQLAlchemy()
 
 _mail_cfg = CONFIGURATION.get("email", {})
 _loc = CONFIGURATION["default_location"]
-
-
-
 
 _tts_plug = CONFIGURATION.get("default_tts")
 _tts_config = CONFIGURATION["tts_configs"][_tts_plug]
@@ -403,9 +398,8 @@ class Metric(db.Model):
     metric_id = db.Column(db.String(255), primary_key=True)
     metric_type = db.Column(db.String(255), nullable=False)
     metadata_json = db.Column(NestedMutableJson, nullable=False)  # arbitrary data
-    # TODO - extract explicit fields from json for things we want to be queryable
     timestamp = db.Column(db.Integer)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
+    uuid = db.Column(db.String(255))
 
 
 class UtteranceRecording(db.Model):
@@ -416,7 +410,7 @@ class UtteranceRecording(db.Model):
     sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
+    uuid = db.Column(db.String(255))
 
 
 class WakeWordRecording(db.Model):
@@ -429,9 +423,7 @@ class WakeWordRecording(db.Model):
     sample = db.Column(db.LargeBinary(16777215), nullable=False)  # audio data
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
-    uuid = db.Column(db.String(255))  # TODO - link to devices table
-
-
+    uuid = db.Column(db.String(255))
 
 
 def add_metric(uuid, name, data):
@@ -452,6 +444,7 @@ def add_metric(uuid, name, data):
 def get_metric(metric_id):
     return Metric.query.filter_by(metric_id=metric_id).first()
 
+
 def delete_metric(metric_id):
     entry = get_metric(metric_id)
     if not entry:
@@ -459,6 +452,7 @@ def delete_metric(metric_id):
     db.session.delete(entry)
     db.session.commit()
     return True
+
 
 def update_metric(metric_id, data):
     metric: Metric = get_metric(metric_id)
@@ -494,6 +488,7 @@ def delete_wakeword_definition(ww_id):
     db.session.delete(entry)
     db.session.commit()
     return True
+
 
 def list_wakeword_definition():
     return WakeWordDefinition.query.all()
@@ -681,6 +676,7 @@ def delete_skill_settings(remote_id):
     db.session.commit()
     return True
 
+
 def delete_skill_settings_for_device(uuid):
     entry = get_skill_settings_for_device(uuid)
     if not entry:
@@ -688,6 +684,7 @@ def delete_skill_settings_for_device(uuid):
     db.session.delete(entry)
     db.session.commit()
     return True
+
 
 def update_skill_settings(remote_id, display_name=None,
                           settings_json=None, metadata_json=None):
@@ -726,6 +723,15 @@ def add_ww_recording(uuid, byte_data, transcription, meta):
     return entry
 
 
+def update_ww_recording(rec_id, utterance, metadata):
+    entry = get_ww_recording(rec_id)
+    if entry:
+        entry.transcription = utterance
+        entry.metadata_json = metadata
+        db.session.commit()
+    return entry
+
+
 def get_ww_recording(rec_id):
     return WakeWordRecording.query.filter_by(recording_id=rec_id).first()
 
@@ -738,23 +744,33 @@ def delete_ww_recording(rec_id):
     db.session.commit()
     return True
 
+
 def list_ww_recordings():
     return WakeWordRecording.query.all()
 
 
-def add_stt_recording(uuid, byte_data, utterance):
+def add_stt_recording(uuid, byte_data, utterance, metadata=None):
     count = db.session.query(UtteranceRecording).count() + 1
     rec_id = f"@{uuid}|{transcription}|{count}"
     entry = UtteranceRecording(
         recording_id=rec_id,
         transcription=utterance,
         sample=byte_data,
-        metadata_json={},  # TODO - allow expanding in future
+        metadata_json=metadata or {},
         uuid=uuid,
         timestamp=time.time()
     )
     db.session.add(entry)
     db.session.commit()
+    return entry
+
+
+def update_stt_recording(rec_id, utterance, metadata):
+    entry = get_stt_recording(rec_id)
+    if entry:
+        entry.transcription = utterance
+        entry.metadata_json = metadata
+        db.session.commit()
     return entry
 
 
@@ -769,7 +785,6 @@ def delete_stt_recording(rec_id):
     db.session.delete(entry)
     db.session.commit()
     return True
-
 
 
 def list_stt_recordings():
@@ -787,6 +802,14 @@ def get_oauth_token(token_id):
     return OAuthToken.query.filter_by(token_id=token_id).first()
 
 
+def update_oauth_token(token_id, token_data):
+    entry = get_oauth_token(token_id)
+    if entry:
+        entry.data = token_data
+        db.session.commit()
+    return entry
+
+
 def delete_oauth_token(token_id):
     entry = get_oauth_token(token_id)
     if not entry:
@@ -794,7 +817,6 @@ def delete_oauth_token(token_id):
     db.session.delete(entry)
     db.session.commit()
     return True
-
 
 
 def list_oauth_tokens():
@@ -816,6 +838,36 @@ def add_oauth_application(token_id, client_id, client_secret,
     db.session.add(entry)
     db.session.commit()
 
+    return entry
+
+
+def update_oauth_application(token_id=None, client_id=None, client_secret=None,
+                             auth_endpoint=None, token_endpoint=None, refresh_endpoint=None,
+                             callback_endpoint=None, scope=None, shell_integration=None):
+    entry = get_oauth_application(token_id)
+    if not entry:
+        shell_integration = shell_integration or True
+        entry = add_oauth_application(token_id, client_id, client_secret,
+                                      auth_endpoint, token_endpoint, refresh_endpoint,
+                                      callback_endpoint, scope, shell_integration)
+
+    if client_id is not None:
+        entry.client_id = client_id
+    if client_secret is not None:
+        entry.client_secret = client_secret
+    if auth_endpoint is not None:
+        entry.auth_endpoint = auth_endpoint
+    if token_endpoint is not None:
+        entry.token_endpoint = token_endpoint
+    if refresh_endpoint is not None:
+        entry.refresh_endpoint = refresh_endpoint
+    if callback_endpoint is not None:
+        entry.callback_endpoint = callback_endpoint
+    if scope is not None:
+        entry.scope = scope
+    if shell_integration is not None:
+        entry.shell_integration = shell_integration
+    db.session.commit()
     return entry
 
 
@@ -849,6 +901,7 @@ def add_voice_definition(voice_id, lang=None, plugin=None,
 
 def get_voice_definition(voice_id) -> VoiceDefinition:
     return VoiceDefinition.query.filter_by(voice_id=voice_id).first()
+
 
 def delete_voice_definition(voice_id):
     entry = get_voice_definition(voice_id)
