@@ -32,7 +32,7 @@ def get_admin_routes(app):
         token = f"{code}:{uuid}"
         # add device to db
         location = get_request_location()
-        add_device(uuid, token, location=location)
+        db.add_device(uuid, token, location=location)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
@@ -44,21 +44,21 @@ def get_admin_routes(app):
     @requires_admin
     @noindex
     def set_device(uuid):
-        device_data = update_device(uuid, **request.json)
+        device_data = db.update_device(uuid, **request.json)
         return nice_json(device_data)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/location", methods=['PUT'])
     @requires_admin
     @noindex
     def set_location(uuid):
-        device_data = update_device(uuid, location=request.json)
+        device_data = db.update_device(uuid, location=request.json)
         return nice_json(device_data)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/prefs", methods=['PUT'])
     @requires_admin
     @noindex
     def set_prefs(uuid):
-        device_data = update_device(uuid, **request.json)
+        device_data = db.update_device(uuid, **request.json)
         return nice_json(device_data)
 
     return app
