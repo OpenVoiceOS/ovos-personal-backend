@@ -6,6 +6,9 @@ from hashlib import md5
 from flask_sqlalchemy import SQLAlchemy
 from ovos_local_backend.configuration import CONFIGURATION
 from sqlalchemy_json import NestedMutableJson
+from ovos_plugin_manager.tts import get_voice_id
+from ovos_plugin_manager.wakewords import get_ww_id
+
 
 # create the extension
 db = SQLAlchemy()
@@ -14,16 +17,6 @@ _mail_cfg = CONFIGURATION.get("email", {})
 _loc = CONFIGURATION["default_location"]
 
 
-# TODO - port to OPM to standardize the concept
-def get_voice_id(plugin_name, lang, tts_config):
-    tts_hash = md5(json.dumps(tts_config, sort_keys=True).encode("utf-8")).hexdigest()
-    return f"{plugin_name}_{lang}_{tts_hash}"
-
-
-# TODO - port to OPM to standardize the concept
-def get_ww_id(plugin_name, ww_name, ww_config):
-    ww_hash = md5(json.dumps(ww_config, sort_keys=True).encode("utf-8")).hexdigest()
-    return f"{plugin_name}_{ww_name}_{ww_hash}"
 
 
 _tts_plug = CONFIGURATION.get("default_tts")

@@ -31,13 +31,13 @@ def get_database_crud(app):
     def create_skill_settings(uuid):
         data = request.json
         skill_id = data.pop("skill_id")
-        # TODO - depending on device shared_settings flag
-        #  either use remote_id or skill_id
-        shared = False
-        if shared:
-            remote_id = skill_id
-        else:
+        device = db.get_device(uuid)
+        if not device:
+            return {"error": f"unknown uuid: {uuid}"}
+        if device.isolated_skills:
             remote_id = f"@{uuid}|{skill_id}"
+        else:
+            remote_id = skill_id
         entry = db.add_skill_settings(remote_id, **data)
         return entry.serialize()
 
@@ -46,13 +46,13 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def list_skill_settings(uuid):
-        # TODO - depending on device shared_settings flag
-        #  either use remote_id or skill_id
-        shared = False
-        if shared:
-            entries = []
-        else:
+        device = db.get_device(uuid)
+        if not device:
+            return {"error": f"unknown uuid: {uuid}"}
+        if device.isolated_skills:
             entries = db.get_skill_settings_for_device(uuid)
+        else:
+            entries = db.list_skill_settings()
         return [e.serialize() for e in entries]
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings/<skill_id>",
@@ -60,13 +60,13 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def get_skill_settings(uuid, skill_id):
-        # TODO - depending on device shared_settings flag
-        #  either use remote_id or skill_id
-        shared = False
-        if shared:
-            remote_id = skill_id
-        else:
+        device = db.get_device(uuid)
+        if not device:
+            return {"error": f"unknown uuid: {uuid}"}
+        if device.isolated_skills:
             remote_id = f"@{uuid}|{skill_id}"
+        else:
+            remote_id = skill_id
         if flask.request.method == 'DELETE':
             # TODO
             pass
@@ -119,7 +119,7 @@ def get_database_crud(app):
                methods=['GET'])
     @requires_admin
     @noindex
-    def list_oauth_apps(uuid):
+    def list_oauth_apps():
         entries = db.list_oauth_applications()
         return [e.serialize() for e in entries]
 
@@ -134,7 +134,7 @@ def get_database_crud(app):
             pass # TODO
         else:  # GET
             entry = db.get_oauth_application(token_id)
-        return {}  # TODO
+        return entry.serialize()
 
     @app.route("/" + API_VERSION + "/admin/oauth_toks",
                methods=['POST'])
