@@ -16,7 +16,7 @@ from tempfile import NamedTemporaryFile
 from flask import request
 from speech_recognition import Recognizer, AudioFile
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex, requires_auth
+from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database import add_stt_recording
 from ovos_plugin_manager.stt import OVOSSTTFactory
