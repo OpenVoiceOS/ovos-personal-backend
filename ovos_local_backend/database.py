@@ -75,6 +75,7 @@ class OAuthApplication(db.Model):
 
 class VoiceDefinition(db.Model):
     voice_id = db.Column(db.String(255), primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
     lang = db.Column(db.String(255), default="en-us", nullable=False)
     plugin = db.Column(db.String(255), default="", nullable=False)  # "module" in mycroft.conf
     tts_config = db.Column(NestedMutableJson, default={}, nullable=False)  # arbitrary data for mycroft.conf/OPM
@@ -723,10 +724,10 @@ def add_ww_recording(uuid, byte_data, transcription, meta):
     return entry
 
 
-def update_ww_recording(rec_id, utterance, metadata):
+def update_ww_recording(rec_id, transcription, metadata):
     entry = get_ww_recording(rec_id)
     if entry:
-        entry.transcription = utterance
+        entry.transcription = transcription
         entry.metadata_json = metadata
         db.session.commit()
     return entry
@@ -749,12 +750,12 @@ def list_ww_recordings():
     return WakeWordRecording.query.all()
 
 
-def add_stt_recording(uuid, byte_data, utterance, metadata=None):
+def add_stt_recording(uuid, byte_data, transcription, metadata=None):
     count = db.session.query(UtteranceRecording).count() + 1
     rec_id = f"@{uuid}|{transcription}|{count}"
     entry = UtteranceRecording(
         recording_id=rec_id,
-        transcription=utterance,
+        transcription=transcription,
         sample=byte_data,
         metadata_json=metadata or {},
         uuid=uuid,
@@ -765,10 +766,10 @@ def add_stt_recording(uuid, byte_data, utterance, metadata=None):
     return entry
 
 
-def update_stt_recording(rec_id, utterance, metadata):
+def update_stt_recording(rec_id, transcription, metadata):
     entry = get_stt_recording(rec_id)
     if entry:
-        entry.transcription = utterance
+        entry.transcription = transcription
         entry.metadata_json = metadata
         db.session.commit()
     return entry
@@ -888,9 +889,10 @@ def list_oauth_applications():
     return OAuthApplication.query.all()
 
 
-def add_voice_definition(voice_id, lang=None, plugin=None,
+def add_voice_definition(voice_id, name=None, lang=None, plugin=None,
                          tts_config=None, offline=None, gender=None) -> VoiceDefinition:
-    entry = VoiceDefinition(voice_id=voice_id, lang=lang, plugin=plugin,
+    name = name or voice_id
+    entry = VoiceDefinition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
                             tts_config=tts_config, offline=offline, gender=gender)
 
     db.session.add(entry)
@@ -912,13 +914,15 @@ def delete_voice_definition(voice_id):
     return True
 
 
-def update_voice_definition(voice_id, lang=None, plugin=None,
+def update_voice_definition(voice_id, name=None, lang=None, plugin=None,
                             tts_config=None, offline=None, gender=None) -> dict:
     voice_def: VoiceDefinition = get_voice_definition(voice_id)
     if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, lang=lang, plugin=plugin,
+        voice_def = add_voice_definition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
                                          tts_config=tts_config, offline=offline, gender=gender)
     else:
+        if name:
+            voice_def.name = name
         if lang:
             voice_def.lang = lang
         if plugin:
