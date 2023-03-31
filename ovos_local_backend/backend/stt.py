@@ -18,11 +18,17 @@ from speech_recognition import Recognizer, AudioFile
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database import save_stt_recording
+from ovos_local_backend.database import add_stt_recording
 from ovos_plugin_manager.stt import OVOSSTTFactory
 
 recognizer = Recognizer()
 engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
+
+
+@requires_opt_in
+def save_stt_recording(uuid, audio, utterance):
+    audio_bytes = audio.get_wav_data()
+    add_stt_recording(uuid, audio_bytes, utterance)
 
 
 def get_stt_routes(app):

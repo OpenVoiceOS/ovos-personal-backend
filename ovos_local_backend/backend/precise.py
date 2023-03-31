@@ -3,7 +3,38 @@ from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database import save_ww_recording
+from ovos_local_backend.database import add_ww_recording
+
+
+@requires_opt_in
+def save_ww_recording(uuid, uploads):
+    meta = {}
+    audio = None
+    for ww_file in uploads:
+        # Werkzeug FileStorage objects
+        fn = uploads[ww_file].filename
+        if fn == 'audio':
+            audio = uploads[ww_file].read()
+        if fn == 'metadata':
+            meta = json.load(uploads[ww_file])
+
+    if not audio:
+        return False  # TODO - some error? just ignore entry for now
+
+    # classic mycroft devices send
+    # {"name": "hey-mycroft",
+    # "engine": "0f4df281688583e010c26831abdc2222",
+    # "time": "1592192357852",
+    # "sessionId": "7d18e208-05b5-401e-add6-ee23ae821967",
+    # "accountId": "0",
+    # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
+
+    add_ww_recording(uuid,
+                     audio,
+                     meta.get("name", "").replace("_", " "),
+                     meta)
+    return True
+
 
 def get_precise_routes(app):
     @app.route('/precise/upload', methods=['POST'])

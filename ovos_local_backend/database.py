@@ -4,7 +4,6 @@ from copy import deepcopy
 from hashlib import md5
 
 from flask_sqlalchemy import SQLAlchemy
-from ovos_local_backend.backend.decorators import requires_opt_in
 from ovos_local_backend.configuration import CONFIGURATION
 from sqlalchemy_json import NestedMutableJson
 
@@ -440,9 +439,6 @@ class WakeWordRecording(db.Model):
     uuid = db.Column(db.String(255))  # TODO - link to devices table
 
 
-@requires_opt_in
-def save_metric(uuid, name, data):
-    add_metric(uuid, name, data)
 
 
 def add_metric(uuid, name, data):
@@ -679,42 +675,6 @@ def update_skill_settings(remote_id, display_name=None,
         db.session.commit()
 
     return settings
-
-
-@requires_opt_in
-def save_stt_recording(uuid, audio, utterance):
-    audio_bytes = audio.get_wav_data()
-    add_stt_recording(uuid, audio_bytes, utterance)
-
-
-@requires_opt_in
-def save_ww_recording(uuid, uploads):
-    meta = {}
-    audio = None
-    for ww_file in uploads:
-        # Werkzeug FileStorage objects
-        fn = uploads[ww_file].filename
-        if fn == 'audio':
-            audio = uploads[ww_file].read()
-        if fn == 'metadata':
-            meta = json.load(uploads[ww_file])
-
-    if not audio:
-        return False  # TODO - some error? just ignore entry for now
-
-    # classic mycroft devices send
-    # {"name": "hey-mycroft",
-    # "engine": "0f4df281688583e010c26831abdc2222",
-    # "time": "1592192357852",
-    # "sessionId": "7d18e208-05b5-401e-add6-ee23ae821967",
-    # "accountId": "0",
-    # "model": "5223842df0cdee5bca3eff8eac1b67fc"}
-
-    add_ww_recording(uuid,
-                     audio,
-                     meta.get("name", "").replace("_", " "),
-                     meta)
-    return True
 
 
 def add_ww_recording(uuid, byte_data, transcription, meta):

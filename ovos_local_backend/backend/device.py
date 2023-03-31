@@ -21,13 +21,20 @@ from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
 from ovos_local_backend.database import (
-    save_metric,
+    add_metric,
     get_device,
     add_device,
     SkillSettings,
     update_skill_settings,
     get_skill_settings_for_device
 )
+
+
+
+@requires_opt_in
+def save_metric(uuid, name, data):
+    add_metric(uuid, name, data)
+
 
 
 def get_device_routes(app):
