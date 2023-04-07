@@ -3,14 +3,14 @@ from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.settings import DeviceDatabase
+from ovos_local_backend.database import get_device
 from ovos_local_backend.utils import dict_to_camel_case, ExternalApiManager
 
 
 def _get_lang():
     auth = request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
-    device = DeviceDatabase().get_device(uid)
+    device = get_device(uid)
     if device:
         return device.lang
     return CONFIGURATION.get("lang", "en-us")
@@ -19,7 +19,7 @@ def _get_lang():
 def _get_units():
     auth = request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
-    device = DeviceDatabase().get_device(uid)
+    device = get_device(uid)
     if device:
         return device.system_unit
     return CONFIGURATION.get("system_unit", "metric")
@@ -28,7 +28,7 @@ def _get_units():
 def _get_latlon():
     auth = request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
-    device = DeviceDatabase().get_device(uid)
+    device = get_device(uid)
     if device:
         loc = device.location
     else:

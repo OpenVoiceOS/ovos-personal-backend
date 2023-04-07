@@ -13,12 +13,15 @@
 
 from flask import Flask
 from ovos_local_backend.configuration import CONFIGURATION
+from ovos_local_backend.database import connect_db
 
 API_VERSION = CONFIGURATION["api_version"]
 
 
 def create_app():
     app = Flask(__name__)
+
+    app, db = connect_db(app)
 
     from ovos_local_backend.utils import nice_json
     from ovos_local_backend.backend.decorators import noindex
@@ -28,12 +31,15 @@ def create_app():
     from ovos_local_backend.backend.precise import get_precise_routes
     from ovos_local_backend.backend.external_apis import get_services_routes
     from ovos_local_backend.backend.admin import get_admin_routes
+    from ovos_local_backend.backend.crud import get_database_crud
+
     app = get_auth_routes(app)
     app = get_device_routes(app)
     app = get_stt_routes(app)
     app = get_precise_routes(app)
     app = get_services_routes(app)
     app = get_admin_routes(app)
+    app = get_database_crud(app)
 
     @app.route("/", methods=['GET'])
     @noindex

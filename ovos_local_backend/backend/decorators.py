@@ -13,12 +13,13 @@
 from functools import wraps
 from flask import make_response, request, Response
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.database.settings import DeviceDatabase
 
 
 def check_auth(uid, token):
     """This function is called to check if a access token is valid."""
-    device = DeviceDatabase().get_device(uid)
+    from ovos_local_backend.database import get_device
+
+    device = get_device(uid)
     if device and device.token == token:
         return True
     return False
@@ -27,9 +28,11 @@ def check_auth(uid, token):
 def requires_opt_in(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        from ovos_local_backend.database import get_device
+
         auth = request.headers.get('Authorization', '').replace("Bearer ", "")
         uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
-        device = DeviceDatabase().get_device(uuid)
+        device = get_device(uuid)
         if device and device.opt_in:
             return f(*args, **kwargs)
 

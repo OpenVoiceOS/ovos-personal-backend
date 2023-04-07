@@ -10,6 +10,10 @@ This is NOT meant to provision third party devices, but rather to run on the myc
 
 Documentation can be found at https://openvoiceos.github.io/community-docs/personal_backend
 
+NOTES: 
+- this backend moved to SQL databases on release 0.1.6a10, json databases from older version are not compatible
+- at the time of writing, backend manager does not yet work with this backend version
+
 
 ## Install
 

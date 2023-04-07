@@ -20,7 +20,8 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_backend_client.database import OAuthTokenDatabase, OAuthApplicationDatabase
+from ovos_local_backend.database import add_oauth_application, add_oauth_token, get_oauth_application, get_oauth_token
+
 from ovos_local_backend.utils import nice_json
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -50,8 +51,12 @@ def get_auth_routes(app):
         """ send auth url to user to confirm authorization,
         once user opens it callback is triggered
         """
+        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        uid = auth.split(":")[-1]
+        token_id = f"{uid}|{oauth_id}"
+
         params = dict(request.args)
-        params["callback_endpoint"] = request.base_url + f"/{API_VERSION}/auth/callback/{oauth_id}"
+        params["callback_endpoint"] = request.base_url + f"/{API_VERSION}/auth/callback/{token_id}"
 
         client = WebApplicationClient(params["client_id"])
         request_uri = client.prepare_request_uri(
@@ -59,27 +64,27 @@ def get_auth_routes(app):
             redirect_uri=params["callback_endpoint"],
             scope=params["scope"],
         )
-        with OAuthApplicationDatabase() as db:
-            db.add_application(oauth_id,
-                               params["client_id"],
-                               params["client_secret"],
-                               params["auth_endpoint"],
-                               params["token_endpoint"],
-                               params["refresh_endpoint"],
-                               params["callback_endpoint"],
-                               params["scope"])
+
+        add_oauth_application(token_id=token_id,
+                               client_id=params["client_id"],
+                               client_secret=params["client_secret"],
+                               auth_endpoint=params["auth_endpoint"],
+                               token_endpoint=params["token_endpoint"],
+                               refresh_endpoint=params["refresh_endpoint"],
+                               callback_endpoint=params["callback_endpoint"],
+                               scope=params["scope"])
 
         return request_uri, 200
 
-    @app.route(f"/{API_VERSION}/auth/callback/<oauth_id>", methods=['GET'])
+    @app.route(f"/{API_VERSION}/auth/callback/<token_id>", methods=['GET'])
     @noindex
-    def oauth_callback(oauth_id):
+    def oauth_callback(token_id):
         """ user completed oauth, save token to db
         """
         params = dict(request.args)
         code = params["code"]
 
-        data = OAuthApplicationDatabase()[oauth_id]
+        data = get_oauth_application(token_id)
         client_id = data["client_id"]
         client_secret = data["client_secret"]
         token_endpoint = data["token_endpoint"]
@@ -99,9 +104,7 @@ def get_auth_routes(app):
             auth=(client_id, client_secret),
         ).json()
 
-        with OAuthTokenDatabase() as db:
-            db.add_token(oauth_id, token_response)
-
+        add_oauth_token(token_id, token_response)
         return nice_json(params)
 
     @app.route(f"/{API_VERSION}/device/<uuid>/token/<oauth_id>", methods=['GET'])
@@ -109,7 +112,8 @@ def get_auth_routes(app):
     @noindex
     def oauth_token(uuid, oauth_id):
         """a device is requesting a token for a previously approved OAuth app"""
-        data = OAuthTokenDatabase().get(oauth_id) or {}
+        token_id = f"@{uuid}|{oauth_id}"
+        data = get_oauth_token(token_id)
         return nice_json(data)
 
     return app
