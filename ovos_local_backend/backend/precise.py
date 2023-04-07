@@ -1,4 +1,5 @@
-from flask import request
+import flask
+import json
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
@@ -43,9 +44,9 @@ def get_precise_routes(app):
     def precise_upload():
         success = False
         if CONFIGURATION["record_wakewords"]:
-            auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+            auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
-            success = save_ww_recording(uuid, request.files)
+            success = save_ww_recording(uuid, flask.request.files)
 
         return {"success": success,
                 "sent_to_mycroft": False,
@@ -56,11 +57,11 @@ def get_precise_routes(app):
     @requires_auth
     def precise_upload_v2(uuid):
         success = False
-        if 'audio' not in request.files:
+        if 'audio' not in flask.request.files:
             return "No Audio to upload", 400
 
         if CONFIGURATION["record_wakewords"]:
-            success = save_ww_recording(uuid, request.files)
+            success = save_ww_recording(uuid, flask.request.files)
 
         return {"success": success,
                 "sent_to_mycroft": False,

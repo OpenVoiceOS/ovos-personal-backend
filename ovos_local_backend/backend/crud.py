@@ -13,20 +13,22 @@
 
 import base64
 
+import flask
+
 import ovos_local_backend.database as db
-from flask import request
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_admin
 
 
 def get_database_crud(app):
+
     # DATABASE - (backend manager uses these)
     @app.route("/" + API_VERSION + "/admin/<uuid>/skill_settings",
                methods=['POST'])
     @requires_admin
     @noindex
     def create_skill_settings(uuid):
-        data = request.json
+        data = flask.request.json
         skill_id = data.pop("skill_id")
         device = db.get_device(uuid)
         if not device:
@@ -64,7 +66,7 @@ def get_database_crud(app):
             success = db.delete_skill_settings(remote_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_skill_settings(remote_id, **request.json)
+            entry = db.update_skill_settings(remote_id, **flask.request.json)
         else:  # GET
             entry = db.get_skill_settings(remote_id)
         if not entry:
@@ -76,7 +78,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_shared_skill_settings():
-        data = request.json
+        data = flask.request.json
         skill_id = data.pop("skill_id")
         entry = db.add_skill_settings(skill_id, **data)
         if not entry:
@@ -100,7 +102,7 @@ def get_database_crud(app):
             success = db.delete_skill_settings(skill_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_skill_settings(skill_id, **request.json)
+            entry = db.update_skill_settings(skill_id, **flask.request.json)
         else:  # GET
             entry = db.get_skill_settings(skill_id)
         if not entry:
@@ -112,7 +114,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_oauth_app():
-        entry = db.add_oauth_application(**request.json)
+        entry = db.add_oauth_application(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -134,7 +136,7 @@ def get_database_crud(app):
             success = db.delete_oauth_application(token_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_oauth_application(token_id, **request.json)
+            entry = db.update_oauth_application(token_id, **flask.request.json)
         else:  # GET
             entry = db.get_oauth_application(token_id)
         if not entry:
@@ -146,7 +148,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_oauth_toks():
-        entry = db.add_oauth_token(**request.json)
+        entry = db.add_oauth_token(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -168,7 +170,7 @@ def get_database_crud(app):
             success = db.delete_oauth_token(token_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_oauth_token(token_id, **request.json)
+            entry = db.update_oauth_token(token_id, **flask.request.json)
         else:  # GET
             entry = db.get_oauth_token(token_id)
         if not entry:
@@ -181,7 +183,7 @@ def get_database_crud(app):
     @noindex
     def create_voice_rec():
         # b64 decode bytes before saving
-        data = request.json
+        data = flask.flask.request.json
         audio_b64 = data.pop("audio_b64")
         data["byte_data"] = base64.decodestring(audio_b64)
         entry = db.add_stt_recording(**data)
@@ -207,7 +209,7 @@ def get_database_crud(app):
             success = db.delete_stt_recording(recording_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_stt_recording(recording_id, **request.json)
+            entry = db.update_stt_recording(recording_id, **flask.request.json)
         else:  # GET
             entry = db.get_stt_recording(recording_id)
         if not entry:
@@ -220,7 +222,7 @@ def get_database_crud(app):
     @noindex
     def create_ww_rec():
         # b64 decode bytes before saving
-        data = request.json
+        data = flask.request.json
         audio_b64 = data.pop("audio_b64")
         data["byte_data"] = base64.decodestring(audio_b64)
         entry = db.add_ww_recording(**data)
@@ -246,7 +248,7 @@ def get_database_crud(app):
             success = db.delete_ww_recording(recording_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_ww_recording(recording_id, **request.json)
+            entry = db.update_ww_recording(recording_id, **flask.request.json)
         else:  # GET
             entry = db.get_ww_recording(recording_id)
         if not entry:
@@ -258,7 +260,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_metric():
-        entry = db.add_metric(**request.json)
+        entry = db.add_metric(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -281,7 +283,7 @@ def get_database_crud(app):
             success = db.delete_metric(metric_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_metric(metric_id, request.json)
+            entry = db.update_metric(metric_id, flask.request.json)
         else:  # GET
             entry = db.get_metric(metric_id)
         if not entry:
@@ -293,7 +295,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_device():
-        entry = db.add_device(**request.json)
+        entry = db.add_device(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -315,7 +317,7 @@ def get_database_crud(app):
             success = db.delete_device(uuid)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_device(uuid, **request.json)
+            entry = db.update_device(uuid, **flask.request.json)
         else:  # GET
             entry = db.get_device()
         if not entry:
@@ -327,7 +329,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_voice_defs():
-        entry = db.add_voice_definition(**request.json)
+        entry = db.add_voice_definition(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -349,7 +351,7 @@ def get_database_crud(app):
             success = db.delete_voice_definition(voice_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_voice_definition(voice_id, **request.json)
+            entry = db.update_voice_definition(voice_id, **flask.request.json)
         else:  # GET
             entry = db.get_voice_definition(voice_id)
         if not entry:
@@ -361,7 +363,7 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_ww_def():
-        entry = db.add_wakeword_definition(**request.json)
+        entry = db.add_wakeword_definition(**flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -383,7 +385,7 @@ def get_database_crud(app):
             success = db.delete_wakeword_definition(ww_id)
             return {"success": success}
         elif flask.request.method == 'PUT':
-            entry = db.update_wakeword_definition(ww_id, **request.json)
+            entry = db.update_wakeword_definition(ww_id, **flask.request.json)
         else:  # GET
             entry = db.get_wakeword_definition(ww_id)
         if not entry:

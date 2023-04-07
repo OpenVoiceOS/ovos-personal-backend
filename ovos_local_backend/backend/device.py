@@ -15,26 +15,17 @@ import time
 from flask import request
 
 from ovos_local_backend.backend import API_VERSION
-from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
+from ovos_local_backend.backend.decorators import noindex, requires_auth
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
 from ovos_local_backend.database import (
-    add_metric,
+    save_metric,
     get_device,
     add_device,
-    SkillSettings,
-    update_skill_settings,
-    get_skill_settings_for_device
+    SkillSettings
 )
-
-
-
-@requires_opt_in
-def save_metric(uuid, name, data):
-    add_metric(uuid, name, data)
-
 
 
 def get_device_routes(app):
@@ -43,17 +34,27 @@ def get_device_routes(app):
     def settingsmeta(uuid):
         """ new style skill settings meta (upload only) """
         s = SkillSettings.deserialize(request.json)
-        # ignore s.settings on purpose
-        update_skill_settings(s.remote_id, 
-                              metadata_json=s.meta, 
-                              display_name=s.display_name)
+
+        # TODO - sql db
+        # save new settings meta to db
+        with SettingsDatabase() as db:
+            # keep old settings, update meta only
+            old_s = db.get_setting(s.skill_id, uuid)
+            if old_s:
+                s.settings = old_s.settings
+            db.add_setting(uuid, s.skill_id, s.settings, s.meta,
+                           s.display_name, s.remote_id)
+        # end TODO
+
         return nice_json({"success": True, "uuid": uuid})
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skill/settings", methods=['GET'])
     @requires_auth
     def skill_settings_v2(uuid):
         """ new style skill settings (download only)"""
-        return {s.skill_id: s.settings for s in get_skill_settings_for_device(uuid)}
+        # TODO
+        db = SettingsDatabase()
+        return {s.skill_id: s.settings for s in db.get_device_settings(uuid)}
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skill", methods=['GET', 'PUT'])
     @requires_auth
@@ -61,15 +62,16 @@ def get_device_routes(app):
         """ old style skill settings/settingsmeta - supports 2 way sync
          PUT - json for 1 skill
          GET - list of all skills """
+        # TODO
         if request.method == 'PUT':
-            s = SkillSettings.deserialize(request.json)
-            update_skill_settings(s.remote_id,
-                                  settings_json=s.settings,
-                                  metadata_json=s.meta,
-                                  display_name=s.display_name)
+            # update local db
+            with SettingsDatabase() as db:
+                s = SkillSettings.deserialize(request.json)
+                db.add_setting(uuid, s.skill_id, s.settings, s.meta,
+                               s.display_name, s.remote_id)
             return nice_json({"success": True, "uuid": uuid})
         else:
-            return nice_json([s.serialize() for s in get_skill_settings_for_device(uuid)])
+            return nice_json([s.serialize() for s in SettingsDatabase().get_device_settings(uuid)])
 
     @app.route(f"/{API_VERSION}/device/<uuid>/skillJson", methods=['PUT'])
     @requires_auth
@@ -95,7 +97,7 @@ def get_device_routes(app):
     def location(uuid):
         device = get_device(uuid)
         if device:
-            return device.location
+            return device.location_json
         return get_request_location()
 
     @app.route(f"/{API_VERSION}/device/<uuid>/setting", methods=['GET'])
