@@ -15,7 +15,7 @@ import os
 import time
 
 import requests
-from flask import request
+import flask
 from oauthlib.oauth2 import WebApplicationClient
 
 from ovos_local_backend.backend import API_VERSION
@@ -36,7 +36,7 @@ def get_auth_routes(app):
         we simplify things and use a deterministic access token, shared with pairing token
         in selene access token would be refreshed here
         """
-        token = request.headers.get('Authorization', '').replace("Bearer ", "")
+        token = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         uuid = token.split(":")[-1]
         device = {"uuid": uuid,
                   "expires_at": time.time() + 999999999999999999,
@@ -51,12 +51,12 @@ def get_auth_routes(app):
         """ send auth url to user to confirm authorization,
         once user opens it callback is triggered
         """
-        auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+        auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         uid = auth.split(":")[-1]
         token_id = f"{uid}|{oauth_id}"
 
-        params = dict(request.args)
-        params["callback_endpoint"] = request.base_url + f"/{API_VERSION}/auth/callback/{token_id}"
+        params = dict(flask.request.args)
+        params["callback_endpoint"] = flask.request.base_url + f"/{API_VERSION}/auth/callback/{token_id}"
 
         client = WebApplicationClient(params["client_id"])
         request_uri = client.prepare_request_uri(
@@ -81,7 +81,7 @@ def get_auth_routes(app):
     def oauth_callback(token_id):
         """ user completed oauth, save token to db
         """
-        params = dict(request.args)
+        params = dict(flask.request.args)
         code = params["code"]
 
         data = get_oauth_application(token_id)
@@ -93,8 +93,8 @@ def get_auth_routes(app):
         client = WebApplicationClient(client_id)
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
-            authorization_response=request.url,
-            redirect_url=request.base_url,
+            authorization_response=flask.request.url,
+            redirect_url=flask.request.base_url,
             code=code
         )
         token_response = requests.post(

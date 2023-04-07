@@ -13,7 +13,7 @@
 import json
 import random
 
-from flask import make_response
+import flask
 from ovos_utils.log import LOG
 from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
 
@@ -33,7 +33,7 @@ def generate_code():
 
 
 def nice_json(arg):
-    response = make_response(json.dumps(arg, sort_keys=True, indent=4))
+    response = flask.make_response(json.dumps(arg, sort_keys=True, indent=4))
     response.headers['Content-type'] = "application/json"
     return response
 

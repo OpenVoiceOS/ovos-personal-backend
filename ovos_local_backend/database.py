@@ -655,7 +655,8 @@ def delete_device(uuid):
 
 def add_skill_settings(remote_id, display_name=None,
                        settings_json=None, metadata_json=None):
-    entry = SkillSettings(remote_id, display_name=display_name,
+    entry = SkillSettings(remote_id=remote_id,
+                          display_name=display_name,
                           settings_json=settings_json,
                           metadata_json=metadata_json)
     db.session.add(entry)

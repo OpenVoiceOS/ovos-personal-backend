@@ -1,4 +1,4 @@
-from flask import request
+import flask
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
@@ -8,7 +8,7 @@ from ovos_local_backend.utils import dict_to_camel_case, ExternalApiManager
 
 
 def _get_lang():
-    auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+    auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
     device = get_device(uid)
     if device:
@@ -17,7 +17,7 @@ def _get_lang():
 
 
 def _get_units():
-    auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+    auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
     device = get_device(uid)
     if device:
@@ -26,11 +26,11 @@ def _get_units():
 
 
 def _get_latlon():
-    auth = request.headers.get('Authorization', '').replace("Bearer ", "")
+    auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
     uid = auth.split(":")[-1]  # this split is only valid here, not selene
     device = get_device(uid)
     if device:
-        loc = device.location
+        loc = device.location_json
     else:
         loc = CONFIGURATION["default_location"]
     lat = loc["coordinate"]["latitude"]
@@ -45,31 +45,31 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def geolocation():
-        address = request.args["location"]
+        address = flask.request.args["location"]
         return apis.geolocate(address)
 
     @app.route("/" + API_VERSION + '/wolframAlphaSpoken', methods=['GET'])
     @noindex
     @requires_auth
     def wolfie_spoken():
-        query = request.args.get("input") or request.args.get("i")
-        units = request.args.get("units") or _get_units()
+        query = flask.request.args.get("input") or flask.request.args.get("i")
+        units = flask.request.args.get("units") or _get_units()
         return apis.wolfram_spoken(query, units)
 
     @app.route("/" + API_VERSION + '/wolframAlphaSimple', methods=['GET'])
     @noindex
     @requires_auth
     def wolfie_simple():
-        query = request.args.get("input") or request.args.get("i")
-        units = request.args.get("units") or _get_units()
+        query = flask.request.args.get("input") or flask.request.args.get("i")
+        units = flask.request.args.get("units") or _get_units()
         return apis.wolfram_simple(query, units)
 
     @app.route("/" + API_VERSION + '/wolframAlphaFull', methods=['GET'])
     @noindex
     @requires_auth
     def wolfie_full():
-        query = request.args.get("input") or request.args.get("i")
-        units = request.args.get("units") or _get_units()
+        query = flask.request.args.get("input") or flask.request.args.get("i")
+        units = flask.request.args.get("units") or _get_units()
         return apis.wolfram_full(query, units)
 
     @app.route("/" + API_VERSION + '/wa', methods=['GET'])
@@ -77,17 +77,17 @@ def get_services_routes(app):
     @requires_auth
     def wolfie_xml():
         """ old deprecated endpoint with XML results """
-        query = request.args["i"]
-        units = request.args.get("units") or _get_units()
+        query = flask.request.args["i"]
+        units = flask.request.args.get("units") or _get_units()
         return apis.wolfram_xml(query, units)
 
     @app.route("/" + API_VERSION + '/owm/forecast/daily', methods=['GET'])
     @noindex
     @requires_auth
     def owm_daily_forecast():
-        lang = request.args.get("lang") or _get_lang()
-        units = request.args.get("units") or _get_units()
-        lat, lon = request.args.get("lat"), request.args.get("lon")
+        lang = flask.request.args.get("lang") or _get_lang()
+        units = flask.request.args.get("units") or _get_units()
+        lat, lon = flask.request.args.get("lat"), flask.request.args.get("lon")
         if not lat or not lon:
             lat, lon = _get_latlon()
         return apis.owm_daily(lat, lon, units, lang)
@@ -96,9 +96,9 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_3h_forecast():
-        lang = request.args.get("lang") or _get_lang()
-        units = request.args.get("units") or _get_units()
-        lat, lon = request.args.get("lat"), request.args.get("lon")
+        lang = flask.request.args.get("lang") or _get_lang()
+        units = flask.request.args.get("units") or _get_units()
+        lat, lon = flask.request.args.get("lat"), flask.request.args.get("lon")
         if not lat or not lon:
             lat, lon = _get_latlon()
         return apis.owm_hourly(lat, lon, units, lang)
@@ -107,9 +107,9 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm():
-        lang = request.args.get("lang") or _get_lang()
-        units = request.args.get("units") or _get_units()
-        lat, lon = request.args.get("lat"), request.args.get("lon")
+        lang = flask.request.args.get("lang") or _get_lang()
+        units = flask.request.args.get("units") or _get_units()
+        lat, lon = flask.request.args.get("lat"), flask.request.args.get("lon")
         if not lat or not lon:
             lat, lon = _get_latlon()
         return apis.owm_current(lat, lon, units, lang)
@@ -118,9 +118,9 @@ def get_services_routes(app):
     @noindex
     @requires_auth
     def owm_onecall():
-        units = request.args.get("units") or _get_units()
-        lang = request.args.get("lang") or _get_lang()
-        lat, lon = request.args.get("lat"), request.args.get("lon")
+        units = flask.request.args.get("units") or _get_units()
+        lang = flask.request.args.get("lang") or _get_lang()
+        lat, lon = flask.request.args.get("lat"), flask.request.args.get("lon")
         if not lat or not lon:
             lat, lon = _get_latlon()
         data = apis.owm_onecall(lat, lon, units, lang)

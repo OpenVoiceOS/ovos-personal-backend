@@ -12,15 +12,14 @@
 #
 import time
 
-import base64
-from flask import request
+import flask
+
+import ovos_local_backend.database as db
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_admin
-import ovos_local_backend.database as db
 from ovos_local_backend.utils import generate_code
 from ovos_local_backend.utils import nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
-
 
 
 def get_admin_routes(app):
@@ -44,21 +43,21 @@ def get_admin_routes(app):
     @requires_admin
     @noindex
     def set_device(uuid):
-        device_data = db.update_device(uuid, **request.json)
+        device_data = db.update_device(uuid, **flask.request.json)
         return nice_json(device_data)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/location", methods=['PUT'])
     @requires_admin
     @noindex
     def set_location(uuid):
-        device_data = db.update_device(uuid, location=request.json)
+        device_data = db.update_device(uuid, location=flask.request.json)
         return nice_json(device_data)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/prefs", methods=['PUT'])
     @requires_admin
     @noindex
     def set_prefs(uuid):
-        device_data = db.update_device(uuid, **request.json)
+        device_data = db.update_device(uuid, **flask.request.json)
         return nice_json(device_data)
 
     return app
