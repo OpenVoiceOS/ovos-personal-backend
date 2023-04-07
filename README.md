@@ -11,8 +11,9 @@ This is NOT meant to provision third party devices, but rather to run on the myc
 Documentation can be found at https://openvoiceos.github.io/community-docs/personal_backend
 
 NOTES: 
-- this backend moved to SQL databases on release 0.1.6a10, json databases from older version are not compatible
+- this backend moved to SQL databases on release 0.2.0, json databases from older version are not compatible
 - at the time of writing, backend manager does not yet work with this backend version
+- backend-client now includes a CRUD api to interact with databases https://github.com/OpenVoiceOS/ovos-backend-client/pull/30
 
 
 ## Install
@@ -26,7 +27,7 @@ pip install ovos-local-backend
 
 ## Companion projects
 
-- [ovos-backend-client](https://github.com/OpenVoiceOS/ovos-backend-client) - reference python library to interact with selene/local backend
+- [ovos-backend-client](https://github.com/OpenVoiceOS/ovos-backend-client) - reference python library to interact with backend
 - [ovos-backend-manager](https://github.com/OpenVoiceOS/ovos-backend-manager) - graphical interface to manage all things backend
 - [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend
 
@@ -68,8 +69,6 @@ see default values [here](./ovos_local_backend/configuration.py)
   uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
 - set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
 - set open weather map key for weather proxy expected by official mycroft skill
-- if record_wakewords is set, recordings can be found at `DATA_PATH/wakewords`
-- if record_utterances is set, recordings can be found at `DATA_PATH/utterances`
 
 
 ## Docker
