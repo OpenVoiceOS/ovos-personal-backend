@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a3...HEAD)
+
+**Fixed bugs:**
+
+- sql continued - missed PR review [\#54](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/54) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.2.0a3](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a3) (2023-04-07)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a2...V0.2.0a3)
+
 ## [V0.2.0a2](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a2) (2023-04-07)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a9...V0.2.0a2)
