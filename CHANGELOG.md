@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a8...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a9...HEAD)
+
+**Breaking changes:**
+
+- feat/sql\_alchemy [\#51](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/51) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.1.6a9](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.1.6a9) (2023-03-30)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.1.6a8...V0.1.6a9)
 
 **Breaking changes:**
 
