@@ -473,8 +473,9 @@ def list_metrics():
     return Metric.query.all()
 
 
-def add_wakeword_definition(ww_id, name, lang, ww_config, plugin):
-    entry = WakeWordDefinition(ww_id, lang=lang, name=name,
+def add_wakeword_definition(name, lang, ww_config, plugin):
+    ww_id = get_ww_id(plugin, name, ww_config)
+    entry = WakeWordDefinition(ww_id=ww_id, lang=lang, name=name,
                                ww_config=ww_config, plugin=plugin)
     db.session.add(entry)
     db.session.commit()
