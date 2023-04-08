@@ -587,15 +587,16 @@ def update_device(uuid, **kwargs):
         loc = kwargs["location"]
         if isinstance(loc, str):
             loc = json.loads(loc)
-        device.city = loc["city"]["name"]
-        device.state = loc["city"]["state"]["name"]
-        device.country = loc["city"]["state"]["country"]["name"]
-        device.state_code = loc["city"]["state"]["code"]
-        device.country_code = loc["city"]["state"]["country"]["code"]
-        device.latitude = loc["coordinate"]["latitude"]
-        device.longitude = loc["coordinate"]["longitude"]
-        device.tz_name = loc["timezone"]["name"]
-        device.tz_code = loc["timezone"]["code"]
+        if loc:
+            device.city = loc["city"]["name"]
+            device.state = loc["city"]["state"]["name"]
+            device.country = loc["city"]["state"]["country"]["name"]
+            device.state_code = loc["city"]["state"]["code"]
+            device.country_code = loc["city"]["state"]["country"]["code"]
+            device.latitude = loc["coordinate"]["latitude"]
+            device.longitude = loc["coordinate"]["longitude"]
+            device.tz_name = loc["timezone"]["name"]
+            device.tz_code = loc["timezone"]["code"]
     if "time_format" in kwargs:
         device.time_format = kwargs["time_format"]
     if "date_format" in kwargs:
@@ -640,7 +641,7 @@ def update_device(uuid, **kwargs):
 
     db.session.commit()
 
-    return device.serialize()
+    return device
 
 
 def list_devices():
@@ -649,8 +650,11 @@ def list_devices():
 
 def delete_device(uuid):
     device = get_device(uuid)
+    if not device:
+        return False
     db.session.delete(device)
     db.session.commit()
+    return True
 
 
 def add_skill_settings(remote_id, display_name=None,

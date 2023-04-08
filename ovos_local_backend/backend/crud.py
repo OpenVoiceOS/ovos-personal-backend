@@ -295,7 +295,10 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_device():
-        entry = db.add_device(**flask.request.json)
+        kwargs = flask.request.json
+        token = kwargs.pop("token")
+        uuid = kwargs.pop("uuid")
+        entry = db.add_device(uuid, token, **kwargs)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -319,7 +322,7 @@ def get_database_crud(app):
         elif flask.request.method == 'PUT':
             entry = db.update_device(uuid, **flask.request.json)
         else:  # GET
-            entry = db.get_device()
+            entry = db.get_device(uuid)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
