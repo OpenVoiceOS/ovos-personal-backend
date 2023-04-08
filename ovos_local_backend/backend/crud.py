@@ -332,7 +332,11 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_voice_defs():
-        entry = db.add_voice_definition(**flask.request.json)
+        kwargs = flask.request.json
+        plugin = kwargs.pop("plugin")
+        lang = kwargs.pop("lang")
+        tts_config = kwargs.pop("tts_config")
+        entry = db.add_voice_definition(plugin, lang, tts_config, **kwargs)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()

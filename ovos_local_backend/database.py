@@ -907,15 +907,15 @@ def list_oauth_applications():
     return OAuthApplication.query.all()
 
 
-def add_voice_definition(voice_id, name=None, lang=None, plugin=None,
-                         tts_config=None, offline=None, gender=None) -> VoiceDefinition:
+def add_voice_definition(plugin, lang, tts_config,
+                         name=None, offline=None, gender=None) -> VoiceDefinition:
+    voice_id = get_voice_id(plugin, lang, tts_config)
     name = name or voice_id
     entry = VoiceDefinition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
                             tts_config=tts_config, offline=offline, gender=gender)
 
     db.session.add(entry)
     db.session.commit()
-
     return entry
 
 
@@ -936,8 +936,13 @@ def update_voice_definition(voice_id, name=None, lang=None, plugin=None,
                             tts_config=None, offline=None, gender=None) -> dict:
     voice_def: VoiceDefinition = get_voice_definition(voice_id)
     if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
-                                         tts_config=tts_config, offline=offline, gender=gender)
+        if not plugin:
+            plugin = voice_id.split("_")[0]
+        if not lang:
+            lang = voice_id.split("_")[1]
+        voice_def = add_voice_definition(name=name, lang=lang, plugin=plugin,
+                                         tts_config=tts_config, offline=offline,
+                                         gender=gender)
     else:
         if name:
             voice_def.name = name
