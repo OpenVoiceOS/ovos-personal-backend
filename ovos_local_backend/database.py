@@ -4,10 +4,11 @@ import time
 from copy import deepcopy
 
 from flask_sqlalchemy import SQLAlchemy
-from ovos_local_backend.configuration import CONFIGURATION
 from ovos_plugin_manager.tts import get_voice_id
 from ovos_plugin_manager.wakewords import get_ww_id
 from sqlalchemy_json import NestedMutableJson
+
+from ovos_local_backend.configuration import CONFIGURATION
 
 # create the extension
 db = SQLAlchemy()
@@ -405,6 +406,17 @@ class Metric(db.Model):
     timestamp = db.Column(db.Integer)  # unix seconds
     uuid = db.Column(db.String(255))
 
+    def serialize(self):
+        return {"metric_id": self.metric_id,
+                "metric_type": self.metric_type,
+                "metadata_json": self.metadata_json,
+                "uuid": self.uuid,
+                "timestamp": self.timestamp}
+
+    @staticmethod
+    def deserialize(data):
+        return Metric(**data)
+
 
 class UtteranceRecording(db.Model):
     #  rec_id = f"@{uuid}|{transcription}|{count}"
@@ -466,13 +478,13 @@ class WakeWordRecording(db.Model):
         return WakeWordRecording(**data)
 
 
-def add_metric(uuid, name, data):
+def add_metric(uuid, metric_type, metadata):
     count = db.session.query(Metric).count() + 1
-    metric_id = f"@{uuid}|{name}|{count}"
+    metric_id = f"@{uuid}|{metric_type}|{count}"
     entry = Metric(
-        metric_id=count,
-        metric_type=name,
-        metadata_json=data,
+        metric_id=metric_id,
+        metric_type=metric_type,
+        metadata_json=metadata,
         uuid=uuid,
         timestamp=time.time()
     )
@@ -494,14 +506,14 @@ def delete_metric(metric_id):
     return True
 
 
-def update_metric(metric_id, data):
+def update_metric(metric_id, metadata):
     metric: Metric = get_metric(metric_id)
     if not metric:
         uuid, name, count = metric_id.split("|")
         uuid = uuid.lstrip("@")
-        metric = add_metric(uuid, name, data)
+        metric = add_metric(uuid, name, metadata)
     else:
-        metric.metadata_json = data
+        metric.metadata_json = metadata
         db.session.commit()
     return metric
 

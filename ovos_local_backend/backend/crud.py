@@ -255,12 +255,12 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/metrics",
+    @app.route("/" + API_VERSION + "/admin/metrics/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_metric():
-        entry = db.add_metric(**flask.request.json)
+    def create_metric(uuid):
+        entry = db.add_metric(uuid, **flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
