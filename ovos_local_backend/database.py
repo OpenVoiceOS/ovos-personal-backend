@@ -1,3 +1,4 @@
+import base64
 import json
 import time
 from copy import deepcopy
@@ -415,6 +416,23 @@ class UtteranceRecording(db.Model):
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(255))
 
+    def serialize(self):
+        data = {
+            "recording_id": self.recording_id,
+            "transcription": self.transcription,
+            "metadata_json": self.metadata_json,
+            "uuid": self.uuid,
+            "timestamp": self.timestamp,
+            "audio_b64": base64.encodebytes(self.sample).decode("utf-8")
+        }
+        return data
+
+    @staticmethod
+    def deserialize(data):
+        b64_data = data.pop("audio_b64")
+        data["sample"] = base64.decodestring(b64_data)
+        return UtteranceRecording(**data)
+
 
 class WakeWordRecording(db.Model):
     #  rec_id = f"@{uuid}|{transcription}|{count}"
@@ -427,6 +445,25 @@ class WakeWordRecording(db.Model):
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(255))
+
+    def serialize(self):
+        data = {
+            "recording_id": self.recording_id,
+            "transcription": self.transcription,
+            "audio_tag": self.audio_tag,
+            "speaker_tag": self.speaker_tag,
+            "metadata_json": self.metadata_json,
+            "uuid": self.uuid,
+            "timestamp": self.timestamp,
+            "audio_b64": base64.encodebytes(self.sample).decode("utf-8")
+        }
+        return data
+
+    @staticmethod
+    def deserialize(data):
+        b64_data = data.pop("audio_b64")
+        data["sample"] = base64.decodestring(b64_data)
+        return WakeWordRecording(**data)
 
 
 def add_metric(uuid, name, data):

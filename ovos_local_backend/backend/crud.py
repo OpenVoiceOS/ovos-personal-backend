@@ -177,16 +177,16 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/voice_recs",
+    @app.route("/" + API_VERSION + "/admin/voice_recs/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_voice_rec():
+    def create_voice_rec(uuid):
         # b64 decode bytes before saving
         data = flask.request.json
         audio_b64 = data.pop("audio_b64")
-        data["byte_data"] = base64.decodestring(audio_b64)
-        entry = db.add_stt_recording(**data)
+        data["byte_data"] = base64.b64decode(audio_b64)
+        entry = db.add_stt_recording(uuid, **data)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -216,16 +216,16 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/ww_recs",
+    @app.route("/" + API_VERSION + "/admin/ww_recs/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_ww_rec():
+    def create_ww_rec(uuid):
         # b64 decode bytes before saving
         data = flask.request.json
         audio_b64 = data.pop("audio_b64")
-        data["byte_data"] = base64.decodestring(audio_b64)
-        entry = db.add_ww_recording(**data)
+        data["byte_data"] = base64.b64decode(audio_b64)
+        entry = db.add_ww_recording(uuid, **data)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
