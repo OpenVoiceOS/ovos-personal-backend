@@ -51,9 +51,7 @@ def required(requirements_file):
 setup(
     name='ovos-local-backend',
     version=get_version(),
-    packages=['ovos_local_backend',
-              'ovos_local_backend.backend',
-              'ovos_local_backend.utils']
+    packages=['ovos_local_backend, ovos_local_backend.backend, ovos_local_backend.utils']
             
     install_requires=required("requirements/requirements.txt"),
     extras_requires={
