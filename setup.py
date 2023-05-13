@@ -51,13 +51,14 @@ def required(requirements_file):
 setup(
     name='ovos-local-backend',
     version=get_version(),
-    packages=['ovos_local_backend, ovos_local_backend.backend, ovos_local_backend.utils']
-            
+    packages=['ovos_local_backend',
+              'ovos_local_backend.utils',
+              'ovos_local_backend.backend'],
     install_requires=required("requirements/requirements.txt"),
     extras_requires={
         "mysql": ["Flask-MySQLdb", "mysqlclient"]
     },
-    package_data={'': package_files('ovos_local_backend/backend, ovos_local_backend/utils')},
+    package_data={'': package_files('ovos_local_backend, ovos_local_backend/backend, ovos_local_backend/utils')},
     include_package_data=True,
     url='https://github.com/OpenVoiceOS/OVOS-local-backend',
     license='Apache-2.0',
