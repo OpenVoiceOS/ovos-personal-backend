@@ -112,12 +112,13 @@ class ExternalApiManager:
     def geolocate(self, address):
         data = self.geo.get_location(address)
         return {"data": {
-            "city": data["city"],
-            "country": data["country"],
-            "latitude": float(data["lat"]),
-            "longitude": float(data["lon"]),
-            "region": data["region"],
-            "timezone": get_timezone(float(data["lat"]), float(data["lon"]))
+            "city": data["city"]["name"],
+            "country": data["city"]["state"]["country"]["name"],
+            "latitude": float(data["coordinate"]["latitude"]),
+            "longitude": float(data["coordinate"]["longitude"]),
+            "region": data["city"]["state"]["name"],
+            "timezone": get_timezone(float(data["coordinate"]["latitude"]),
+                                     float(data["coordinate"]["longitude"]))
         }}
 
     def wolfram_spoken(self, query, units=None, lat_lon=None):
