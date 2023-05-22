@@ -110,16 +110,7 @@ class ExternalApiManager:
             return self.ovos_wolfram
 
     def geolocate(self, address):
-        data = self.geo.get_location(address)
-        return {"data": {
-            "city": data["city"]["name"],
-            "country": data["city"]["state"]["country"]["name"],
-            "latitude": float(data["coordinate"]["latitude"]),
-            "longitude": float(data["coordinate"]["longitude"]),
-            "region": data["city"]["state"]["name"],
-            "timezone": get_timezone(float(data["coordinate"]["latitude"]),
-                                     float(data["coordinate"]["longitude"]))
-        }}
+        return {"data": self.geo.get_location(address)}
 
     def wolfram_spoken(self, query, units=None, lat_lon=None):
         units = units or self.units
