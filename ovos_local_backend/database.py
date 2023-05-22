@@ -1,12 +1,14 @@
+import base64
 import json
 import time
 from copy import deepcopy
 
 from flask_sqlalchemy import SQLAlchemy
-from ovos_local_backend.configuration import CONFIGURATION
 from ovos_plugin_manager.tts import get_voice_id
 from ovos_plugin_manager.wakewords import get_ww_id
 from sqlalchemy_json import NestedMutableJson
+
+from ovos_local_backend.configuration import CONFIGURATION
 
 # create the extension
 db = SQLAlchemy()
@@ -404,6 +406,17 @@ class Metric(db.Model):
     timestamp = db.Column(db.Integer)  # unix seconds
     uuid = db.Column(db.String(255))
 
+    def serialize(self):
+        return {"metric_id": self.metric_id,
+                "metric_type": self.metric_type,
+                "metadata_json": self.metadata_json,
+                "uuid": self.uuid,
+                "timestamp": self.timestamp}
+
+    @staticmethod
+    def deserialize(data):
+        return Metric(**data)
+
 
 class UtteranceRecording(db.Model):
     #  rec_id = f"@{uuid}|{transcription}|{count}"
@@ -414,6 +427,23 @@ class UtteranceRecording(db.Model):
 
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(255))
+
+    def serialize(self):
+        data = {
+            "recording_id": self.recording_id,
+            "transcription": self.transcription,
+            "metadata_json": self.metadata_json,
+            "uuid": self.uuid,
+            "timestamp": self.timestamp,
+            "audio_b64": base64.encodebytes(self.sample).decode("utf-8")
+        }
+        return data
+
+    @staticmethod
+    def deserialize(data):
+        b64_data = data.pop("audio_b64")
+        data["sample"] = base64.decodestring(b64_data)
+        return UtteranceRecording(**data)
 
 
 class WakeWordRecording(db.Model):
@@ -428,14 +458,33 @@ class WakeWordRecording(db.Model):
     timestamp = db.Column(db.Integer, primary_key=True)  # unix seconds
     uuid = db.Column(db.String(255))
 
+    def serialize(self):
+        data = {
+            "recording_id": self.recording_id,
+            "transcription": self.transcription,
+            "audio_tag": self.audio_tag,
+            "speaker_tag": self.speaker_tag,
+            "metadata_json": self.metadata_json,
+            "uuid": self.uuid,
+            "timestamp": self.timestamp,
+            "audio_b64": base64.encodebytes(self.sample).decode("utf-8")
+        }
+        return data
 
-def add_metric(uuid, name, data):
+    @staticmethod
+    def deserialize(data):
+        b64_data = data.pop("audio_b64")
+        data["sample"] = base64.decodestring(b64_data)
+        return WakeWordRecording(**data)
+
+
+def add_metric(uuid, metric_type, metadata):
     count = db.session.query(Metric).count() + 1
-    metric_id = f"@{uuid}|{name}|{count}"
+    metric_id = f"@{uuid}|{metric_type}|{count}"
     entry = Metric(
-        metric_id=count,
-        metric_type=name,
-        metadata_json=data,
+        metric_id=metric_id,
+        metric_type=metric_type,
+        metadata_json=metadata,
         uuid=uuid,
         timestamp=time.time()
     )
@@ -457,14 +506,14 @@ def delete_metric(metric_id):
     return True
 
 
-def update_metric(metric_id, data):
+def update_metric(metric_id, metadata):
     metric: Metric = get_metric(metric_id)
     if not metric:
         uuid, name, count = metric_id.split("|")
         uuid = uuid.lstrip("@")
-        metric = add_metric(uuid, name, data)
+        metric = add_metric(uuid, name, metadata)
     else:
-        metric.metadata_json = data
+        metric.metadata_json = metadata
         db.session.commit()
     return metric
 
@@ -473,8 +522,9 @@ def list_metrics():
     return Metric.query.all()
 
 
-def add_wakeword_definition(ww_id, name, lang, ww_config, plugin):
-    entry = WakeWordDefinition(ww_id, lang=lang, name=name,
+def add_wakeword_definition(name, lang, ww_config, plugin):
+    ww_id = get_ww_id(plugin, name, ww_config)
+    entry = WakeWordDefinition(ww_id=ww_id, lang=lang, name=name,
                                ww_config=ww_config, plugin=plugin)
     db.session.add(entry)
     db.session.commit()
@@ -587,15 +637,16 @@ def update_device(uuid, **kwargs):
         loc = kwargs["location"]
         if isinstance(loc, str):
             loc = json.loads(loc)
-        device.city = loc["city"]["name"]
-        device.state = loc["city"]["state"]["name"]
-        device.country = loc["city"]["state"]["country"]["name"]
-        device.state_code = loc["city"]["state"]["code"]
-        device.country_code = loc["city"]["state"]["country"]["code"]
-        device.latitude = loc["coordinate"]["latitude"]
-        device.longitude = loc["coordinate"]["longitude"]
-        device.tz_name = loc["timezone"]["name"]
-        device.tz_code = loc["timezone"]["code"]
+        if loc:
+            device.city = loc["city"]["name"]
+            device.state = loc["city"]["state"]["name"]
+            device.country = loc["city"]["state"]["country"]["name"]
+            device.state_code = loc["city"]["state"]["code"]
+            device.country_code = loc["city"]["state"]["country"]["code"]
+            device.latitude = loc["coordinate"]["latitude"]
+            device.longitude = loc["coordinate"]["longitude"]
+            device.tz_name = loc["timezone"]["name"]
+            device.tz_code = loc["timezone"]["code"]
     if "time_format" in kwargs:
         device.time_format = kwargs["time_format"]
     if "date_format" in kwargs:
@@ -640,7 +691,7 @@ def update_device(uuid, **kwargs):
 
     db.session.commit()
 
-    return device.serialize()
+    return device
 
 
 def list_devices():
@@ -649,8 +700,11 @@ def list_devices():
 
 def delete_device(uuid):
     device = get_device(uuid)
+    if not device:
+        return False
     db.session.delete(device)
     db.session.commit()
+    return True
 
 
 def add_skill_settings(remote_id, display_name=None,
@@ -903,15 +957,15 @@ def list_oauth_applications():
     return OAuthApplication.query.all()
 
 
-def add_voice_definition(voice_id, name=None, lang=None, plugin=None,
-                         tts_config=None, offline=None, gender=None) -> VoiceDefinition:
+def add_voice_definition(plugin, lang, tts_config,
+                         name=None, offline=None, gender=None) -> VoiceDefinition:
+    voice_id = get_voice_id(plugin, lang, tts_config)
     name = name or voice_id
     entry = VoiceDefinition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
                             tts_config=tts_config, offline=offline, gender=gender)
 
     db.session.add(entry)
     db.session.commit()
-
     return entry
 
 
@@ -932,8 +986,13 @@ def update_voice_definition(voice_id, name=None, lang=None, plugin=None,
                             tts_config=None, offline=None, gender=None) -> dict:
     voice_def: VoiceDefinition = get_voice_definition(voice_id)
     if not voice_def:
-        voice_def = add_voice_definition(voice_id=voice_id, name=name, lang=lang, plugin=plugin,
-                                         tts_config=tts_config, offline=offline, gender=gender)
+        if not plugin:
+            plugin = voice_id.split("_")[0]
+        if not lang:
+            lang = voice_id.split("_")[1]
+        voice_def = add_voice_definition(name=name, lang=lang, plugin=plugin,
+                                         tts_config=tts_config, offline=offline,
+                                         gender=gender)
     else:
         if name:
             voice_def.name = name

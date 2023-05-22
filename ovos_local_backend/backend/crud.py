@@ -177,16 +177,16 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/voice_recs",
+    @app.route("/" + API_VERSION + "/admin/voice_recs/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_voice_rec():
+    def create_voice_rec(uuid):
         # b64 decode bytes before saving
         data = flask.request.json
         audio_b64 = data.pop("audio_b64")
-        data["byte_data"] = base64.decodestring(audio_b64)
-        entry = db.add_stt_recording(**data)
+        data["byte_data"] = base64.b64decode(audio_b64)
+        entry = db.add_stt_recording(uuid, **data)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -216,16 +216,16 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/ww_recs",
+    @app.route("/" + API_VERSION + "/admin/ww_recs/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_ww_rec():
+    def create_ww_rec(uuid):
         # b64 decode bytes before saving
         data = flask.request.json
         audio_b64 = data.pop("audio_b64")
-        data["byte_data"] = base64.decodestring(audio_b64)
-        entry = db.add_ww_recording(**data)
+        data["byte_data"] = base64.b64decode(audio_b64)
+        entry = db.add_ww_recording(uuid, **data)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -255,12 +255,12 @@ def get_database_crud(app):
             return {"error": "entry not found"}
         return entry.serialize()
 
-    @app.route("/" + API_VERSION + "/admin/metrics",
+    @app.route("/" + API_VERSION + "/admin/metrics/<uuid>",
                methods=['POST'])
     @requires_admin
     @noindex
-    def create_metric():
-        entry = db.add_metric(**flask.request.json)
+    def create_metric(uuid):
+        entry = db.add_metric(uuid, **flask.request.json)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -295,7 +295,10 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_device():
-        entry = db.add_device(**flask.request.json)
+        kwargs = flask.request.json
+        token = kwargs.pop("token")
+        uuid = kwargs.pop("uuid")
+        entry = db.add_device(uuid, token, **kwargs)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -319,7 +322,7 @@ def get_database_crud(app):
         elif flask.request.method == 'PUT':
             entry = db.update_device(uuid, **flask.request.json)
         else:  # GET
-            entry = db.get_device()
+            entry = db.get_device(uuid)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
@@ -329,7 +332,11 @@ def get_database_crud(app):
     @requires_admin
     @noindex
     def create_voice_defs():
-        entry = db.add_voice_definition(**flask.request.json)
+        kwargs = flask.request.json
+        plugin = kwargs.pop("plugin")
+        lang = kwargs.pop("lang")
+        tts_config = kwargs.pop("tts_config")
+        entry = db.add_voice_definition(plugin, lang, tts_config, **kwargs)
         if not entry:
             return {"error": "entry not found"}
         return entry.serialize()
