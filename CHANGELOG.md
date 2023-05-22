@@ -2,15 +2,24 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a5...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a6...HEAD)
 
 **Fixed bugs:**
 
-- geolocate fix [\#59](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/59) ([emphasize](https://github.com/emphasize))
+- `ovos-backend-client` requirement missing [\#58](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/58)
+- fix geolocation [\#60](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/60) ([emphasize](https://github.com/emphasize))
 
 **Closed issues:**
 
 - Geolocation bug [\#56](https://github.com/OpenVoiceOS/ovos-personal-backend/issues/56)
+
+## [V0.2.0a6](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a6) (2023-05-18)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a5...V0.2.0a6)
+
+**Fixed bugs:**
+
+- geolocate fix [\#59](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/59) ([emphasize](https://github.com/emphasize))
 
 ## [V0.2.0a5](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a5) (2023-04-07)
 
