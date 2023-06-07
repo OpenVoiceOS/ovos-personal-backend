@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a7...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a8...HEAD)
+
+**Fixed bugs:**
+
+- unify apis [\#64](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/64) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.2.0a8](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a8) (2023-05-22)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a7...V0.2.0a8)
 
 **Fixed bugs:**
 
