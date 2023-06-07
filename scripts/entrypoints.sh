@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ovos-local-backend --flask-host 0.0.0.0 &
-ovos-backend-manager &
+
+# disabled until it is updated to use new DatabaseApi
+# ovos-backend-manager &
   
 # Wait for any process to exit
 wait -n
