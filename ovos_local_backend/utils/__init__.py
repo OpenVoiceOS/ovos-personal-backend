@@ -15,7 +15,6 @@ import random
 
 import flask
 from ovos_utils.log import LOG
-from ovos_utils.ovos_service_api import OvosWolframAlpha, OvosWeather
 
 from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.session import SESSION as requests
@@ -66,48 +65,15 @@ class ExternalApiManager:
 
         self.wolfram_key = self.config.get("wolfram_key")
         self.owm_key = self.config.get("owm_key")
-
-        if self.owm_key:
-            self.local_owm = LocalWeather(self.owm_key)
-        else:
-            self.local_owm = None
-
-        self.ovos_wolfram = OvosWolframAlpha()
-        self.ovos_owm = OvosWeather()
-        if not self.ovos_owm.uuid:
-            try:
-                self.ovos_owm.api.register_device()
-            except Exception as e:
-                LOG.debug(f"Error registering device {e}")
         self.geo = Geocoder()
 
     @property
     def _owm(self):
-        if self.config.get("weather_provider") == "local":
-            if self.owm_key:
-                return self.local_owm
-            if self.config.get("ovos_fallback"):
-                return self.ovos_owm
-        elif self.config.get("weather_provider") == "ovos":
-            return self.ovos_owm
-        else:  # auto
-            if self.owm_key:
-                return self.local_owm
-            return self.ovos_owm
+        return LocalWeather(self.owm_key)
 
     @property
     def _wolfram(self):
-        if self.config.get("wolfram_provider") == "local":
-            if self.wolfram_key:
-                return LocalWolfram(self.wolfram_key)
-            if self.config.get("ovos_fallback"):
-                return self.ovos_wolfram
-        elif self.config.get("wolfram_provider") == "ovos":
-            return self.ovos_wolfram
-        else:  # auto
-            if self.wolfram_key:
-                return LocalWolfram(self.wolfram_key)
-            return self.ovos_wolfram
+        return LocalWolfram(self.wolfram_key)
 
     def geolocate(self, address):
         return {"data": self.geo.get_location(address)}
@@ -128,59 +94,31 @@ class ExternalApiManager:
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram):  # local
-            return self._wolfram.simple(query, units)
-        if isinstance(self._wolfram, OvosWolframAlpha):  # ovos api
-            q = {"input": query, "units": units}
-            return self._wolfram.get_wolfram_simple(q)
+        return self._wolfram.simple(query, units)
 
     def wolfram_full(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram):
-            return self._wolfram.full(query, units)
-        if isinstance(self._wolfram, OvosWolframAlpha):  # ovos api
-            q = {"input": query, "units": units}
-            return self._wolfram.get_wolfram_full(q)
+        return self._wolfram.full(query, units)
 
     def wolfram_xml(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram):
-            return self._wolfram.full(query, units, output="xml")
-        if isinstance(self._wolfram, OvosWolframAlpha):
-            q = {"input": query, "units": units, "output": "xml"}
-            return self._wolfram.get_wolfram_full(q)
+        return self._wolfram.full(query, units, output="xml")
 
     def owm_current(self, lat, lon, units, lang="en-us"):
-        if isinstance(self._owm, LocalWeather):  # local
-            return self._owm.current(lat, lon, units, lang)
-        if isinstance(self._owm, OvosWeather):  # ovos
-            params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
-            return self._owm.get_current(params)
+        return self._owm.current(lat, lon, units, lang)
 
     def owm_onecall(self, lat, lon, units, lang="en-us"):
-        if isinstance(self._owm, LocalWeather):  # local
-            return self._owm.onecall(lat, lon, units, lang)
-        if isinstance(self._owm, OvosWeather):  # ovos
-            params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
-            return self._owm.get_weather_onecall(params)
+        return self._owm.onecall(lat, lon, units, lang)
 
     def owm_hourly(self, lat, lon, units, lang="en-us"):
-        if isinstance(self._owm, LocalWeather):  # local
-            return self._owm.hourly(lat, lon, units, lang)
-        if isinstance(self._owm, OvosWeather):  # ovos
-            params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
-            return self._owm.get_hourly(params)
+        return self._owm.hourly(lat, lon, units, lang)
 
     def owm_daily(self, lat, lon, units, lang="en-us"):
-        if isinstance(self._owm, LocalWeather):  # local
-            return self._owm.daily(lat, lon, units, lang)
-        if isinstance(self._owm, OvosWeather):  # ovos
-            params = {"lang": lang, "units": units, "lat": lat, "lon": lon}
-            return self._owm.get_forecast(params)
+        return self._owm.daily(lat, lon, units, lang)
 
 
 class LocalWeather:
