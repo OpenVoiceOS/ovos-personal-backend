@@ -6,8 +6,6 @@ ovos-utils>=0.0.25a7
 ovos-plugin-manager>=0.0.23a3
 ovos-backend-client~=0.0, >=0.0.6a10
 ovos-stt-plugin-server
-geocoder
-timezonefinder
 requests_cache
 oauthlib~=3.0
 Flask-SQLAlchemy
