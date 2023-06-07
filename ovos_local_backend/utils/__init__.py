@@ -14,10 +14,9 @@ import json
 import random
 
 import flask
-from ovos_utils.log import LOG
 
+from ovos_backend_client.api import WolframAlphaApi, OpenWeatherMapApi, BackendType, GeolocationApi
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.session import SESSION as requests
 from ovos_local_backend.utils.geolocate import get_timezone, Geocoder
 
 
@@ -68,129 +67,49 @@ class ExternalApiManager:
         self.geo = Geocoder()
 
     @property
-    def _owm(self):
-        return LocalWeather(self.owm_key)
+    def owm(self):
+        return OpenWeatherMapApi(backend_type=BackendType.OFFLINE, key=self.owm_key)
 
     @property
-    def _wolfram(self):
-        return LocalWolfram(self.wolfram_key)
+    def wolfram(self):
+        return WolframAlphaApi(backend_type=BackendType.OFFLINE, key=self.wolfram_key)
 
     def geolocate(self, address):
-        return {"data": self.geo.get_location(address)}
+        return GeolocationApi(backend_type=BackendType.OFFLINE).get_geolocation(address)
 
     def wolfram_spoken(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        if isinstance(self._wolfram, LocalWolfram):  # local
-            # TODO - lat lon, not used? selene accepts it but....
-            # https://products.wolframalpha.com/spoken-results-api/documentation/
-            return self._wolfram.spoken(query, units)
-        if hasattr(self._wolfram, "get_wolfram_spoken"):  # ovos api
-            q = {"input": query, "units": units}
-            return self._wolfram.get_wolfram_spoken(q)
+        return self.wolfram.spoken(query, units, lat_lon)
 
     def wolfram_simple(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        return self._wolfram.simple(query, units)
+        return self.wolfram.simple(query, units, lat_lon)
 
     def wolfram_full(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        return self._wolfram.full(query, units)
+        return self.wolfram.full_results(query, units, lat_lon)
 
     def wolfram_xml(self, query, units=None, lat_lon=None):
         units = units or self.units
         if units != "metric":
             units = "imperial"
-        return self._wolfram.full(query, units, output="xml")
+        return self.wolfram.full_results(query, units, lat_lon,
+                                         optional_params={"output": "xml"})
 
     def owm_current(self, lat, lon, units, lang="en-us"):
-        return self._owm.current(lat, lon, units, lang)
+        return self.owm.get_current((lat, lon), lang, units)
 
     def owm_onecall(self, lat, lon, units, lang="en-us"):
-        return self._owm.onecall(lat, lon, units, lang)
+        return self.owm.get_weather((lat, lon), lang, units)
 
     def owm_hourly(self, lat, lon, units, lang="en-us"):
-        return self._owm.hourly(lat, lon, units, lang)
+        return self.owm.get_hourly((lat, lon), lang, units)
 
     def owm_daily(self, lat, lon, units, lang="en-us"):
-        return self._owm.daily(lat, lon, units, lang)
-
-
-class LocalWeather:
-    def __init__(self, key):
-        self.key = key
-
-    def current(self, lat, lon, units, lang):
-        params = {
-            "lang": lang,
-            "units": units,
-            "lat": lat, "lon": lon,
-            "appid": self.key
-        }
-        url = "https://api.openweathermap.org/data/2.5/weather"
-        return requests.get(url, params=params).json()
-
-    def daily(self, lat, lon, units, lang):
-        params = {
-            "lang": lang,
-            "units": units,
-            "lat": lat, "lon": lon,
-            "appid": self.key
-        }
-        url = "https://api.openweathermap.org/data/2.5/forecast/daily"
-        return requests.get(url, params=params).json()
-
-    def hourly(self, lat, lon, units, lang):
-        params = {
-            "lang": lang,
-            "units": units,
-            "lat": lat, "lon": lon,
-            "appid": self.key
-        }
-        url = "https://api.openweathermap.org/data/2.5/forecast"
-        return requests.get(url, params=params).json()
-
-    def onecall(self, lat, lon, units, lang):
-        params = {
-            "lang": lang,
-            "units": units,
-            "lat": lat, "lon": lon,
-            "appid": self.key
-        }
-        url = "https://api.openweathermap.org/data/2.5/onecall"
-        return requests.get(url, params=params).json()
-
-
-class LocalWolfram:
-    def __init__(self, key):
-        self.key = key
-
-    def spoken(self, query, units):
-        url = 'https://api.wolframalpha.com/v1/spoken'
-        params = {"appid": self.key,
-                  "i": query,
-                  "units": units}
-        answer = requests.get(url, params=params).text
-        return answer
-
-    def simple(self, query, units):
-        url = 'https://api.wolframalpha.com/v1/simple'
-        params = {"appid": self.key,
-                  "i": query,
-                  "units": units}
-        answer = requests.get(url, params=params).text
-        return answer
-
-    def full(self, query, units, output="json"):
-        url = 'https://api.wolframalpha.com/v2/query'
-        params = {"appid": self.key,
-                  "input": query,
-                  "output": output,
-                  "units": units}
-        answer = requests.get(url, params=params).json()
-        return answer
+        return self.owm.get_daily((lat, lon), lang, units)
