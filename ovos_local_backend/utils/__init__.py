@@ -17,7 +17,6 @@ import flask
 
 from ovos_backend_client.api import WolframAlphaApi, OpenWeatherMapApi, BackendType, GeolocationApi
 from ovos_local_backend.configuration import CONFIGURATION
-from ovos_local_backend.utils.geolocate import get_timezone, Geocoder
 
 
 def generate_code():
@@ -64,7 +63,6 @@ class ExternalApiManager:
 
         self.wolfram_key = self.config.get("wolfram_key")
         self.owm_key = self.config.get("owm_key")
-        self.geo = Geocoder()
 
     @property
     def owm(self):

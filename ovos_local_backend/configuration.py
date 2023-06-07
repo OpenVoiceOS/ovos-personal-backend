@@ -177,10 +177,9 @@ DEFAULT_CONFIG = {
     "record_utterances": False,
     "record_wakewords": False,
     "microservices": {
-        # wolfram/owm can only be local for now
-        # TODO neon proxy
-        "wolfram_provider": "local",
-        "weather_provider": "local",  # TODO - open meteo like in weather skill
+        # wolfram / weather for backwards compat only
+        "wolfram_provider": "wolfram",  # TODO - persona api spoken answers instead
+        "weather_provider": "owm",  # TODO - open meteo like in weather skill
         # auto == OpenStreetMap default
         # valid - osm/arcgis/geocode_farm
         "geolocation_provider": "auto",
