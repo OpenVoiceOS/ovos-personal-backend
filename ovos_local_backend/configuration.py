@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
     "stt": {
         "module": "ovos-stt-plugin-server",
         "ovos-stt-plugin-server": {
-            "url": "https://stt.openvoiceos.com/stt"
+            "url": "https://stt.openvoiceos.org/stt"
         }
     },
     "backend_port": 6712,
@@ -177,12 +177,9 @@ DEFAULT_CONFIG = {
     "record_utterances": False,
     "record_wakewords": False,
     "microservices": {
-        # if query fail, attempt to use free ovos services
-        "ovos_fallback": True,
-        # backend can be auto/local/ovos
-        # auto == attempt local -> ovos
-        "wolfram_provider": "auto",
-        "weather_provider": "auto",
+        # wolfram / weather for backwards compat only
+        "wolfram_provider": "wolfram",  # TODO - persona api spoken answers instead
+        "weather_provider": "owm",  # TODO - open meteo like in weather skill
         # auto == OpenStreetMap default
         # valid - osm/arcgis/geocode_farm
         "geolocation_provider": "auto",
