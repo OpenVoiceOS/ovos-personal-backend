@@ -55,12 +55,13 @@ configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
   },
 
   "server": {
+    "admin_key": "",
     "port": 6712,
     "database": "sqlite:////home/user/.local/share/ovos_backend.db",
+    "skip_auth": false,
     "geolocate": true,
     "override_location": false,
-    "skip_auth": false,
-    "api_version": "v1"
+    "version": "v1"
   },
 
   "listener": {
@@ -81,7 +82,6 @@ configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
        }
     }
   }
-
 
 }
 ```

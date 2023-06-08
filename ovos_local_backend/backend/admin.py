@@ -20,9 +20,20 @@ from ovos_local_backend.backend.decorators import noindex, requires_admin
 from ovos_local_backend.utils import generate_code
 from ovos_local_backend.utils import nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
+from ovos_config import LocalConf, USER_CONFIG
 
 
 def get_admin_routes(app):
+
+    @app.route("/" + API_VERSION + "/admin/config", methods=['POST'])
+    @requires_admin
+    @noindex
+    def update_config():
+        cfg = LocalConf(USER_CONFIG)
+        cfg.merge(flask.request.json["config"])
+        cfg.store()
+        return nice_json(cfg)
+
     @app.route("/" + API_VERSION + "/admin/<uuid>/pair", methods=['GET'])
     @requires_admin
     @noindex
