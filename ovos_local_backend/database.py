@@ -4,25 +4,28 @@ import time
 from copy import deepcopy
 
 from flask_sqlalchemy import SQLAlchemy
+from ovos_config import Configuration
 from ovos_plugin_manager.tts import get_voice_id
 from ovos_plugin_manager.wakewords import get_ww_id
+from ovos_utils.xdg_utils import xdg_data_home
 from sqlalchemy_json import NestedMutableJson
-
-from ovos_local_backend.configuration import CONFIGURATION
 
 # create the extension
 db = SQLAlchemy()
 
-_mail_cfg = CONFIGURATION.get("email", {})
-_loc = CONFIGURATION["default_location"]
+_cfg = Configuration()
+_mail_cfg = _cfg["microservices"]["email"]
+_loc = _cfg["location"]
 
-_tts_plug = CONFIGURATION.get("default_tts")
-_tts_config = CONFIGURATION["tts_configs"][_tts_plug]
-_default_voice_id = get_voice_id(_tts_plug, CONFIGURATION["lang"], _tts_config)
+# TODO - scan opm voice XDG path, 1 .json file per voice
+# like https://github.com/OpenVoiceOS/ovos-ww-auto-synth-dataset/tree/dev/tts_voices
+_tts_plug = _cfg["tts"]["module"]
+_tts_config = _cfg["tts"][_tts_plug]
+_default_voice_id = get_voice_id(_tts_plug, _cfg["lang"], _tts_config)
 
-_default_ww = CONFIGURATION["default_ww"]
-_ww_module = CONFIGURATION["ww_configs"][_default_ww]["module"]
-_ww_config = CONFIGURATION["ww_configs"][_default_ww]
+_default_ww = _cfg["listener"]["wake_word"]
+_ww_module = _cfg["hotwords"][_default_ww]["module"]
+_ww_config = _cfg["hotwords"][_default_ww]
 _default_ww_id = get_ww_id(_ww_module, _default_ww, _ww_config)
 
 
@@ -31,7 +34,9 @@ def connect_db(app):
 
     # "mysql+mysqldb://scott:tiger@192.168.0.134/test?ssl_ca=/path/to/ca.pem&ssl_cert=/path/to/client-cert.pem&ssl_key=/path/to/client-key.pem"
     # "sqlite:///ovos_backend.db"
-    app.config["SQLALCHEMY_DATABASE_URI"] = CONFIGURATION["database"]
+    app.config["SQLALCHEMY_DATABASE_URI"] = _cfg["server"].get("database") or \
+                                            f"sqlite:///{xdg_data_home()}/ovos_backend.db"
+    print(f"sqlite:///{xdg_data_home()}/ovos_backend.db")
     # initialize the app with the extension
     db.init_app(app)
 
@@ -125,10 +130,10 @@ class Device(db.Model):
     # for sending email api, not registering
     email = db.Column(db.String(100), default=_mail_cfg.get("recipient") or _mail_cfg.get("smtp", {}).get("username"))
     # remote mycroft.conf settings
-    date_fmt = db.Column(db.String(5), default=CONFIGURATION.get("date_format", "DMY"))
-    time_fmt = db.Column(db.String(5), default=CONFIGURATION.get("time_format", "full"))
-    system_unit = db.Column(db.String(10), default=CONFIGURATION.get("system_unit", "metric"))
-    lang = db.Column(db.String(5), default=CONFIGURATION.get("lang", "en-us"))
+    date_fmt = db.Column(db.String(5), default=_cfg.get("date_format", "DMY"))
+    time_fmt = db.Column(db.String(5), default=_cfg.get("time_format", "full"))
+    system_unit = db.Column(db.String(10), default=_cfg.get("system_unit", "metric"))
+    lang = db.Column(db.String(5), default=_cfg.get("lang", "en-us"))
 
     # location fields, explicit so we can query them
     city = db.Column(db.String(length=50), default=_loc["city"]["name"])
@@ -226,7 +231,7 @@ class Device(db.Model):
         if isinstance(data, str):
             data = json.loads(data)
 
-        lang = data.get("lang") or CONFIGURATION.get("lang") or "en-us"
+        lang = data.get("lang") or _cfg.get("lang") or "en-us"
 
         voice_id = None
         tts_module = data.get("default_tts")
@@ -249,7 +254,7 @@ class Device(db.Model):
 
         return update_device(uuid=data["uuid"],
                              token=data["token"],
-                             lang=data.get("lang") or CONFIGURATION.get("lang") or "en-us",
+                             lang=data.get("lang") or _cfg.get("lang") or "en-us",
                              placement=data.get("device_location") or "somewhere",
                              name=data.get("name") or f"Device-{data['uuid']}",
                              isolated_skills=data.get("isolated_skills", False),
@@ -263,9 +268,9 @@ class Device(db.Model):
                              tz_name=loc["timezone"]["name"],
                              tz_code=loc["timezone"]["code"],
                              opt_in=data.get("opt_in"),
-                             system_unit=data.get("system_unit") or CONFIGURATION.get("system_unit") or "metric",
-                             date_fmt=data.get("date_format") or CONFIGURATION.get("date_format") or "DMY",
-                             time_fmt=data.get("time_format") or CONFIGURATION.get("time_format") or "full",
+                             system_unit=data.get("system_unit") or _cfg.get("system_unit") or "metric",
+                             date_fmt=data.get("date_format") or _cfg.get("date_format") or "DMY",
+                             time_fmt=data.get("time_format") or _cfg.get("time_format") or "full",
                              email=email,
                              ww_id=ww_id,
                              voice_id=voice_id)
@@ -302,7 +307,7 @@ class Device(db.Model):
             "time_format": self.time_fmt,
             "date_format": self.date_fmt,
             "system_unit": self.system_unit,
-            "lang": self.lang or CONFIGURATION.get("lang") or "en-us",
+            "lang": self.lang or _cfg.get("lang") or "en-us",
             "location": self.location_json,
             "default_tts": default_tts,
             "default_tts_cfg": default_tts_cfg,
@@ -574,7 +579,7 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
                location=None, lang=None, date_format=None, system_unit=None,
                time_format=None, email=None, isolated_skills=False,
                ww_id=None, voice_id=None):
-    lang = lang or CONFIGURATION.get("lang") or "en-us"
+    lang = lang or _cfg.get("lang") or "en-us"
 
     email = email or \
             _mail_cfg.get("recipient") or \
@@ -597,9 +602,9 @@ def add_device(uuid, token, name=None, device_location="somewhere", opt_in=False
                    tz_name=loc["timezone"]["name"],
                    tz_code=loc["timezone"]["code"],
                    opt_in=opt_in,
-                   system_unit=system_unit or CONFIGURATION.get("system_unit") or "metric",
-                   date_fmt=date_format or CONFIGURATION.get("date_format") or "DMY",
-                   time_fmt=time_format or CONFIGURATION.get("time_format") or "full",
+                   system_unit=system_unit or _cfg.get("system_unit") or "metric",
+                   date_fmt=date_format or _cfg.get("date_format") or "DMY",
+                   time_fmt=time_format or _cfg.get("time_format") or "full",
                    email=email,
                    ww_id=ww_id,
                    voice_id=voice_id)
@@ -662,8 +667,8 @@ def update_device(uuid, **kwargs):
         tts_plug = kwargs["tts_module"]
         if "tts_config" in kwargs:
             tts_config = kwargs["tts_config"]
-        elif tts_plug in CONFIGURATION["tts_configs"]:
-            tts_config = CONFIGURATION["tts_configs"][tts_plug]
+        elif tts_plug in _cfg["tts"]:
+            tts_config = _cfg["tts"][tts_plug]
         else:
             tts_config = {}
         voice_id = get_voice_id(tts_plug, device.lang, tts_config)
@@ -678,8 +683,8 @@ def update_device(uuid, **kwargs):
         ww_module = kwargs["ww_module"]
         if "ww_config" in kwargs:
             ww_config = kwargs["ww_config"]
-        elif default_ww in CONFIGURATION["ww_configs"]:
-            ww_config = CONFIGURATION["ww_configs"][default_ww]
+        elif default_ww in _cfg["hotwords"]:
+            ww_config = _cfg["hotwords"][default_ww]
         else:
             ww_config = {}
         ww_id = get_ww_id(ww_module, default_ww, ww_config)

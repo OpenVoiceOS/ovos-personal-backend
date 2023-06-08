@@ -1,12 +1,13 @@
 from ovos_local_backend.backend import start_backend
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
+
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--flask-port", help="Mock backend port number",
-                        default=CONFIGURATION["backend_port"])
+                        default=Configuration()["server"].get("port", 6712))
     parser.add_argument("--flask-host", help="Mock backend host",
                         default="127.0.0.1")
     args = parser.parse_args()

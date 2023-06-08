@@ -1,12 +1,10 @@
 # OVOS Personal Backend
 
-Personal mycroft backend alternative to mycroft.home, written in flask
+Personal backend for OpenVoiceOS, written in flask
 
-This repo is an alternative to the backend meant for personal usage, this allows you to run without mycroft servers
+This allows you to manage multiple devices from a single location
 
 :warning: there are no user accounts :warning:
-
-This is NOT meant to provision third party devices, but rather to run on the mycroft devices directly or on a private network
 
 Documentation can be found at https://openvoiceos.github.io/community-docs/personal_backend
 
@@ -29,46 +27,66 @@ pip install ovos-local-backend
 
 - [ovos-backend-client](https://github.com/OpenVoiceOS/ovos-backend-client) - reference python library to interact with backend
 - [ovos-backend-manager](https://github.com/OpenVoiceOS/ovos-backend-manager) - graphical interface to manage all things backend
-- [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend
+- [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend (DEPRECATED)
 
 
 ## Configuration
 
-configure backend by editing/creating ```~/.config/json_database/ovos_backend.json```
+the backend shares the same mycroft.conf has the rest of the OVOS ecosystem
 
-see default values [here](./ovos_local_backend/configuration.py)
+configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
+
 
 ```json
 {
-  "stt": {
-    "module": "ovos-stt-plugin-server",
-    "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.com/stt"}
-  },
-  "backend_port": 6712,
-  "geolocate": true,
-  "override_location": false,
-  "api_version": "v1",
-  "data_path": "~",
-  "record_utterances": false,
-  "record_wakewords": false,
-  "wolfram_key": "$KEY",
-  "owm_key": "$KEY",
   "lang": "en-us",
   "date_format": "DMY",
   "system_unit": "metric",
   "time_format": "full",
-  "default_location": {
+  "location": {
     "city": {"...": "..."},
     "coordinate": {"...": "..."},
     "timezone": {"...": "..."}
+  },
+
+  "stt": {
+    "module": "ovos-stt-plugin-server",
+    "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.org/stt"}
+  },
+
+  "server": {
+    "port": 6712,
+    "database": "sqlite:////home/user/.local/share/ovos_backend.db",
+    "geolocate": true,
+    "override_location": false,
+    "api_version": "v1"
+  },
+
+  "listener": {
+     "record_utterances": false,
+     "record_wakewords": false
+  },
+
+  "microservices": {
+    "wolfram_key": "$KEY",
+    "owm_key": "$KEY",
+    "email": {
+       "recipient": "",
+       "smtp": {
+            "username": "",
+            "password": "",
+            "host": "smtp.mailprovider.com",
+            "port": 465
+       }
+    }
   }
+
+
 }
 ```
 
-- stt config follows the same format of mycroft.conf and
-  uses [ovos-plugin-manager](https://github.com/OpenVoiceOS/OVOS-plugin-manager)
-- set wolfram alpha key for wolfram alpha proxy expected by official mycroft skill
-- set open weather map key for weather proxy expected by official mycroft skill
+database can be sqlite or mysql
+eg. `mysql+mysqldb://scott:tiger@192.168.0.134/test?ssl_ca=/path/to/ca.pem&ssl_cert=/path/to/client-cert.pem&ssl_key=/path/to/client-key.pem`
 
 
 ## Docker

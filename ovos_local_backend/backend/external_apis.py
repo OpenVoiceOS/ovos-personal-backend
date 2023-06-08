@@ -2,7 +2,7 @@ import flask
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 from ovos_local_backend.database import get_device
 from ovos_local_backend.utils import dict_to_camel_case, ExternalApiManager
 
@@ -13,7 +13,7 @@ def _get_lang():
     device = get_device(uid)
     if device:
         return device.lang
-    return CONFIGURATION.get("lang", "en-us")
+    return Configuration().get("lang", "en-us")
 
 
 def _get_units():
@@ -22,7 +22,7 @@ def _get_units():
     device = get_device(uid)
     if device:
         return device.system_unit
-    return CONFIGURATION.get("system_unit", "metric")
+    return Configuration().get("system_unit", "metric")
 
 
 def _get_latlon():
@@ -32,7 +32,7 @@ def _get_latlon():
     if device:
         loc = device.location_json
     else:
-        loc = CONFIGURATION["default_location"]
+        loc = Configuration()["location"]
     lat = loc["coordinate"]["latitude"]
     lon = loc["coordinate"]["longitude"]
     return lat, lon

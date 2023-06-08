@@ -17,11 +17,11 @@ import flask
 import ovos_local_backend.database as db
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
-from ovos_local_backend.configuration import CONFIGURATION
 from ovos_local_backend.database import SkillSettings
 from ovos_local_backend.utils import generate_code, nice_json
 from ovos_local_backend.utils.geolocate import get_request_location
 from ovos_local_backend.utils.mail import send_email
+from ovos_config import Configuration
 
 
 @requires_opt_in
@@ -164,7 +164,7 @@ def get_device_routes(app):
         try:
             location = get_request_location()
         except:
-            location = CONFIGURATION["default_location"]
+            location = Configuration()["location"]
         db.add_device(uuid, token, location=location)
 
         device = {"uuid": uuid,

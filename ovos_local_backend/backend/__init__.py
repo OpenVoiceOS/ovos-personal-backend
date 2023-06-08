@@ -12,10 +12,10 @@
 #
 
 from flask import Flask
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 from ovos_local_backend.database import connect_db
 
-API_VERSION = CONFIGURATION["api_version"]
+API_VERSION = Configuration()["server"]["version"]
 
 
 def create_app():
@@ -53,7 +53,7 @@ def create_app():
     return app
 
 
-def start_backend(port=CONFIGURATION["backend_port"], host="127.0.0.1"):
+def start_backend(port=Configuration()["server"].get("port", 6712), host="127.0.0.1"):
     app = create_app()
     app.run(port=port, use_reloader=False, host=host)
     return app

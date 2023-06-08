@@ -17,12 +17,12 @@ import flask
 from speech_recognition import Recognizer, AudioFile
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth, requires_opt_in
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 from ovos_local_backend.database import add_stt_recording
 from ovos_plugin_manager.stt import OVOSSTTFactory
 
 recognizer = Recognizer()
-engine = OVOSSTTFactory.create(CONFIGURATION["stt"])
+engine = OVOSSTTFactory.create(Configuration()["stt"])
 
 
 @requires_opt_in
@@ -47,7 +47,9 @@ def get_stt_routes(app):
             except:
                 utterance = ""
 
-        if CONFIGURATION["record_utterances"]:
+        allowed = Configuration()["listener"].get("record_utterances") or \
+                  Configuration()["listener"].get("save_utterances")  # backwards compat
+        if allowed:
             auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = auth.split(":")[-1]  # this split is only valid here, not selene
             save_stt_recording(uuid, audio, utterance)
