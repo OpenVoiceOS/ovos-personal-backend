@@ -59,6 +59,7 @@ configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
     "database": "sqlite:////home/user/.local/share/ovos_backend.db",
     "geolocate": true,
     "override_location": false,
+    "skip_auth": false,
     "api_version": "v1"
   },
 
