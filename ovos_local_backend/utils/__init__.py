@@ -16,7 +16,7 @@ import random
 import flask
 
 from ovos_backend_client.api import WolframAlphaApi, OpenWeatherMapApi, BackendType, GeolocationApi
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 
 
 def generate_code():
@@ -58,8 +58,8 @@ def dict_to_camel_case(data):
 
 class ExternalApiManager:
     def __init__(self):
-        self.config = CONFIGURATION.get("microservices", {})
-        self.units = CONFIGURATION["system_unit"]
+        self.config = Configuration().get("microservices", {})
+        self.units = Configuration()["system_unit"]
 
         self.wolfram_key = self.config.get("wolfram_key")
         self.owm_key = self.config.get("owm_key")

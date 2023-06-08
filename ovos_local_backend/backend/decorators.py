@@ -13,7 +13,7 @@
 from functools import wraps
 from flask import Response
 import flask
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 
 
 def check_auth(uid, token):
@@ -45,7 +45,7 @@ def requires_auth(f):
     def decorated(*args, **kwargs):
         # skip_auth option is usually unsafe
         # use cases such as docker or ovos-qubes can not share a identity file between devices
-        if not CONFIGURATION.get("skip_auth"):
+        if not Configuration()["server"].get("skip_auth"):
             auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
             uuid = kwargs.get("uuid") or auth.split(":")[-1]  # this split is only valid here, not selene
             if not auth or not uuid or not check_auth(uuid, auth):
@@ -61,7 +61,7 @@ def requires_auth(f):
 def requires_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        admin_key = CONFIGURATION.get("admin_key")
+        admin_key = Configuration()["server"].get("admin_key")
         auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         if not auth or not admin_key or auth != admin_key:
             return Response(

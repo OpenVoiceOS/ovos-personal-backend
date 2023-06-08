@@ -1,9 +1,9 @@
-from ovos_local_backend.configuration import CONFIGURATION
+from ovos_config import Configuration
 from ovos_utils.smtp_utils import send_smtp
 
 
 def send_email(subject, body, recipient=None):
-    mail_config = CONFIGURATION["email"]
+    mail_config = Configuration()["microservices"]["email"]
 
     smtp_config = mail_config["smtp"]
     user = smtp_config["username"]
