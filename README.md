@@ -36,6 +36,7 @@ the backend shares the same mycroft.conf has the rest of the OVOS ecosystem
 
 configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
 
+
 ```json
 {
   "lang": "en-us",
@@ -55,6 +56,7 @@ configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
 
   "server": {
     "port": 6712,
+    "database": "sqlite:////home/user/.local/share/ovos_backend.db",
     "geolocate": true,
     "override_location": false,
     "api_version": "v1"
@@ -82,6 +84,10 @@ configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
 
 }
 ```
+
+database can be sqlite or mysql
+eg. `mysql+mysqldb://scott:tiger@192.168.0.134/test?ssl_ca=/path/to/ca.pem&ssl_cert=/path/to/client-cert.pem&ssl_key=/path/to/client-key.pem`
+
 
 ## Docker
 

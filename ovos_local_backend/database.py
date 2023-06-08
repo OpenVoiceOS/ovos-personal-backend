@@ -4,10 +4,11 @@ import time
 from copy import deepcopy
 
 from flask_sqlalchemy import SQLAlchemy
+from ovos_config import Configuration
 from ovos_plugin_manager.tts import get_voice_id
 from ovos_plugin_manager.wakewords import get_ww_id
+from ovos_utils.xdg_utils import xdg_data_home
 from sqlalchemy_json import NestedMutableJson
-from ovos_config import Configuration
 
 # create the extension
 db = SQLAlchemy()
@@ -33,7 +34,9 @@ def connect_db(app):
 
     # "mysql+mysqldb://scott:tiger@192.168.0.134/test?ssl_ca=/path/to/ca.pem&ssl_cert=/path/to/client-cert.pem&ssl_key=/path/to/client-key.pem"
     # "sqlite:///ovos_backend.db"
-    app.config["SQLALCHEMY_DATABASE_URI"] = _cfg["server"]["database"]
+    app.config["SQLALCHEMY_DATABASE_URI"] = _cfg["server"].get("database") or \
+                                            f"sqlite:///{xdg_data_home()}/ovos_backend.db"
+    print(f"sqlite:///{xdg_data_home()}/ovos_backend.db")
     # initialize the app with the extension
     db.init_app(app)
 
