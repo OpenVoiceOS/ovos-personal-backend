@@ -296,8 +296,13 @@ def get_database_crud(app):
     @noindex
     def create_device():
         kwargs = flask.request.json
-        token = kwargs.pop("token")
         uuid = kwargs.pop("uuid")
+        entry = db.get_device(uuid)
+        if entry:
+            entry = db.update_device(uuid, **kwargs)
+            return entry.serialize()
+
+        token = kwargs.pop("token")
         entry = db.add_device(uuid, token, **kwargs)
         if not entry:
             return {"error": "entry not found"}
@@ -311,7 +316,7 @@ def get_database_crud(app):
         entries = db.list_devices()
         return [e.serialize() for e in entries]
 
-    @app.route("/" + API_VERSION + "/admin/device/<uuid>",
+    @app.route("/" + API_VERSION + "/admin/devices/<uuid>",
                methods=['GET', "PUT", "DELETE"])
     @requires_admin
     @noindex

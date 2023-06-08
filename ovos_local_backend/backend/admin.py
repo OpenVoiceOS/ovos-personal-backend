@@ -30,8 +30,12 @@ def get_admin_routes(app):
         code = generate_code()
         token = f"{code}:{uuid}"
         # add device to db
-        location = get_request_location()
-        db.add_device(uuid, token, location=location)
+        entry = db.get_device(uuid)
+        if not entry:
+            location = get_request_location()
+            db.add_device(uuid, token, location=location)
+        else:
+            db.update_device(uuid, token=token)
 
         device = {"uuid": uuid,
                   "expires_at": time.time() + 99999999999999,
