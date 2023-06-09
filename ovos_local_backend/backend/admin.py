@@ -34,6 +34,7 @@ def get_admin_routes(app):
         cfg = LocalConf(USER_CONFIG)
         cfg.merge(flask.request.json["config"])
         cfg.store()
+        Configuration.reload()
         return nice_json(cfg)
 
     @app.route("/" + API_VERSION + "/admin/<uuid>/pair", methods=['GET'])
