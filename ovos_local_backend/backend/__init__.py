@@ -45,9 +45,8 @@ def create_app():
     @noindex
     def hello():
         return nice_json({
-            "message": "Welcome to Mock Mycroft Backend",
-            "donate": "https://liberapay.com/jarbasAI",
-            "author": "JarbasAI"
+            "message": "Welcome to OpenVoiceOS personal backend",
+            "donate": "https://openvoiceos.org"
         })
 
     return app

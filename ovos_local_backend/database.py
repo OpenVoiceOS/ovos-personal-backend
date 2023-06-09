@@ -16,17 +16,8 @@ db = SQLAlchemy()
 _cfg = Configuration()
 _mail_cfg = _cfg["microservices"]["email"]
 _loc = _cfg["location"]
-
-# TODO - scan opm voice XDG path, 1 .json file per voice
-# like https://github.com/OpenVoiceOS/ovos-ww-auto-synth-dataset/tree/dev/tts_voices
-_tts_plug = _cfg["tts"]["module"]
-_tts_config = _cfg["tts"][_tts_plug]
-_default_voice_id = get_voice_id(_tts_plug, _cfg["lang"], _tts_config)
-
-_default_ww = _cfg["listener"]["wake_word"]
-_ww_module = _cfg["hotwords"][_default_ww]["module"]
-_ww_config = _cfg["hotwords"][_default_ww]
-_default_ww_id = get_ww_id(_ww_module, _default_ww, _ww_config)
+_default_voice_id = _cfg["default_values"]["voice_id"]
+_default_ww_id = _cfg["default_values"]["ww_id"]
 
 
 def connect_db(app):

@@ -32,9 +32,7 @@ pip install ovos-local-backend
 
 ## Configuration
 
-the backend shares the same mycroft.conf has the rest of the OVOS ecosystem
-
-configure backend by editing/creating ```~/.config/mycroft/mycroft.conf```
+configure backend by editing/creating ```~/.config/mycroft/ovos_backend.conf```
 
 
 ```json
