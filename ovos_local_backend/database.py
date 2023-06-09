@@ -224,18 +224,20 @@ class Device(db.Model):
 
         lang = data.get("lang") or _cfg.get("lang") or "en-us"
 
-        voice_id = None
-        tts_module = data.get("default_tts")
-        tts_config = data.get("default_tts_cfg") or {}
-        if tts_module:
-            voice_id = get_voice_id(tts_module, lang, tts_config)
+        voice_id = data.get("voice_id")
+        if not voice_id:
+            tts_module = data.get("default_tts")
+            tts_config = data.get("default_tts_cfg") or {}
+            if tts_module:
+                voice_id = get_voice_id(tts_module, lang, tts_config)
 
-        ww_id = None
-        ww_name = data.get("default_ww")
-        ww_config = data.get("default_ww_cfg") or {}
-        ww_module = ww_config.get("module")
-        if ww_module:
-            ww_id = get_ww_id(ww_module, ww_name, ww_config)
+        ww_id = data.get("ww_id")
+        if not ww_id:
+            ww_name = data.get("default_ww")
+            ww_config = data.get("default_ww_cfg") or {}
+            ww_module = ww_config.get("module")
+            if ww_module:
+                ww_id = get_ww_id(ww_module, ww_name, ww_config)
 
         loc = data.get("location") or _loc
 
@@ -271,22 +273,6 @@ class Device(db.Model):
                 _mail_cfg.get("recipient") or \
                 _mail_cfg.get("smtp", {}).get("username")
 
-        default_tts = None
-        default_tts_cfg = {}
-        if self.voice_id:
-            voice: VoiceDefinition = get_voice_definition(self.voice_id)
-            if voice:
-                default_tts_cfg = voice.tts_config
-                default_tts = voice.plugin
-
-        default_ww = None
-        default_ww_cfg = {}
-        if self.ww_id:
-            ww: WakeWordDefinition = get_wakeword_definition(self.ww_id)
-            if ww:
-                default_ww_cfg = ww.ww_config
-                default_ww = ww.name
-
         return {
             "uuid": self.uuid,
             "token": self.token,
@@ -300,10 +286,8 @@ class Device(db.Model):
             "system_unit": self.system_unit,
             "lang": self.lang or _cfg.get("lang") or "en-us",
             "location": self.location_json,
-            "default_tts": default_tts,
-            "default_tts_cfg": default_tts_cfg,
-            "default_ww": default_ww,
-            "default_ww_cfg": default_ww_cfg
+            "voice_id": self.voice_id,
+            "ww_id": self.ww_id
         }
 
 
