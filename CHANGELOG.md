@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a13...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a14...HEAD)
+
+**Breaking changes:**
+
+- refactor/stt - deprecate OPM -\> ovos-stt-server only [\#68](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/68) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.2.0a14](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a14) (2023-06-09)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a13...V0.2.0a14)
 
 **Breaking changes:**
 
