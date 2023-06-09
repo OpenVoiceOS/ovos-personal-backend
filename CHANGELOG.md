@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a12...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a13...HEAD)
+
+**Breaking changes:**
+
+- feat/own config file [\#67](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/67) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.2.0a13](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a13) (2023-06-08)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a12...V0.2.0a13)
 
 **Implemented enhancements:**
 
