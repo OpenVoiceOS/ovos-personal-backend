@@ -29,6 +29,8 @@ pip install ovos-local-backend
 - [ovos-backend-manager](https://github.com/OpenVoiceOS/ovos-backend-manager) - graphical interface to manage all things backend
 - [ovos-stt-plugin-selene](https://github.com/OpenVoiceOS/ovos-stt-plugin-selene) - stt plugin for selene/local backend (DEPRECATED)
 
+You can use this backend as a STT server proxy via [ovos-stt-plugin-server](https://github.com/OpenVoiceOS/ovos-stt-plugin-server), eg `https://your_backend.org/stt`
+
 
 ## Configuration
 
@@ -47,13 +49,10 @@ configure backend by editing/creating ```~/.config/mycroft/ovos_backend.conf```
     "timezone": {"...": "..."}
   },
 
-  "stt": {
-    "module": "ovos-stt-plugin-server",
-    "ovos-stt-plugin-server": {"url": "https://stt.openvoiceos.org/stt"}
-  },
+  "stt_servers": ["https://stt.openvoiceos.org/stt"],
 
   "server": {
-    "admin_key": "",
+    "admin_key": "leave empty to DISABLE admin api",
     "port": 6712,
     "database": "sqlite:////home/user/.local/share/ovos_backend.db",
     "skip_auth": false,
