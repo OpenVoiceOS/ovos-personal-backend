@@ -1,4 +1,4 @@
-from ovos_local_backend.backend import start_backend
+from ovos_local_backend import start_backend
 from ovos_config import Configuration
 
 
