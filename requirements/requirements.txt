@@ -10,3 +10,5 @@ requests_cache
 oauthlib~=3.0
 Flask-SQLAlchemy
 sqlalchemy-json
+ovos-config>=0.0.10
+
