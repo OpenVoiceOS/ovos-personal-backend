@@ -20,7 +20,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from ovos_local_backend.backend import API_VERSION
 from ovos_local_backend.backend.decorators import noindex, requires_auth
-from ovos_local_backend.database import add_oauth_application, add_oauth_token, get_oauth_application, get_oauth_token
+from ovos_local_backend.database import update_oauth_application, add_oauth_token, get_oauth_application, get_oauth_token
 
 from ovos_local_backend.utils import nice_json
 
@@ -66,7 +66,8 @@ def get_auth_routes(app):
             redirect_uri=callback_endpoint,
             scope=params["scope"],
         )
-        add_oauth_application(token_id=token_id,
+
+        update_oauth_application(token_id=token_id,
                                  client_id=params["client_id"],
                                  client_secret=params["client_secret"],
                                  auth_endpoint=params["auth_endpoint"],
