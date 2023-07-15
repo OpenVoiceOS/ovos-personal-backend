@@ -59,7 +59,7 @@ def get_auth_routes(app):
             token_id = oauth_id
 
         params = dict(flask.request.args)
-        callback_endpoint = f"{flask.request.base_url}{API_VERSION}/auth/callback/{token_id}"
+        callback_endpoint = f"{flask.request.host_url}{API_VERSION}/auth/callback/{token_id}"
         client = WebApplicationClient(params["client_id"])
         request_uri = client.prepare_request_uri(
             params["auth_endpoint"],
