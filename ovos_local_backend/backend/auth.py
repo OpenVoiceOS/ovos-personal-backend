@@ -87,9 +87,9 @@ def get_auth_routes(app):
         code = params["code"]
 
         data = get_oauth_application(token_id)
-        client_id = data["client_id"]
-        client_secret = data["client_secret"]
-        token_endpoint = data["token_endpoint"]
+        client_id = data.client_id
+        client_secret = data.client_secret
+        token_endpoint = data.token_endpoint
 
         # Prepare and send a request to get tokens! Yay tokens!
         client = WebApplicationClient(client_id)
