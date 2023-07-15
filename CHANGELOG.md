@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a17...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a18...HEAD)
+
+**Merged pull requests:**
+
+- Readme: Correct path for config [\#70](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/70) ([forslund](https://github.com/forslund))
+
+## [V0.2.0a18](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a18) (2023-06-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a17...V0.2.0a18)
 
 **Fixed bugs:**
 
