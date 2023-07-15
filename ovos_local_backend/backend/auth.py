@@ -47,32 +47,33 @@ def get_auth_routes(app):
     @app.route(f"/{API_VERSION}/auth/<oauth_id>/auth_url", methods=['GET'])
     @requires_auth
     @noindex
-    def oauth_url(oauth_id):
+    def register_oauth_application(oauth_id):
         """ send auth url to user to confirm authorization,
         once user opens it callback is triggered
         """
         auth = flask.request.headers.get('Authorization', '').replace("Bearer ", "")
         uid = auth.split(":")[-1]
-        token_id = f"{uid}|{oauth_id}"
+        if uid != '':
+            token_id = f"{uid}|{oauth_id}"
+        else:
+            token_id = oauth_id
 
         params = dict(flask.request.args)
-        params["callback_endpoint"] = flask.request.base_url + f"/{API_VERSION}/auth/callback/{token_id}"
-
+        callback_endpoint = f"{flask.request.base_url}{API_VERSION}/auth/callback/{token_id}"
         client = WebApplicationClient(params["client_id"])
         request_uri = client.prepare_request_uri(
             params["auth_endpoint"],
-            redirect_uri=params["callback_endpoint"],
+            redirect_uri=callback_endpoint,
             scope=params["scope"],
         )
-
         add_oauth_application(token_id=token_id,
-                               client_id=params["client_id"],
-                               client_secret=params["client_secret"],
-                               auth_endpoint=params["auth_endpoint"],
-                               token_endpoint=params["token_endpoint"],
-                               refresh_endpoint=params["refresh_endpoint"],
-                               callback_endpoint=params["callback_endpoint"],
-                               scope=params["scope"])
+                                 client_id=params["client_id"],
+                                 client_secret=params["client_secret"],
+                                 auth_endpoint=params["auth_endpoint"],
+                                 token_endpoint=params["token_endpoint"],
+                                 refresh_endpoint=params["refresh_endpoint"],
+                                 callback_endpoint=callback_endpoint,
+                              scope=params["scope"])
 
         return request_uri, 200
 
