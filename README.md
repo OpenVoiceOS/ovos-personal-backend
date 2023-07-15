@@ -34,7 +34,7 @@ You can use this backend as a STT server proxy via [ovos-stt-plugin-server](http
 
 ## Configuration
 
-configure backend by editing/creating ```~/.config/mycroft/ovos_backend.conf```
+configure backend by editing/creating ```~/.config/ovos_backend/ovos_backend.conf```
 
 
 ```json
