@@ -83,6 +83,7 @@ class VoiceDefinition(db.Model):
 
     def serialize(self):
         return {
+            "name": self.name,
             "voice_id": self.voice_id,
             "lang": self.lang,
             "plugin": self.plugin,
