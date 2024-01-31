@@ -7,7 +7,7 @@ ovos-plugin-manager>=0.0.23a3
 ovos-backend-client~=0.1
 ovos-stt-plugin-server
 requests_cache
-oauthlib~=3.0
+oauthlib~=3.2
 Flask-SQLAlchemy
 sqlalchemy-json
 ovos-config>=0.0.10
