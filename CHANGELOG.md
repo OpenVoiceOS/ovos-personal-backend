@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a20...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a21...HEAD)
+
+**Merged pull requests:**
+
+- Update oauthlib requirement from ~=3.0 to ~=3.2 in /requirements [\#74](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/74) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [V0.2.0a21](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a21) (2024-01-31)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-personal-backend/compare/V0.2.0a20...V0.2.0a21)
 
 **Closed issues:**
 
@@ -11,7 +19,6 @@
 **Merged pull requests:**
 
 - Update ovos-backend-client requirement from \>=0.0.6a10,~=0.0 to ~=0.1 in /requirements [\#75](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/75) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Update oauthlib requirement from ~=3.0 to ~=3.2 in /requirements [\#74](https://github.com/OpenVoiceOS/ovos-personal-backend/pull/74) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [V0.2.0a20](https://github.com/OpenVoiceOS/ovos-personal-backend/tree/V0.2.0a20) (2023-08-29)
 
