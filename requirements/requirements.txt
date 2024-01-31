@@ -2,8 +2,8 @@ Flask>=0.12
 json_database~=0.7
 requests>=2.26.0
 pyOpenSSL
-ovos-utils>=0.0.25a7
-ovos-plugin-manager>=0.0.23a3
+ovos-utils>=0.0.25
+ovos-plugin-manager>=0.0.23
 ovos-backend-client~=0.1
 ovos-stt-plugin-server
 requests_cache
